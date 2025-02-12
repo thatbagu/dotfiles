@@ -1,4 +1,4 @@
-{ config, lib, inputs, ... }: {
+{ ... }: {
   imports = [ ../../modules/home/default.nix ];
   config.modules = {
     # GUI Applications

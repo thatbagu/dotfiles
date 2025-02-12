@@ -5,6 +5,11 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     stylix.url = "github:danth/stylix";
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -31,8 +36,8 @@
     };
   };
 
-  outputs =
-    { home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin, ... }@inputs:
+  outputs = { home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin, disko
+    , ... }@inputs:
     let
       mkSystem = pkgs: system: hostname: username:
         let
@@ -54,6 +59,7 @@
             (./. + "/hosts/${hostname}/hardware-configuration.nix")
             stylix.nixosModules.stylix
             sops-nix.nixosModules.sops
+            disko.nixosModules.disko
           ];
         in systemFunc {
           inherit system;
