@@ -1,18 +1,24 @@
 { inputs, lib, config, pkgs, ... }:
 with lib;
-let cfg = config.modules.firefox;
+let
+  cfg = config.modules.firefox;
+  isDarwin = pkgs.stdenv.isDarwin;
+  browserPkg = if isDarwin then pkgs.firefox-bin else pkgs.firefox;
 
 in {
   options.modules.firefox = { enable = mkEnableOption "firefox"; };
   config = mkIf cfg.enable {
     programs.firefox = {
       enable = true;
-      package = pkgs.firefox.override {
-        extraNativeMessagingHosts = [ pkgs.tridactyl-native ];
-      };
+      package = if isDarwin then
+        browserPkg
+      else
+        browserPkg.override {
+          extraNativeMessagingHosts = [ pkgs.tridactyl-native ];
+        };
       profiles.${config.home.username} = {
         isDefault = true;
-        extensions = with inputs.firefox-addons.packages."x86_64-linux"; [
+        extensions = with inputs.firefox-addons.packages.${pkgs.system}; [
           bitwarden
           ublock-origin
           sponsorblock

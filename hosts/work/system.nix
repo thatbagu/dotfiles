@@ -1,5 +1,5 @@
 { config, lib, inputs, ... }: {
-  imports = [ ../../modules/system/configuration.nix ];
+  imports = [ ../../modules/system/darwin-configuration.nix ];
   config.modules = {
     sys-packages.enable = true;
     # steam.enable = true;
