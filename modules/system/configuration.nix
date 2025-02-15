@@ -2,45 +2,10 @@
 
 {
 
-  imports = [ ./steam ./packages ./stylix ./unifi ./sops ];
+  imports = [ ./steam ./packages ./stylix ./unifi ./sops ./desktop ];
 
-  # Remove unecessary preinstalled packages
+  # Remove unnecessary preinstalled packages
   environment.defaultPackages = [ ];
-  services.xserver.desktopManager.xterm.enable = false;
-
-  # Install fonts
-  fonts = {
-    packages = with pkgs; [
-      roboto
-      openmoji-color
-      nerd-fonts.jetbrains-mono
-      noto-fonts-cjk-sans
-    ];
-    fontconfig = {
-      enable = true;
-      hinting.autohint = true;
-      antialias = true;
-      hinting.enable = true;
-      defaultFonts = {
-        emoji = [ "OpenMoji Color" ];
-        monospace = [ "DejaVu Sans Mono" "Liberation Mono" ];
-        sansSerif = [ "DejaVu Sans" "Liberation Sans" ];
-        serif = [ "DejaVu Serif" "Liberation Serif" ];
-      };
-    };
-  };
-  # Wayland stuff: enable XDG integration, allow sway to use brillo
-  xdg = {
-    portal = {
-      enable = true;
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-wlr
-        xdg-desktop-portal-gtk
-      ];
-      # Add this new configuration for XDG portal
-      config = { common.default = "*"; };
-    };
-  };
 
   # Nix settings, auto cleanup and enable flakes
   nix = {
@@ -118,14 +83,9 @@
     XDG_DATA_HOME = "$HOME/.local/share";
     XDG_RUNTIME_DIR = "/run/user/1000";
     PASSWORD_STORE_DIR = "$HOME/.local/share/password-store";
-    GTK_RC_FILES = "$HOME/.local/share/gtk-1.0/gtkrc";
-    GTK2_RC_FILES = "$HOME/.local/share/gtk-2.0/gtkrc";
-    MOZ_ENABLE_WAYLAND = "1";
     ZK_NOTEBOOK_DIR = "$HOME/stuff/notes/";
     EDITOR = "nvim";
     DIRENV_LOG_FORMAT = "";
-    ANKI_WAYLAND = "1";
-    DISABLE_QT5_COMPAT = "0";
     ANTHROPIC_API_KEY_LOAD = config.sops.secrets.antropic_key.path;
     GITHUB_TOKEN_PATH = config.sops.secrets.github_token.path;
   };
@@ -146,31 +106,7 @@
     protectKernelImage = true;
   };
 
-  programs.dconf.enable = true;
-  security.rtkit.enable = true;
-
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    jack.enable = true; # Enable JACK support
-    wireplumber.enable = true; # Enable Wireplumber explicitly
-  };
-
-  # For battery support
-  services.upower.enable = true;
-
-  # For backlight control
-  programs.light.enable = true;
-
-  # Disable bluetooth, enable pulseaudio, enable opengl (for Wayland)
-  hardware = {
-    bluetooth.enable = true;
-    graphics = { # Changed from opengl to graphics
-      enable = true;
-      enable32Bit = true; # Changed from driSupport32Bit
-    };
-  };
+  # Bluetooth
+  hardware.bluetooth.enable = true;
   system.stateVersion = "24.05";
 }

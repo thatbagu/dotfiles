@@ -10,5 +10,6 @@
     stylix.enable = true;
     unifi.enable = true;
     sops.enable = true;
+    desktop.enable = true;
   };
 }

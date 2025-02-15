@@ -8,7 +8,6 @@
     hyprland.enable = true;
     fuzzel.enable = true;
     waybar.enable = true;
-    # obsidian.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

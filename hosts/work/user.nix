@@ -19,7 +19,7 @@
     git.enable = true;
 
     # System
-    # xdg.enable = true;
+    xdg.enable = true;
     packages.enable = true;
     scripts.enable = true;
   };
