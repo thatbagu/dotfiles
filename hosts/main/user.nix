@@ -20,6 +20,7 @@
     # System
     xdg.enable = true;
     packages.enable = true;
+    packages.desktop.enable = true;
     scripts.enable = true;
   };
 }

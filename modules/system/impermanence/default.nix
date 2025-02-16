@@ -1,5 +1,4 @@
-# modules/system/impermanence/default.nix
-{ lib, config, username, ... }: {
+{ lib, config, username, inputs, ... }: {
   fileSystems."/persist".neededForBoot = true;
 
   environment.persistence."/persist/system" = {

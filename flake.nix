@@ -34,10 +34,12 @@
       url = "github:mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    impermanence = { url = "github:nix-community/impermanence"; };
   };
 
   outputs = { home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin, disko
-    , ... }@inputs:
+    , impermanence, ... }@inputs:
     let
       mkSystem = pkgs: system: hostname: username:
         let
@@ -60,6 +62,7 @@
             stylix.nixosModules.stylix
             sops-nix.nixosModules.sops
             disko.nixosModules.disko
+            impermanence.nixosModules.impermanence
           ];
         in systemFunc {
           inherit system;

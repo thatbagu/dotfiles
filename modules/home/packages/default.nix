@@ -9,7 +9,7 @@ in {
   config = mkIf cfg.enable {
     modules.packages = {
       core.enable = true;
-      desktop.enable = config.modules.desktop.enable;
+      desktop.enable = lib.mkDefault false;
     };
   };
 }
