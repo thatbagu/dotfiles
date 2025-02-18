@@ -41,6 +41,13 @@
   outputs = { home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin, disko
     , impermanence, ... }@inputs:
     let
+      # Function to get clean hostname without path
+      cleanHostname = hostname:
+        let
+          parts = builtins.split "/" hostname;
+          lastPart = builtins.elemAt parts (builtins.length parts - 1);
+        in lastPart;
+
       mkSystem = pkgs: system: hostname: username:
         let
           isDarwin = builtins.match ".*darwin" system != null;
@@ -66,10 +73,13 @@
           ];
         in systemFunc {
           inherit system;
-          specialArgs = { inherit inputs username hostname; };
+          specialArgs = {
+            inherit inputs username;
+            hostname = cleanHostname hostname;
+          };
 
           modules = [{
-            networking.hostName = hostname;
+            networking.hostName = cleanHostname hostname;
 
             nixpkgs.config.allowUnfree = true;
           }
@@ -99,6 +109,7 @@
       nixosConfigurations = {
         laptop = mkSystem inputs.nixpkgs "x86_64-linux" "laptop" "egor";
         main = mkSystem inputs.nixpkgs "x86_64-linux" "main" "egor";
+        meowth = mkSystem inputs.nixpkgs "x86_64-linux" "homelab/meowth" "egor";
       };
 
       darwinConfigurations = {
