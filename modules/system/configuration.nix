@@ -2,7 +2,7 @@
 
 {
 
-  imports = [ ./steam ./packages ./stylix ./unifi ./sops ./desktop ];
+  imports = [ ./steam ./packages ./stylix ./unifi ./sops ./desktop ./k3s ];
 
   # Remove unnecessary preinstalled packages
   environment.defaultPackages = [ ];
@@ -62,6 +62,7 @@
   users.users.${username} = {
     isNormalUser = true;
     extraGroups = [ "input" "wheel" "gamemode" "video" ];
+    passwordFile = config.sops.secrets.user_password.path;
     shell = pkgs.nushell;
   };
 

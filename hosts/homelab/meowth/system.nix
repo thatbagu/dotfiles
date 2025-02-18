@@ -6,10 +6,10 @@
   ];
   config.modules = {
     sys-packages.enable = true;
-    steam.enable = true;
-    stylix.enable = true;
-    unifi.enable = true;
+    k3s = {
+      enable = true;
+      master = true;
+    };
     sops.enable = true;
-    desktop.enable = true;
   };
 }

@@ -66,7 +66,7 @@
           ];
         in systemFunc {
           inherit system;
-          specialArgs = { inherit inputs username; };
+          specialArgs = { inherit inputs username hostname; };
 
           modules = [{
             networking.hostName = hostname;
