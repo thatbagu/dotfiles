@@ -1,4 +1,4 @@
-{ ... }: {
+{ device ? null, ... }: {
   imports = [ ../../modules/system/disko ];
 
   diskConfig = {

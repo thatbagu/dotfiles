@@ -1,8 +1,8 @@
-{ ... }: {
-  imports = [ ../../modules/system/disko ];
+{ device ? null, ... }: {
+  imports = [ ../../../modules/system/disko ];
 
   diskConfig = {
-    device = "/dev/nvme0n1";
+    device = "/dev/sda";
     espSize = "500M";
   };
 }

@@ -22,7 +22,7 @@ in {
 
     systemd.tmpfiles.rules =
       [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
-    virtualisoation.docker.logDriver = "json-file";
+    virtualisation.docker.logDriver = "json-file";
 
     networking.firewall.enable = mkForce false;
 

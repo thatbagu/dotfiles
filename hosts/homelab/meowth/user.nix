@@ -1,5 +1,5 @@
 { ... }: {
-  imports = [ ../../modules/home/default.nix ];
+  imports = [ ../../../modules/home/default.nix ];
   config.modules = {
     # Terminal & Shell
     nixvim.enable = true;

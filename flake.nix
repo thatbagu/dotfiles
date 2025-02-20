@@ -107,8 +107,13 @@
 
     in {
       nixosConfigurations = {
+        # installer iso
+        iso = mkSystem inputs.nixpkgs "x86_64-linux" "iso" "nixos";
+
         laptop = mkSystem inputs.nixpkgs "x86_64-linux" "laptop" "egor";
         main = mkSystem inputs.nixpkgs "x86_64-linux" "main" "egor";
+
+        # homelab
         meowth = mkSystem inputs.nixpkgs "x86_64-linux" "homelab/meowth" "egor";
       };
 

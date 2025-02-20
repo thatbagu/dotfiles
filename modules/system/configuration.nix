@@ -66,6 +66,8 @@
     shell = pkgs.nushell;
   };
 
+  users.users.root = { passwordFile = config.sops.secrets.user_password.path; };
+
   # Set up networking and secure it
   networking = {
     networkmanager.enable = true;

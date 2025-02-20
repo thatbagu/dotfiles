@@ -13,6 +13,9 @@ in {
 
       secrets.antropic_key = { owner = "${username}"; };
       secrets.github_token = { owner = "${username}"; };
+      secrets.k3s_token = { owner = "${username}"; };
+      secrets.user_password = { owner = "${username}"; };
+
     };
   };
 }

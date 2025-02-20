@@ -1,8 +1,8 @@
 { ... }: {
   imports = [
-    ../../modules/system/configuration.nix
+    ../../../modules/system/configuration.nix
     ./disko.nix
-    ../../modules/system/impermanence
+    ../../../modules/system/impermanence
   ];
   config.modules = {
     sys-packages.enable = true;
