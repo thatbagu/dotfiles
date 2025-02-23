@@ -36,10 +36,11 @@
     };
 
     impermanence = { url = "github:nix-community/impermanence"; };
+    colmena = { url = "github:zhaofengli/colmena"; };
   };
 
-  outputs = { home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin, disko
-    , impermanence, ... }@inputs:
+  outputs = { self, home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin
+    , disko, impermanence, colmena, ... }@inputs:
     let
       # Function to get clean hostname without path
       cleanHostname = hostname:
@@ -47,6 +48,22 @@
           parts = builtins.split "/" hostname;
           lastPart = builtins.elemAt parts (builtins.length parts - 1);
         in lastPart;
+
+      # Define homelab machines configuration
+      homelabMachines = {
+        meowth = {
+          hostname = "homelab/meowth";
+          targetHost = "meowth.local";
+        };
+        psyduck = {
+          hostname = "homelab/psyduck";
+          targetHost = "psyduck.local";
+        };
+        bulbasaur = {
+          hostname = "homelab/bulbasaur";
+          targetHost = "bulbasaur.local";
+        };
+      };
 
       mkSystem = pkgs: system: hostname: username:
         let
@@ -80,13 +97,10 @@
 
           modules = [{
             networking.hostName = cleanHostname hostname;
-
             nixpkgs.config.allowUnfree = true;
           }
-
           # System-specific modules
             ] ++ systemModules ++ [
-
               hmModule
               {
                 home-manager = {
@@ -96,7 +110,6 @@
                   users.${username} = {
                     imports = [
                       (./. + "/hosts/${hostname}/user.nix")
-
                       nixvim.homeManagerModules.nixvim
                     ];
                   };
@@ -106,19 +119,33 @@
         };
 
     in {
+      inherit homelabMachines;
+
       nixosConfigurations = {
         # installer iso
         iso = mkSystem inputs.nixpkgs "x86_64-linux" "iso" "nixos";
-
         laptop = mkSystem inputs.nixpkgs "x86_64-linux" "laptop" "egor";
         main = mkSystem inputs.nixpkgs "x86_64-linux" "main" "egor";
-
-        # homelab
-        meowth = mkSystem inputs.nixpkgs "x86_64-linux" "homelab/meowth" "egor";
-      };
+      } // (builtins.mapAttrs (name: machine:
+        mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname "egor")
+        homelabMachines);
 
       darwinConfigurations = {
         work = mkSystem inputs.nix-darwin "aarch64-darwin" "work" "egor";
       };
+
+      colmena = let configs = self.nixosConfigurations;
+      in {
+        meta = {
+          nixpkgs = import nixpkgs { system = "x86_64-linux"; };
+          specialArgs = { inherit inputs; };
+        };
+      } // (builtins.mapAttrs (name: machine:
+        configs.${name}.config // {
+          deployment = {
+            targetHost = machine.targetHost;
+            targetUser = "egor";
+          };
+        }) homelabMachines);
     };
 }

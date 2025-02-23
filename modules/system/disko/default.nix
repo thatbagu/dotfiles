@@ -24,7 +24,13 @@ in {
           content = {
             type = "gpt";
             partitions = {
+              boot = {
+                name = "boot";
+                size = "1M";
+                type = "EF02";
+              };
               ESP = {
+                name = "ESP";
                 size = config.diskConfig.espSize;
                 type = "EF00";
                 content = {
@@ -41,28 +47,37 @@ in {
                   ];
                 };
               };
+
               root = {
+                name = "root";
                 size = "100%";
                 content = {
-                  type = "btrfs";
-                  extraArgs = [ "-f" ];
-                  subvolumes = {
-                    "/root" = {
-                      mountpoint = "/";
-                      mountOptions = [ "compress=zstd" "noatime" ];
-                    };
-                    "/home" = {
-                      mountpoint = "/home";
-                      mountOptions = [ "compress=zstd" "noatime" ];
-                    };
-                    "/nix" = {
-                      mountpoint = "/nix";
-                      mountOptions = [ "compress=zstd" "noatime" ];
-                    };
-                    "/persist" = {
-                      mountpoint = "/persist";
-                      mountOptions = [ "compress=zstd" "noatime" ];
-                    };
+                  type = "lvm_pv";
+                  vg = "root_vg";
+                };
+              };
+            };
+          };
+        };
+      };
+      lvm_vg = {
+        root_vg = {
+          type = "lvm_vg";
+          lvs = {
+            root = {
+              size = "100%FREE";
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "/root" = { mountpoint = "/"; };
+                  "/persist" = {
+                    mountOptions = [ "subvol=persist" "noatime" ];
+                    mountpoint = "/persist";
+                  };
+                  "/nix" = {
+                    mountOptions = [ "subvol=nix" "noatime" ];
+                    mountpoint = "/nix";
                   };
                 };
               };
@@ -71,43 +86,28 @@ in {
         };
       };
     };
-
     boot.initrd.postDeviceCommands = lib.mkAfter ''
-      mkdir -p /btrfs_tmp
-      mount -o subvol=/ ${config.diskConfig.device}-part2 /btrfs_tmp
-
-      # Create persist directory if it doesn't exist
-      mkdir -p /btrfs_tmp/persist
-
-      # Handle root subvolume rotation
+      mkdir /btrfs_tmp
+      mount /dev/root_vg/root /btrfs_tmp
       if [[ -e /btrfs_tmp/root ]]; then
-        mkdir -p /btrfs_tmp/old_roots
-        timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
-        mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
+          mkdir -p /btrfs_tmp/old_roots
+          timestamp=$(date --date="@$(stat -c %Y /btrfs_tmp/root)" "+%Y-%m-%-d_%H:%M:%S")
+          mv /btrfs_tmp/root "/btrfs_tmp/old_roots/$timestamp"
       fi
 
-      # Cleanup old snapshots
       delete_subvolume_recursively() {
-        IFS=$'\n'
-        for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
-          delete_subvolume_recursively "/btrfs_tmp/$i"
-        done
-        btrfs subvolume delete "$1"
+          IFS=$'\n'
+          for i in $(btrfs subvolume list -o "$1" | cut -f 9- -d ' '); do
+              delete_subvolume_recursively "/btrfs_tmp/$i"
+          done
+          btrfs subvolume delete "$1"
       }
 
       for i in $(find /btrfs_tmp/old_roots/ -maxdepth 1 -mtime +30); do
-        delete_subvolume_recursively "$i"
+          delete_subvolume_recursively "$i"
       done
 
-      # Create new root subvolume
       btrfs subvolume create /btrfs_tmp/root
-
-      # Ensure /persist exists in new root
-      mkdir -p /btrfs_tmp/root/persist
-      mount --bind /btrfs_tmp/persist /btrfs_tmp/root/persist
-
-      # Cleanup
-      umount /btrfs_tmp/root/persist
       umount /btrfs_tmp
     '';
   };

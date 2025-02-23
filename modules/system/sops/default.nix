@@ -7,15 +7,22 @@ in {
 
   config = mkIf cfg.enable {
     sops = {
-      age.keyFile = "/home/${username}/.config/sops/age/keys.txt";
+      age.keyFile = "/persist/etc/sops-nix/keys.txt";
       defaultSopsFile = ./secrets.yaml;
       defaultSopsFormat = "yaml";
 
       secrets.antropic_key = { owner = "${username}"; };
       secrets.github_token = { owner = "${username}"; };
       secrets.k3s_token = { owner = "${username}"; };
-      secrets.user_password = { owner = "${username}"; };
 
+      secrets.user_password = { neededForUsers = true; };
+
+      secrets.private_ssh_key = {
+        path = "/etc/ssh/ssh_host_ed25519_key";
+        mode = "0600";
+        owner = "root";
+        group = "root";
+      };
     };
   };
 }

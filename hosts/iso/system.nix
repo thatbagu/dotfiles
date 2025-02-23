@@ -68,18 +68,17 @@
       sudo cp -r /etc/nixos/* /mnt/etc/nixos/
       sudo cp -r /etc/nixos/.* /mnt/etc/nixos/ 2>/dev/null || true
 
-      # Set up SOPS for user
-      sudo mkdir -p "/mnt/home/$TARGET_USER/.config/sops/age"
-      sudo cp /etc/sops/age/keys.txt "/mnt/home/$TARGET_USER/.config/sops/age/keys.txt"
-      sudo chmod 600 "/mnt/home/$TARGET_USER/.config/sops/age/keys.txt"
-      sudo chown -R 1000:1000 "/mnt/home/$TARGET_USER/.config"
+      # Set up SOPS age key in persistent storage
+      sudo mkdir -p "/mnt/persist/etc/sops-nix"
+      sudo cp /etc/sops/age/keys.txt "/mnt/persist/etc/sops-nix/keys.txt"
+      sudo chmod 600 "/mnt/persist/etc/sops-nix/keys.txt"
 
       # Install NixOS
       echo "Installing NixOS..."
       sudo nixos-install --flake "/mnt/etc/nixos#$TARGET_HOST" --no-root-passwd
 
-      # Save the generated hardware config
-      sudo cp /mnt/etc/nixos/hosts/$FULL_HOST_PATH/hardware-configuration.nix /tmp/
+      # Generate hardware config without filesystem definitions
+      sudo nixos-generate-config --no-filesystems --dir /tmp
 
       # After installation, set up the dotfiles structure
       echo "Setting up dotfiles..."
@@ -87,8 +86,10 @@
       sudo cp -r /mnt/etc/nixos/* "/mnt/home/$TARGET_USER/.dotfiles/"
       sudo cp -r /mnt/etc/nixos/.* "/mnt/home/$TARGET_USER/.dotfiles/" 2>/dev/null || true
 
-      # Restore the generated hardware config
+      # Copy the generated hardware config (without filesystems) to the target location
       sudo cp /tmp/hardware-configuration.nix "/mnt/home/$TARGET_USER/.dotfiles/hosts/$FULL_HOST_PATH/"
+      # Clean up temporary files
+      sudo rm /tmp/configuration.nix
 
       sudo chown -R 1000:1000 "/mnt/home/$TARGET_USER/.dotfiles"
 
@@ -128,6 +129,7 @@
       cp ${../../flake.lock} /etc/nixos/flake.lock
       mkdir -p /etc/sops/age
       cp ${~/.config/sops/age/keys.txt} /etc/sops/age/keys.txt
+      chmod 600 /etc/sops/age/keys.txt
     '';
   };
 

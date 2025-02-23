@@ -62,11 +62,16 @@
   users.users.${username} = {
     isNormalUser = true;
     extraGroups = [ "input" "wheel" "gamemode" "video" ];
-    passwordFile = config.sops.secrets.user_password.path;
+    hashedPasswordFile = config.sops.secrets.user_password.path;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQRS6OzC9Ip5lUhIyFvG03KgyupxJE55gmY3Dis0u18 cluster"
+    ];
     shell = pkgs.nushell;
   };
 
-  users.users.root = { passwordFile = config.sops.secrets.user_password.path; };
+  users.users.root = {
+    hashedPasswordFile = config.sops.secrets.user_password.path;
+  };
 
   # Set up networking and secure it
   networking = {
