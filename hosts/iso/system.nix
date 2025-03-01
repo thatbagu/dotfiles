@@ -80,24 +80,30 @@
       # Generate hardware config without filesystem definitions
       sudo nixos-generate-config --no-filesystems --dir /tmp
 
-      # After installation, set up the dotfiles structure
-      echo "Setting up dotfiles..."
-      sudo mkdir -p "/mnt/home/$TARGET_USER/.dotfiles"
-      sudo cp -r /mnt/etc/nixos/* "/mnt/home/$TARGET_USER/.dotfiles/"
-      sudo cp -r /mnt/etc/nixos/.* "/mnt/home/$TARGET_USER/.dotfiles/" 2>/dev/null || true
+      # Set up dotfiles in persistent storage
+      echo "Setting up dotfiles in persistent storage..."
+      sudo mkdir -p "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      sudo cp -r /mnt/etc/nixos/* "/mnt/persist/home/$TARGET_USER/.dotfiles/"
+      sudo cp -r /mnt/etc/nixos/.* "/mnt/persist/home/$TARGET_USER/.dotfiles/" 2>/dev/null || true
 
       # Copy the generated hardware config (without filesystems) to the target location
-      sudo cp /tmp/hardware-configuration.nix "/mnt/home/$TARGET_USER/.dotfiles/hosts/$FULL_HOST_PATH/"
+      sudo cp /tmp/hardware-configuration.nix "/mnt/persist/home/$TARGET_USER/.dotfiles/hosts/$FULL_HOST_PATH/"
       # Clean up temporary files
       sudo rm /tmp/configuration.nix
 
-      sudo chown -R 1000:1000 "/mnt/home/$TARGET_USER/.dotfiles"
+      # Set proper ownership
+      sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
+
+      # Create required directories and symlinks
+      sudo mkdir -p "/mnt/home/$TARGET_USER"
+      sudo ln -sf "/persist/home/$TARGET_USER/.dotfiles" "/mnt/home/$TARGET_USER/.dotfiles"
 
       # Remove original /etc/nixos and create symlink
       sudo rm -rf /mnt/etc/nixos
-      sudo ln -sf "/home/$TARGET_USER/.dotfiles" /mnt/etc/nixos
+      sudo ln -sf "/persist/home/$TARGET_USER/.dotfiles" /mnt/etc/nixos
 
-      echo "Installation complete! Your configuration is in ~/.dotfiles and symlinked to /etc/nixos"
+      echo "Installation complete! Your configuration is in /persist/home/$TARGET_USER/.dotfiles"
+      echo "Symlinks created in ~/.dotfiles and /etc/nixos"
       echo "SOPS age key has been copied to both system and user locations"
       echo "Hardware configuration has been preserved"
     '')
@@ -121,12 +127,14 @@
   # Copy your entire configuration into the ISO
   system.activationScripts.installerCustomization = {
     text = ''
-      mkdir -p /etc/nixos/{modules,hosts,pics}
+      mkdir -p /etc/nixos/{modules,hosts,pics,.git}
       cp -r ${../../modules}/* /etc/nixos/modules/
       cp -r ${../../hosts}/* /etc/nixos/hosts/
       cp -r ${../../pics}/* /etc/nixos/pics/
+      cp -r  ${../../.git} /etc/nixos/.git
       cp ${../../flake.nix} /etc/nixos/flake.nix
       cp ${../../flake.lock} /etc/nixos/flake.lock
+      cp ${../../.sops.yaml} /etc/nixos/.sops.yaml
       mkdir -p /etc/sops/age
       cp ${~/.config/sops/age/keys.txt} /etc/sops/age/keys.txt
       chmod 600 /etc/sops/age/keys.txt
