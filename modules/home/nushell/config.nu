@@ -204,6 +204,70 @@ let light_theme = {
 # }
 
 # The default config record. This is where much of your global configuration is setup.
+def create_left_prompt [] {
+    let current_dir = (pwd | path basename)
+    $"(ansi green)($current_dir)(ansi reset)"
+}
+
+def truncate_string [input: string, max_length: int = 20] {
+    if ($input | str length) > $max_length {
+        $"($input | str substring 0..$max_length)…"
+    } else {
+        $input
+    }
+}
+
+def get_git_branch [] {
+    # Check if we're in a git repo
+    if (do { git rev-parse --is-inside-work-tree } | complete).exit_code == 0 {
+        # Get current branch name
+        let branch = (git branch --show-current | str trim)
+        if $branch == "" {
+            # If in detached HEAD state, get commit hash
+            let hash = (git rev-parse --short HEAD | str trim)
+            let truncated = (truncate_string $"detached@($hash)" 15)
+            $"(ansi yellow)($truncated)(ansi reset)"
+        } else {
+            let truncated = (truncate_string $branch 15)
+            $"(ansi yellow)($truncated)(ansi reset)"
+        }
+    } else {
+        ""
+    }
+}
+
+def get_kube_context [] {
+    if (which kubectl | is-empty) {
+        return ""
+    }
+    
+    let ctx = (do { kubectl config current-context } | complete)
+    if $ctx.exit_code == 0 {
+        let truncated = (truncate_string $ctx.stdout 15)
+        $"(ansi blue)($truncated | str trim)(ansi reset)"
+    } else {
+        ""
+    }
+}
+
+def create_right_prompt [] {
+    let git_info = (get_git_branch)
+    let kube_info = (get_kube_context)
+    
+    if ($git_info | str length) > 0 and ($kube_info | str length) > 0 {
+        $"($git_info) ⎈ ($kube_info)"
+    } else if ($git_info | str length) > 0 {
+        $git_info
+    } else if ($kube_info | str length) > 0 {
+        $"⎈ ($kube_info)"
+    } else {
+        ""
+    }
+}
+
+$env.PROMPT_COMMAND = { create_left_prompt }
+$env.PROMPT_COMMAND_RIGHT = { create_right_prompt }
+
 $env.config = {
     show_banner: false
     ls: {
@@ -315,15 +379,7 @@ $env.config = {
         # 133;D;exit - Mark execution finished with exit code
         # This is used to enable terminals to know where the prompt is, the command is, where the command finishes, and where the output of the command is
         osc133: true
-        # osc633 is closely related to osc133 but only exists in visual studio code (vscode) and supports their shell integration features
-        # 633;A - Mark prompt start
-        # 633;B - Mark prompt end
-        # 633;C - Mark pre-execution
-        # 633;D;exit - Mark execution finished with exit code
-        # 633;E - Explicitly set the command line with an optional nonce
-        # 633;P;Cwd=<path> - Mark the current working directory and communicate it to the terminal
-        # and also helps with the run recent menu in vscode
-        osc633: true
+        
         # reset_application_mode is escape \x1b[?1l and was added to help ssh work better
         reset_application_mode: true
     }
@@ -350,7 +406,14 @@ $env.config = {
     }
 
     hooks: {
-        pre_prompt: [{ null }]
+        pre_prompt: [{
+            # Check for existing zellij session and attach or create new one
+            if (not (which zellij | is-empty)) and ($env.ZELLIJ? == null) and ($env.ZELLIJ_SESSION_NAME? == null) {
+                # Create new session or attach to existing one
+                zellij attach -c
+            }
+        }]
+
     pre_execution: [{ 
         if $env.BASH_ENV? == null {
             load-bash-env

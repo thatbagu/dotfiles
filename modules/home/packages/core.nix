@@ -71,7 +71,7 @@ in {
 
       # System Utils
       htop
-      ranger
+      yazi
       fzf
       ripgrep
       bat
