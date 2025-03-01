@@ -351,6 +351,17 @@ $env.config = {
 
     hooks: {
         pre_prompt: [{ null }]
+            startup: [{
+            # Check for existing zellij session and attach or create new one
+            if (which zellij | is-empty) {
+                # Zellij not installed, do nothing
+                return
+            } else {
+                # Create new session
+                zellij
+            }
+        }]
+
     pre_execution: [{ 
         if $env.BASH_ENV? == null {
             load-bash-env
