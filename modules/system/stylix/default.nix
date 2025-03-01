@@ -17,10 +17,11 @@ in {
       base16Scheme =
         "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
 
-      # Dark mode specific opacity settings
-      opacity.terminal = 0.9;
-      opacity.applications = 0.9;
-      opacity.desktop = 0.9;
+      opacity = {
+        terminal = 0.9;
+        applications = 0.9;
+        desktop = 0.9;
+      };
 
       fonts = {
         monospace = {
@@ -36,11 +37,6 @@ in {
 
       polarity = "dark"; # Explicitly set dark mode
 
-      # targets = {
-      #   hyprland.enable = true;
-      #   foot.enable = true;
-      #   firefox.enable = true;
-      # };
     };
   };
 }

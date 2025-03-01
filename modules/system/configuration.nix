@@ -86,8 +86,8 @@
 
   # Set environment variables
   environment.sessionVariables = {
-    NIXOS_CONFIG = "$HOME/.config/nixos/configuration.nix";
-    NIXOS_CONFIG_DIR = "$HOME/.config/nixos/";
+    NIXOS_CONFIG = "$HOME/.dotfiles";
+    # NIXOS_CONFIG_DIR = "$HOME/.dotfiles";
     XDG_DATA_HOME = "$HOME/.local/share";
     XDG_RUNTIME_DIR = "/run/user/1000";
     PASSWORD_STORE_DIR = "$HOME/.local/share/password-store";

@@ -8,7 +8,6 @@
     sys-packages.enable = true;
     steam.enable = true;
     stylix.enable = true;
-    unifi.enable = true;
     sops.enable = true;
     desktop.enable = true;
   };

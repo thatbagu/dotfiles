@@ -4,7 +4,6 @@ in {
   options.diskConfig = {
     device = mkOption {
       type = types.str;
-      example = "/dev/nvme0n1";
       description = "The disk device to use";
     };
 
