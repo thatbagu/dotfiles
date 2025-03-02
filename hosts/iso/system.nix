@@ -132,8 +132,13 @@ in {
 
       # Create required directories and symlinks
       sudo mkdir -p "/mnt/home/$TARGET_USER"
-      sudo rm -rf /mnt/etc/nixos
-      sudo ln -sf "/mnt/persist/home/$TARGET_USER/.dotfiles" /mnt/etc/nixos
+      # Ensure /etc/nixos exists and copy files there
+      sudo mkdir -p /mnt/etc/nixos
+      sudo cp -r /mnt/persist/home/$TARGET_USER/.dotfiles/* /mnt/etc/nixos/
+      sudo cp -r /mnt/persist/home/$TARGET_USER/.dotfiles/.* /mnt/etc/nixos/ 2>/dev/null || true
+      # Remove the .dotfiles directory and create symlink in reverse
+      sudo rm -rf "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      sudo ln -sf /mnt/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
 
       # Use the predefined Git Repository URL
       GIT_REPO_URL="${gitRepoUrl}"
