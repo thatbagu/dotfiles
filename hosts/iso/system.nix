@@ -132,11 +132,8 @@ in {
 
       # Create required directories and symlinks
       sudo mkdir -p "/mnt/home/$TARGET_USER"
-      sudo ln -sf "/persist/home/$TARGET_USER/.dotfiles" "/mnt/home/$TARGET_USER/.dotfiles"
-
-      # Remove original /etc/nixos and create symlink
       sudo rm -rf /mnt/etc/nixos
-      sudo ln -sf "/persist/home/$TARGET_USER/.dotfiles" /mnt/etc/nixos
+      sudo ln -sf "/mnt/persist/home/$TARGET_USER/.dotfiles" /mnt/etc/nixos
 
       # Use the predefined Git Repository URL
       GIT_REPO_URL="${gitRepoUrl}"
@@ -155,7 +152,8 @@ in {
                 (cd "$DOTFILES_PATH" && git pull) || echo "Failed to pull updates, continuing with existing files..."
               fi
             else
-                echo "Failed to clone repository. Continuing with existing files..."
+              echo "Syncing with the Git repository..."
+              sync-dotfiles-repo "$DOTFILES_PATH" "$GIT_REPO_URL" || echo "Failed to sync repository. Continuing with existing files..."
             fi
             
             # Fix permissions after any git operations

@@ -409,8 +409,7 @@ $env.config = {
         pre_prompt: [{
             # Check for existing zellij session and attach or create new one, but only in Hyprland
             if (not (which zellij | is-empty)) and ($env.ZELLIJ? == null) and ($env.ZELLIJ_SESSION_NAME? == null) and ($env.HYPRLAND_INSTANCE_SIGNATURE? != null) {
-                # Create new session or attach to existing one
-                zellij
+                zellij attach -c
             }
         }]
 
