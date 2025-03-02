@@ -142,11 +142,31 @@ in {
       GIT_REPO_URL="${gitRepoUrl}"
 
       if [ -n "$GIT_REPO_URL" ]; then
-        echo "Syncing with the Git repository..."
-        sync-dotfiles-repo "/mnt/persist/home/$TARGET_USER/.dotfiles" "$GIT_REPO_URL"
-        
-        # Fix permissions after sync
-        sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
+        # Check if we can reach the git repository
+        if ping -c 1 github.com &> /dev/null; then
+          # Ask user if they want to sync with remote repository
+          if gum confirm "Would you like to sync with the remote dotfiles repository?"; then
+            DOTFILES_PATH="/mnt/persist/home/$TARGET_USER/.dotfiles"
+            
+            # Check if git repo already exists
+            if [ -d "$DOTFILES_PATH/.git" ]; then
+              echo "Git repository already exists in $DOTFILES_PATH"
+              if gum confirm "Would you like to fetch latest changes?"; then
+                (cd "$DOTFILES_PATH" && git pull) || echo "Failed to pull updates, continuing with existing files..."
+              fi
+            else
+                echo "Failed to clone repository. Continuing with existing files..."
+              }
+            fi
+            
+            # Fix permissions after any git operations
+            sudo chown -R 1000:1000 "$DOTFILES_PATH"
+          else
+            echo "Skipping git repository sync as per user request"
+          fi
+        else
+          echo "No internet connection detected. Skipping git repository sync"
+        fi
       fi
 
       echo "Installation complete! Your configuration is in /persist/home/$TARGET_USER/.dotfiles"
