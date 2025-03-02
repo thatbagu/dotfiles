@@ -1,4 +1,20 @@
-{ pkgs, lib, inputs, username, ... }: {
+{ pkgs, lib, inputs, username, ... }:
+let
+  # Import just the dotfiles content without .git
+  dotfilesRoot = builtins.path {
+    path = ../..;
+    name = "dotfiles-src";
+  };
+
+  # Create a script to capture git remote info
+  gitRemoteInfo = pkgs.writeTextFile {
+    name = "git-remote-info";
+    text = builtins.readFile (pkgs.runCommand "get-git-remote" { } ''
+      cd ${builtins.toString ../..}
+      git remote -v > $out || echo "No remote found" > $out
+    '');
+  };
+in {
   imports = [
     "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
     ./hardware-configuration.nix
@@ -17,6 +33,7 @@
     age
     sops
     gum
+
     (writeShellScriptBin "nix_installer" ''
       #!/usr/bin/env bash
       set -euo pipefail
@@ -124,17 +141,78 @@
     services.sshd.wantedBy = pkgs.lib.mkForce [ "multi-user.target" ];
   };
 
-  # Copy your entire configuration into the ISO
+  # Properly set up git with remote repository
   system.activationScripts.installerCustomization = {
     text = ''
-      mkdir -p /etc/nixos/{modules,hosts,pics,.git}
-      cp -r ${../../modules}/* /etc/nixos/modules/
-      cp -r ${../../hosts}/* /etc/nixos/hosts/
-      cp -r ${../../pics}/* /etc/nixos/pics/
-      cp -r  ${../../.git} /etc/nixos/.git
-      cp ${../../flake.nix} /etc/nixos/flake.nix
-      cp ${../../flake.lock} /etc/nixos/flake.lock
-      cp ${../../.sops.yaml} /etc/nixos/.sops.yaml
+      # Create a temporary directory for git operations
+      TEMP_GIT_DIR=$(mktemp -d)
+
+      # Get the remote URL from the captured info
+      REMOTE_URL=$(grep -m 1 "origin" ${gitRemoteInfo} | awk '{print $2}' || echo "")
+
+      if [ -n "$REMOTE_URL" ]; then
+        echo "Found remote URL: $REMOTE_URL"
+        
+        # Clone the repository with its history
+        git clone "$REMOTE_URL" "$TEMP_GIT_DIR"
+        
+        # If clone was successful, copy it to /etc/nixos
+        if [ $? -eq 0 ]; then
+          echo "Successfully cloned repository"
+          mkdir -p /etc/nixos
+          cp -r "$TEMP_GIT_DIR"/* /etc/nixos/
+          cp -r "$TEMP_GIT_DIR"/.git /etc/nixos/
+          cp -r "$TEMP_GIT_DIR"/.sops.yaml /etc/nixos/ 2>/dev/null || true
+        else
+          echo "Failed to clone repository, falling back to file copy method"
+          mkdir -p /etc/nixos
+          cp -r ${dotfilesRoot}/* /etc/nixos/
+          cp ${
+            builtins.path {
+              path = ../../.sops.yaml;
+              name = "sops-config";
+            }
+          } /etc/nixos/.sops.yaml 2>/dev/null || true
+          
+          # Initialize a new git repo
+          cd /etc/nixos
+          git init
+          git config --local user.email "installer@nixos.org"
+          git config --local user.name "NixOS Installer"
+          
+          # Try to add the remote
+          if [ -n "$REMOTE_URL" ]; then
+            git remote add origin "$REMOTE_URL"
+          fi
+          
+          git add .
+          git commit -m "Initial NixOS installation"
+        fi
+      else
+        # No remote found, fall back to basic setup
+        echo "No git remote found, using basic setup"
+        mkdir -p /etc/nixos
+        cp -r ${dotfilesRoot}/* /etc/nixos/
+        cp ${
+          builtins.path {
+            path = ../../.sops.yaml;
+            name = "sops-config";
+          }
+        } /etc/nixos/.sops.yaml 2>/dev/null || true
+        
+        # Initialize a new git repo
+        cd /etc/nixos
+        git init
+        git config --local user.email "installer@nixos.org"
+        git config --local user.name "NixOS Installer"
+        git add .
+        git commit -m "Initial NixOS installation"
+      fi
+
+      # Clean up temp directory
+      rm -rf "$TEMP_GIT_DIR"
+
+      # Set up SOPS
       mkdir -p /etc/sops/age
       cp ${~/.config/sops/age/keys.txt} /etc/sops/age/keys.txt
       chmod 600 /etc/sops/age/keys.txt
