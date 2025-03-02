@@ -156,7 +156,6 @@ in {
               fi
             else
                 echo "Failed to clone repository. Continuing with existing files..."
-              }
             fi
             
             # Fix permissions after any git operations
