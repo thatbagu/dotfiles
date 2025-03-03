@@ -42,8 +42,11 @@ in {
         echo "Git repository already exists, syncing with remote..."
         cd "$TARGET_DIR"
         
-        # Stash any local changes
+        # Commit and stash any local changes
         if ! git diff --quiet || ! git diff --cached --quiet; then
+          echo "Committing local changes before stashing..."
+          git add .
+          git commit -m "Auto-commit before sync $(date '+%Y-%m-%d %H:%M:%S')" || true
           echo "Stashing local changes..."
           git stash
         fi
@@ -137,8 +140,12 @@ in {
       # Clean up temporary files
       sudo rm /tmp/configuration.nix
 
-      # Create user home directory
+      # Create user home directory and set permissions
       sudo mkdir -p "/mnt/persist/home/$TARGET_USER"
+
+      # Set correct ownership for persistent directories
+      sudo chown -R 1000:1000 /mnt/persist/etc/nixos
+      sudo chmod -R u+rw /mnt/persist/etc/nixos
 
       # Use the predefined Git Repository URL
       GIT_REPO_URL="${gitRepoUrl}"
