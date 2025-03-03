@@ -38,19 +38,29 @@ in {
       # Ensure target directory exists
       mkdir -p "$TARGET_DIR"
 
-      # Check if directory is empty
-      if [ "$(ls -A "$TARGET_DIR")" ]; then
-        echo "Target directory is not empty. Backing it up..."
-        BACKUP_DIR="$TARGET_DIR-backup-$(date +%Y%m%d-%H%M%S)"
-        mv "$TARGET_DIR" "$BACKUP_DIR"
-        mkdir -p "$TARGET_DIR"
+      if [ -d "$TARGET_DIR/.git" ]; then
+        echo "Git repository already exists, syncing with remote..."
+        cd "$TARGET_DIR"
+        
+        # Stash any local changes
+        if ! git diff --quiet || ! git diff --cached --quiet; then
+          echo "Stashing local changes..."
+          git stash
+        fi
+
+        # Fetch and reset to remote state
+        git fetch origin
+        git reset --hard origin/main || git reset --hard origin/master
+        
+        # Clean untracked files
+        git clean -fd
+      else
+        # Clone the repository if it doesn't exist
+        echo "Cloning repository from $GIT_REPO_URL to $TARGET_DIR..."
+        git clone "$GIT_REPO_URL" "$TARGET_DIR"
       fi
 
-      # Clone the repository
-      echo "Cloning repository from $GIT_REPO_URL to $TARGET_DIR..."
-      git clone "$GIT_REPO_URL" "$TARGET_DIR"
-
-      echo "Git repository successfully cloned to $TARGET_DIR"
+      echo "Git repository successfully synchronized with remote"
     '')
 
     (writeShellScriptBin "nix_installer" ''
@@ -127,10 +137,8 @@ in {
       # Clean up temporary files
       sudo rm /tmp/configuration.nix
 
-      # Remove the .dotfiles directory and create symlink in reverse
+      # Create user home directory
       sudo mkdir -p "/mnt/persist/home/$TARGET_USER"
-      sudo ln -sf /mnt/persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
-      sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
 
       # Use the predefined Git Repository URL
       GIT_REPO_URL="${gitRepoUrl}"
@@ -163,8 +171,7 @@ in {
         fi
       fi
 
-      echo "Installation complete! Your configuration is in /persist/home/$TARGET_USER/.dotfiles"
-      echo "Symlinks created in ~/.dotfiles and /etc/nixos"
+      echo "Installation complete! Your configuration is in /persist/etc/nixos"
       echo "SOPS age key has been copied to both system and user locations"
       echo "Hardware configuration has been preserved"
     '')
