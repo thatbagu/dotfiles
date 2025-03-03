@@ -118,27 +118,19 @@ in {
 
       # Set up dotfiles in persistent storage
       echo "Setting up dotfiles in persistent storage..."
-      sudo mkdir -p "/mnt/persist/home/$TARGET_USER/.dotfiles"
-      sudo cp -r /mnt/etc/nixos/* "/mnt/persist/home/$TARGET_USER/.dotfiles/"
-      sudo cp -r /mnt/etc/nixos/.* "/mnt/persist/home/$TARGET_USER/.dotfiles/" 2>/dev/null || true
+      sudo mkdir -p /mnt/persist/etc/nixos
+      sudo cp -r /mnt/etc/nixos/* /mnt/persist/etc/nixos
+      sudo cp -r /mnt/etc/nixos/.* /mnt/persist/etc/nixos/ 2>/dev/null || true
 
       # Copy the generated hardware config (without filesystems) to the target location
-      sudo cp /tmp/hardware-configuration.nix "/mnt/persist/home/$TARGET_USER/.dotfiles/hosts/$FULL_HOST_PATH/"
+      sudo cp /tmp/hardware-configuration.nix "/mnt/persist/etc/nixos/hosts/$FULL_HOST_PATH/"
       # Clean up temporary files
       sudo rm /tmp/configuration.nix
 
-      # Set proper ownership
-      sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
-
-      # Create required directories and symlinks
-      sudo mkdir -p "/mnt/home/$TARGET_USER"
-      # Ensure /etc/nixos exists and copy files there
-      sudo mkdir -p /mnt/etc/nixos
-      sudo cp -r /mnt/persist/home/$TARGET_USER/.dotfiles/* /mnt/etc/nixos/
-      sudo cp -r /mnt/persist/home/$TARGET_USER/.dotfiles/.* /mnt/etc/nixos/ 2>/dev/null || true
       # Remove the .dotfiles directory and create symlink in reverse
-      sudo rm -rf "/mnt/persist/home/$TARGET_USER/.dotfiles"
-      sudo ln -sf /mnt/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      sudo mkdir -p "/mnt/persist/home/$TARGET_USER"
+      sudo ln -sf /mnt/persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
 
       # Use the predefined Git Repository URL
       GIT_REPO_URL="${gitRepoUrl}"
