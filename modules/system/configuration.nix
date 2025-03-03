@@ -39,10 +39,10 @@
     };
   };
 
-  swapDevices = [{
-    device = "/swapfile";
-    size = 32000; # Size in MB (16GB in this example)
-  }];
+  # swapDevices = [{
+  #   device = "/swapfile";
+  #   size = 32000; # Size in MB (16GB in this example)
+  # }];
 
   zramSwap = {
     enable = true;
