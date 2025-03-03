@@ -129,7 +129,8 @@ in {
 
       # Remove the .dotfiles directory and create symlink in reverse
       sudo mkdir -p "/mnt/persist/home/$TARGET_USER"
-      sudo ln -sf /mnt/persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      # Create symlink relative to the final system paths
+      sudo ln -sf /persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
       sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
 
       # Use the predefined Git Repository URL

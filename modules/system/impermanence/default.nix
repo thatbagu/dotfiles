@@ -108,6 +108,7 @@
         # Dots
         ".config"
         ".local"
+        ".dotfiles"
 
         # Browser data
         ".mozilla"
