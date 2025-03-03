@@ -140,7 +140,7 @@ in {
         if ping -c 1 github.com &> /dev/null; then
           # Ask user if they want to sync with remote repository
           if gum confirm "Would you like to sync with the remote dotfiles repository?"; then
-            DOTFILES_PATH="/mnt/persist/home/$TARGET_USER/.dotfiles"
+            DOTFILES_PATH="/mnt/persist/etc/nixos"
             
             # Check if git repo already exists
             if [ -d "$DOTFILES_PATH/.git" ]; then
@@ -150,7 +150,7 @@ in {
               fi
             else
               echo "Syncing with the Git repository..."
-              sync-dotfiles-repo "$DOTFILES_PATH" "$GIT_REPO_URL" || echo "Failed to sync repository. Continuing with existing files..."
+              sudo sync-dotfiles-repo "$DOTFILES_PATH" "$GIT_REPO_URL" || echo "Failed to sync repository. Continuing with existing files..."
             fi
             
             # Fix permissions after any git operations
