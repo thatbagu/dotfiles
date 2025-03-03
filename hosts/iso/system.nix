@@ -38,32 +38,19 @@ in {
       # Ensure target directory exists
       mkdir -p "$TARGET_DIR"
 
-      if [ -d "$TARGET_DIR/.git" ]; then
-        echo "Git repository already exists, syncing with remote..."
-        cd "$TARGET_DIR"
-        
-        # Commit and stash any local changes
-        if ! git diff --quiet || ! git diff --cached --quiet; then
-          echo "Committing local changes before stashing..."
-          git add .
-          git commit -m "Auto-commit before sync $(date '+%Y-%m-%d %H:%M:%S')" || true
-          echo "Stashing local changes..."
-          git stash
-        fi
-
-        # Fetch and reset to remote state
-        git fetch origin
-        git reset --hard origin/main || git reset --hard origin/master
-        
-        # Clean untracked files
-        git clean -fd
-      else
-        # Clone the repository if it doesn't exist
-        echo "Cloning repository from $GIT_REPO_URL to $TARGET_DIR..."
-        git clone "$GIT_REPO_URL" "$TARGET_DIR"
+      # Check if directory is empty
+      if [ "$(ls -A "$TARGET_DIR")" ]; then
+        echo "Target directory is not empty. Backing it up..."
+        BACKUP_DIR="$TARGET_DIR-backup-$(date +%Y%m%d-%H%M%S)"
+        mv "$TARGET_DIR" "$BACKUP_DIR"
+        mkdir -p "$TARGET_DIR"
       fi
 
-      echo "Git repository successfully synchronized with remote"
+      # Clone the repository
+      echo "Cloning repository from $GIT_REPO_URL to $TARGET_DIR..."
+      git clone "$GIT_REPO_URL" "$TARGET_DIR"
+
+      echo "Git repository successfully cloned to $TARGET_DIR"
     '')
 
     (writeShellScriptBin "nix_installer" ''
@@ -140,12 +127,10 @@ in {
       # Clean up temporary files
       sudo rm /tmp/configuration.nix
 
-      # Create user home directory and set permissions
+      # Remove the .dotfiles directory and create symlink in reverse
       sudo mkdir -p "/mnt/persist/home/$TARGET_USER"
-
-      # Set correct ownership for persistent directories
-      sudo chown -R 1000:1000 /mnt/persist/etc/nixos
-      sudo chmod -R u+rw /mnt/persist/etc/nixos
+      sudo ln -sf /mnt/persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
 
       # Use the predefined Git Repository URL
       GIT_REPO_URL="${gitRepoUrl}"
@@ -178,7 +163,8 @@ in {
         fi
       fi
 
-      echo "Installation complete! Your configuration is in /persist/etc/nixos"
+      echo "Installation complete! Your configuration is in /persist/home/$TARGET_USER/.dotfiles"
+      echo "Symlinks created in ~/.dotfiles and /etc/nixos"
       echo "SOPS age key has been copied to both system and user locations"
       echo "Hardware configuration has been preserved"
     '')
