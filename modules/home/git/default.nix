@@ -13,7 +13,7 @@ in {
       extraConfig = {
         init = { defaultBranch = "main"; };
         core = { excludesfile = "$NIXOS_CONFIG_DIR/scripts/gitignore"; };
-        safe = { directory = "*"; };
+        safe = { directory = "'*'"; };
         credential = {
           # Use the helper that reads the token directly
           helper = ''
