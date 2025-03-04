@@ -54,14 +54,17 @@
         meowth = {
           hostname = "homelab/meowth";
           targetHost = "meowth.local";
+          tags = [ "master" "meowth" ];
         };
         psyduck = {
           hostname = "homelab/psyduck";
           targetHost = "psyduck.local";
+          tags = [ "worker" "psyduck" ];
         };
         bulbasaur = {
           hostname = "homelab/bulbasaur";
           targetHost = "bulbasaur.local";
+          tags = [ "worker" "bulbasaur" ];
         };
       };
 
@@ -145,6 +148,7 @@
           deployment = {
             targetHost = machine.targetHost;
             targetUser = "egor";
+            tags = machine.tags;
           };
         }) homelabMachines);
     };
