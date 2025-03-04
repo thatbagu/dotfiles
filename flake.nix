@@ -134,18 +134,25 @@
         work = mkSystem inputs.nix-darwin "aarch64-darwin" "work" "egor";
       };
 
-      colmena = let configs = self.nixosConfigurations;
+      colmena = let
+        configs = self.nixosConfigurations;
+        pkgs = import nixpkgs { system = "x86_64-linux"; };
       in {
         meta = {
-          nixpkgs = import nixpkgs { system = "x86_64-linux"; };
+          nixpkgs = pkgs;
           specialArgs = { inherit inputs; };
         };
-      } // (builtins.mapAttrs (name: machine:
-        configs.${name}.config // {
-          deployment = {
-            targetHost = machine.targetHost;
-            targetUser = "egor";
-          };
-        }) homelabMachines);
+      } // (builtins.mapAttrs (name: machine: {
+        # Explicitly set nixpkgs.pkgs for each node
+        nixpkgs.pkgs = pkgs;
+
+        # Include the rest of the configuration
+        imports = [ { _module.args.pkgs = pkgs; } (configs.${name}.config) ];
+
+        deployment = {
+          targetHost = machine.targetHost;
+          targetUser = "egor";
+        };
+      }) homelabMachines);
     };
 }
