@@ -160,12 +160,6 @@
         deployment = {
           targetHost = machine.targetHost;
           targetUser = "egor";
-          ssh = {
-            extraOptions = [
-              "-i"
-              "/etc/ssh/ssh_host_ed25519_key" # Path to the key that matches the authorized_keys
-            ];
-          };
         };
       }) homelabMachines);
     };
