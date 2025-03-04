@@ -53,28 +53,25 @@
       homelabMachines = {
         meowth = {
           hostname = "homelab/meowth";
-          targetHost = "meowth.local";
+          targetHost = "meowth";
           tags = [ "master" "meowth" ];
         };
         psyduck = {
           hostname = "homelab/psyduck";
-          targetHost = "psyduck.local";
+          targetHost = "psyduck";
           tags = [ "worker" "psyduck" ];
         };
         bulbasaur = {
           hostname = "homelab/bulbasaur";
-          targetHost = "bulbasaur.local";
+          targetHost = "bulbasaur";
           tags = [ "worker" "bulbasaur" ];
         };
       };
 
-      mkSystem = pkgs: system: hostname: username:
+      # Create system modules that can be used by both NixOS and Colmena
+      mkSystemModules = system: hostname: username:
         let
           isDarwin = builtins.match ".*darwin" system != null;
-          systemFunc = if isDarwin then
-            nix-darwin.lib.darwinSystem
-          else
-            pkgs.lib.nixosSystem;
           hmModule = if isDarwin then
             home-manager.darwinModules.home-manager
           else
@@ -91,34 +88,42 @@
             disko.nixosModules.disko
             impermanence.nixosModules.impermanence
           ];
+        in [{
+          networking.hostName = cleanHostname hostname;
+          nixpkgs.config.allowUnfree = true;
+        }] ++ systemModules ++ [
+          hmModule
+          {
+            home-manager = {
+              useUserPackages = true;
+              useGlobalPkgs = true;
+              extraSpecialArgs = { inherit inputs; };
+              users.${username} = {
+                imports = [
+                  (./. + "/hosts/${hostname}/user.nix")
+                  nixvim.homeManagerModules.nixvim
+                ];
+              };
+            };
+          }
+        ];
+
+      # Function to build NixOS configurations
+      mkSystem = pkgs: system: hostname: username:
+        let
+          isDarwin = builtins.match ".*darwin" system != null;
+          systemFunc = if isDarwin then
+            nix-darwin.lib.darwinSystem
+          else
+            pkgs.lib.nixosSystem;
+          modules = mkSystemModules system hostname username;
         in systemFunc {
           inherit system;
           specialArgs = {
             inherit inputs username;
             hostname = cleanHostname hostname;
           };
-
-          modules = [{
-            networking.hostName = cleanHostname hostname;
-            nixpkgs.config.allowUnfree = true;
-          }
-          # System-specific modules
-            ] ++ systemModules ++ [
-              hmModule
-              {
-                home-manager = {
-                  useUserPackages = true;
-                  useGlobalPkgs = true;
-                  extraSpecialArgs = { inherit inputs; };
-                  users.${username} = {
-                    imports = [
-                      (./. + "/hosts/${hostname}/user.nix")
-                      nixvim.homeManagerModules.nixvim
-                    ];
-                  };
-                };
-              }
-            ];
+          inherit modules;
         };
 
     in {
@@ -146,7 +151,22 @@
           };
         };
       } // (builtins.mapAttrs (name: machine: {
-        imports = [ (self.nixosConfigurations.${name}._module.args.modules) ];
+        # Explicitly add the hostname module parameter
+        _module.args.hostname = cleanHostname machine.hostname;
+
+        # Reuse the same modules that we use for NixOS configurations
+        imports = mkSystemModules "x86_64-linux" machine.hostname "egor";
+
+        deployment = {
+          targetHost = machine.targetHost;
+          targetUser = "egor";
+          ssh = {
+            extraOptions = [
+              "-i"
+              "/etc/ssh/ssh_host_ed25519_key" # Path to the key that matches the authorized_keys
+            ];
+          };
+        };
       }) homelabMachines);
     };
 }

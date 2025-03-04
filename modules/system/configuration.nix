@@ -69,6 +69,21 @@
     shell = pkgs.nushell;
   };
 
+  programs.ssh = {
+    enable = true;
+    matchBlocks = {
+      "*" = {
+        identityFile = "/etc/ssh/id_ed25519_key";
+        identitiesOnly = true;
+        user = "${username}";
+      };
+    };
+    extraConfig = ''
+      AddKeysToAgent yes
+      ServerAliveInterval 60
+    '';
+  };
+
   users.users.root = {
     hashedPasswordFile = config.sops.secrets.user_password.path;
   };
