@@ -14,6 +14,7 @@ in {
       wget
       sops
       age
+      colmena
     ];
   };
 }
