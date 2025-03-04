@@ -161,6 +161,7 @@
           targetHost = machine.targetHost;
           targetUser = "egor";
           privilegeEscalationCommand = [ "sudo" "-S" ];
+          tags = machine.tags;
         };
       }) homelabMachines);
     };
