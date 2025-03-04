@@ -142,15 +142,11 @@
         pkgs = import nixpkgs { system = "x86_64-linux"; };
       in {
         meta = {
-          nixpkgs = pkgs;
+          nixpkgs = import nixpkgs { system = "x86_64-linux"; };
           specialArgs = { inherit inputs; };
         };
       } // (builtins.mapAttrs (name: machine: {
-        # Explicitly set nixpkgs.pkgs for each node
-        nixpkgs.pkgs = pkgs;
-
-        # Include the rest of the configuration
-        imports = [ { _module.args.pkgs = pkgs; } (configs.${name}.config) ];
+        imports = [ (configs.${name}) ];
 
         deployment = {
           targetHost = machine.targetHost;
