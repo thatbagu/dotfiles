@@ -70,17 +70,11 @@
   };
 
   programs.ssh = {
-    enable = true;
-    matchBlocks = {
-      "*" = {
-        identityFile = "/etc/ssh/id_ed25519_key";
-        identitiesOnly = true;
-        user = "${username}";
-      };
-    };
     extraConfig = ''
-      AddKeysToAgent yes
-      ServerAliveInterval 60
+      Host *
+        User ${username}
+        IdentityFile /etc/ssh/id_ed25519_key
+        IdentitiesOnly yes
     '';
   };
 
