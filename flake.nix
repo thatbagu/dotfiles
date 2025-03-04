@@ -49,22 +49,34 @@
           lastPart = builtins.elemAt parts (builtins.length parts - 1);
         in lastPart;
 
-      # Define homelab machines configuration
-      homelabMachines = {
+      # Define all Linux machines configuration
+      nixosMachines = {
+        # Homelab machines
         meowth = {
           hostname = "homelab/meowth";
-          targetHost = "meowth";
-          tags = [ "master" "meowth" ];
+          username = "egor";
+          tags = [ "homelab" "master" "meowth" ];
         };
         psyduck = {
           hostname = "homelab/psyduck";
-          targetHost = "psyduck";
-          tags = [ "worker" "psyduck" ];
+          username = "egor";
+          tags = [ "homelab" "worker" "psyduck" ];
         };
         bulbasaur = {
           hostname = "homelab/bulbasaur";
-          targetHost = "bulbasaur";
-          tags = [ "worker" "bulbasaur" ];
+          username = "egor";
+          tags = [ "homelab" "worker" "bulbasaur" ];
+        };
+        # Other Linux machines
+        laptop = {
+          hostname = "laptop";
+          username = "egor";
+          tags = [ "personal" "laptop" ];
+        };
+        main = {
+          hostname = "main";
+          username = "egor";
+          tags = [ "personal" "main" ];
         };
       };
 
@@ -127,16 +139,14 @@
         };
 
     in {
-      inherit homelabMachines;
+      inherit nixosMachines;
 
       nixosConfigurations = {
         # installer iso
         iso = mkSystem inputs.nixpkgs "x86_64-linux" "iso" "nixos";
-        laptop = mkSystem inputs.nixpkgs "x86_64-linux" "laptop" "egor";
-        main = mkSystem inputs.nixpkgs "x86_64-linux" "main" "egor";
       } // (builtins.mapAttrs (name: machine:
-        mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname "egor")
-        homelabMachines);
+        mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname
+        machine.username) nixosMachines);
 
       darwinConfigurations = {
         work = mkSystem inputs.nix-darwin "aarch64-darwin" "work" "egor";
@@ -147,7 +157,7 @@
           nixpkgs = import nixpkgs { system = "x86_64-linux"; };
           specialArgs = {
             inherit inputs;
-            username = "egor";
+
           };
         };
       } // (builtins.mapAttrs (name: machine: {
@@ -158,11 +168,11 @@
         imports = mkSystemModules "x86_64-linux" machine.hostname "egor";
 
         deployment = {
-          targetHost = machine.targetHost;
-          targetUser = "egor";
+          targetHost = cleanHostname machine.hostname;
+          targetUser = machine.username;
           privilegeEscalationCommand = [ "sudo" "-S" ];
           tags = machine.tags;
         };
-      }) homelabMachines);
+      }) nixosMachines);
     };
 }
