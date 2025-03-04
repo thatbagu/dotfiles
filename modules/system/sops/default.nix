@@ -18,10 +18,9 @@ in {
       secrets.user_password = { neededForUsers = true; };
 
       secrets.private_ssh_key = {
-        path = "/etc/ssh/ssh_host_ed25519_key";
+        path = "/home/${username}/.ssh/ssh_host_ed25519_key";
         mode = "0600";
-        owner = "root";
-        group = "root";
+        owner = "${username}";
       };
     };
   };

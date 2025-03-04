@@ -73,7 +73,7 @@
     extraConfig = ''
       Host *
         User ${username}
-        IdentityFile /etc/ssh/id_ed25519_key
+        IdentityFile /home/${username}/.ssh/ssh_host_ed25519_key
         IdentitiesOnly yes
     '';
   };
@@ -105,20 +105,21 @@
     DIRENV_LOG_FORMAT = "";
     ANTHROPIC_API_KEY_LOAD = config.sops.secrets.antropic_key.path;
     GITHUB_TOKEN_PATH = config.sops.secrets.github_token.path;
+    SOPS_AGE_KEY_FILE = "/persist/etc/sops-nix/keys.txt";
   };
 
   # Security 
   security = {
-    sudo.enable = false;
-    doas = {
+    sudo = {
       enable = true;
       extraRules = [{
         users = [ "${username}" ];
-        keepEnv = true;
-        persist = true;
+        commands = [{
+          command = "ALL";
+          options = [ "SETENV" "NOPASSWD" ];
+        }];
       }];
     };
-
     # Extra security
     protectKernelImage = true;
   };

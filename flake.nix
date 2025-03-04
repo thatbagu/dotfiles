@@ -160,6 +160,7 @@
         deployment = {
           targetHost = machine.targetHost;
           targetUser = "egor";
+          privilegeEscalationCommand = [ "sudo" "-S" ];
         };
       }) homelabMachines);
     };
