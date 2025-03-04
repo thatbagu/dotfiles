@@ -49,7 +49,6 @@ in {
       # Clone the repository
       echo "Cloning repository from $GIT_REPO_URL to $TARGET_DIR..."
       git clone "$GIT_REPO_URL" "$TARGET_DIR"
-
       echo "Git repository successfully cloned to $TARGET_DIR"
     '')
 
@@ -130,7 +129,7 @@ in {
       # Remove the .dotfiles directory and create symlink in reverse
       sudo mkdir -p "/mnt/persist/home/$TARGET_USER"
       # Create symlink relative to the final system paths
-      sudo ln -sf /persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
+      sudo ln -sfn /persist/etc/nixos "/mnt/persist/home/$TARGET_USER/.dotfiles"
       sudo chown -R 1000:1000 "/mnt/persist/home/$TARGET_USER/.dotfiles"
 
       # Use the predefined Git Repository URL
