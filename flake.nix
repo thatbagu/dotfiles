@@ -162,8 +162,10 @@
         };
       } // (builtins.mapAttrs (name: machine: {
         # Explicitly add the hostname module parameter
-        _module.args.hostname = cleanHostname machine.hostname;
-
+        _module.args = {
+          hostname = cleanHostname machine.hostname;
+          username = machine.username;
+        };
         # Reuse the same modules that we use for NixOS configurations
         imports = mkSystemModules "x86_64-linux" machine.hostname "egor";
 
