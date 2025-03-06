@@ -75,6 +75,7 @@
         User ${username}
         IdentityFile /home/${username}/.ssh/ssh_host_ed25519_key
         IdentitiesOnly yes
+        StrictHostKeyChecking no
     '';
   };
 
