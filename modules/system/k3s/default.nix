@@ -36,7 +36,7 @@ in {
 
       k3s = {
         enable = true;
-        role = "server";
+        role = if cfg.master then "server" else "agent";
         tokenFile = config.sops.secrets.k3s_token.path;
         extraFlags = toString ([
           ''--write-kubeconfig-mode "0644"''
