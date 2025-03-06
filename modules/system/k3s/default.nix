@@ -38,19 +38,15 @@ in {
         enable = true;
         role = if cfg.master then "server" else "agent";
         tokenFile = config.sops.secrets.k3s_token.path;
+        serverAddr =
+          if (!cfg.master) then "https://${cfg.masterHostname}:6443" else null;
         extraFlags = toString ([
           ''--write-kubeconfig-mode "0644"''
           "--disable servicelb"
           "--disable traefik"
           "--disable local-storage"
-        ] ++ (if cfg.master then
-          [ "--cluster-init" ]
-        else
-          [ "--server https://${cfg.masterHostname}:6443" ]));
-        clusterInit = cfg.master;
+        ] ++ (if cfg.master then [ "--cluster-init" ] else [ ]));
       };
     };
-
   };
-
 }
