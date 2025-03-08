@@ -13,6 +13,7 @@
         enable = true;
         master = true;
       };
+      k8s.enable = true;
       sops.enable = true;
     };
   };

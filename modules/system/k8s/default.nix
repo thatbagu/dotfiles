@@ -11,6 +11,9 @@ in {
     environment.systemPackages = with pkgs; [ kubectl kubernetes-helm ];
 
     system.activationScripts.kubernetes-deploy = ''
+
+      export PATH=${pkgs.kubectl}/bin:$PATH
+
       # Directory to store rendered manifests
       mkdir -p /var/lib/kubernetes/manifests
 
