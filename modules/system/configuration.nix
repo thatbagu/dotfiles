@@ -2,7 +2,18 @@
 
 {
 
-  imports = [ ./steam ./packages ./stylix ./unifi ./sops ./desktop ./k3s ];
+  imports = [
+    ./steam
+    ./packages
+    ./stylix
+    ./unifi
+    ./sops
+    ./desktop
+    ./impermanence
+    ./disko
+    ./k3s
+    ./k8s
+  ];
 
   # Remove unnecessary preinstalled packages
   environment.defaultPackages = [ ];

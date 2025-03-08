@@ -1,9 +1,11 @@
 { ... }: {
-  imports = [
-    ../../modules/system/configuration.nix
-    ./disko.nix
-    ../../modules/system/impermanence
-  ];
+  imports = [ ../../modules/system/configuration.nix ];
+
+  diskConfig = {
+    device = "/dev/sdb";
+    espSize = "500M";
+  };
+
   config.modules = {
     sys-packages.enable = true;
     steam.enable = true;

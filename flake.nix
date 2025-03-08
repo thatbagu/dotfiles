@@ -35,12 +35,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    impermanence = { url = "github:nix-community/impermanence"; };
-    colmena = { url = "github:zhaofengli/colmena"; };
+    impermanence.url = "github:nix-community/impermanence";
+    colmena.url = "github:zhaofengli/colmena";
+    nixhelm.url = "github:farcaller/nixhelm";
+    nix-kube-generators.url = "github:farcaller/nix-kube-generators";
   };
 
   outputs = { self, home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin
-    , disko, impermanence, colmena, ... }@inputs:
+    , disko, impermanence, colmena, nixhelm, ... }@inputs:
     let
       # Function to get clean hostname without path
       cleanHostname = hostname:
