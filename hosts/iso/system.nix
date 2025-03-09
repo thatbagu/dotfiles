@@ -199,7 +199,7 @@ in {
 
       # SOPS setup
       mkdir -p /etc/sops/age
-      cp ${~/.config/sops/age/keys.txt} /etc/sops/age/keys.txt
+      cp ${/persist/etc/sops-nix/keys.txt} /etc/sops/age/keys.txt
       chmod 600 /etc/sops/age/keys.txt
     '';
   };

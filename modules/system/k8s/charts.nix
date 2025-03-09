@@ -7,7 +7,19 @@ let
   mkChart = { name, namespace, chart, values ? { } }: {
     path = kubelib.buildHelmChart { inherit name chart namespace values; };
     inherit namespace;
+    isSecret = false;
   };
+
+  mkRawManifest = { name, namespace, resources }: {
+    path = kubelib.toYAMLStreamFile resources;
+    inherit namespace;
+  };
+
+  mkSecretRef =
+    { name, namespace, secretName, secretKey ? "password", sopsSecretName }: {
+      inherit namespace name secretName secretKey sopsSecretName;
+      isSecret = true;
+    };
 
 in {
 
@@ -41,31 +53,36 @@ in {
     values = { };
   };
 
-  metallb-config = mkChart {
+  metallb-config = mkRawManifest {
     name = "metallb-config";
     namespace = "metallb-system";
-    chart = kubelib.buildKubernetesManifest {
-      resources = [
-        {
-          apiVersion = "metallb.io/v1beta1";
-          kind = "IPAddressPool";
-          metadata = {
-            name = "pool";
-            namespace = "metallb-system";
-          };
-          spec = { addresses = [ "192.168.1.192/26" ]; };
-        }
-        {
-          apiVersion = "metallb.io/v1beta1";
-          kind = "L2Advertisement";
-          metadata = {
-            name = "pool";
-            namespace = "metallb-system";
-          };
-          spec = { ipAddressPools = [ "pool" ]; };
-        }
-      ];
-    };
+    resources = [
+      {
+        apiVersion = "metallb.io/v1beta1";
+        kind = "IPAddressPool";
+        metadata = {
+          name = "pool";
+          namespace = "metallb-system";
+        };
+        spec = { addresses = [ "192.168.1.192/26" ]; };
+      }
+      {
+        apiVersion = "metallb.io/v1beta1";
+        kind = "L2Advertisement";
+        metadata = {
+          name = "pool";
+          namespace = "metallb-system";
+        };
+        spec = { ipAddressPools = [ "pool" ]; };
+      }
+    ];
+  };
+
+  pihole-secret = mkSecretRef {
+    name = "pihole-secret";
+    namespace = "pihole-system";
+    secretName = "pihole-password";
+    sopsSecretName = "pihole_password";
   };
 
   # Pi-hole - Network-wide ad blocking
@@ -76,6 +93,11 @@ in {
     values = {
       DNS1 = "192.168.1.1";
       persistentVolumeClaim = { enabled = true; };
+      adminPassword = {
+        value = null;
+        existingSecret = "pihole-password";
+        secretKey = "password";
+      };
       ingress = {
         enabled = true;
         hosts = [ "pihole.home" ];

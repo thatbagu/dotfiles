@@ -1,9 +1,16 @@
+# In modules/system/k8s/default.nix
 { config, lib, pkgs, inputs, ... }:
 
 with lib;
 let
   cfg = config.modules.k8s;
   charts = import ./charts.nix { inherit pkgs inputs; };
+
+  # Filter charts to get only secret references
+  secretRefs = filterAttrs (_: chart: chart.isSecret) charts;
+
+  # Filter charts to get regular (non-secret) charts
+  regularCharts = filterAttrs (_: chart: !chart.isSecret) charts;
 
   requiredNamespaces =
     unique (mapAttrsToList (_: chart: chart.namespace) charts);
@@ -13,22 +20,22 @@ in {
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ kubectl kubernetes-helm ];
 
-    # Create directory for manifests
+    # Create manifest directory only
     system.activationScripts.kubernetes-prepare = ''
       mkdir -p /var/lib/kubernetes/manifests
       ${concatStringsSep "\n" (mapAttrsToList (name: chart: ''
         echo "Copying ${name} chart..."
         cp ${chart.path} /var/lib/kubernetes/manifests/${name}.yaml
-      '') charts)}
+      '') regularCharts)}
     '';
 
-    # Create a systemd service that will run after k3s is up
+    # Deployment service
     systemd.services.k8s-deploy = {
       description = "Deploy Kubernetes resources";
       after = [ "k3s.service" ];
       wants = [ "k3s.service" ];
       wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.kubectl ];
+      path = with pkgs; [ kubectl coreutils bash ];
 
       serviceConfig = {
         Type = "oneshot";
@@ -59,11 +66,28 @@ in {
           kubectl get namespace ${ns} &>/dev/null || kubectl create namespace ${ns}
         '') requiredNamespaces}
 
-        # Deploy charts with validation disabled
-        ${concatStringsSep "\n" (mapAttrsToList (name: chart: ''
-          echo "Deploying ${name} to namespace ${chart.namespace}..."
+        # Create secrets first from SOPS
+        ${concatStringsSep "\n" (mapAttrsToList (name: secretRef: ''
+          echo "Creating secret ${secretRef.secretName} in namespace ${secretRef.namespace}..."
+          SECRET_VALUE=$(cat ${
+            config.sops.secrets.${secretRef.sopsSecretName}.path
+          })
+          kubectl create secret generic ${secretRef.secretName} \
+            -n ${secretRef.namespace} \
+            --from-literal=${secretRef.secretKey}="$SECRET_VALUE" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        '') secretRefs)}
+
+        # Give a moment for the secrets to be fully stored
+        sleep 2
+
+        # Deploy regular charts
+        ${concatStringsSep "\n" (mapAttrsToList (name: _: ''
+          echo "Deploying ${name} to namespace ${
+            regularCharts.${name}.namespace
+          }..."
           kubectl apply -f /var/lib/kubernetes/manifests/${name}.yaml --validate=false
-        '') charts)}
+        '') regularCharts)}
       '';
     };
   };
