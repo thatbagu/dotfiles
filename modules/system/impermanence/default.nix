@@ -26,7 +26,13 @@
       "/var/lib/docker"
       "/var/lib/containers"
       "/var/lib/libvirt"
-
+      "/var/lib/kubelet"
+      "/var/lib/rancher/k3s"
+      "/var/lib/csi"
+      {
+        directory = "/var/lib/longhorn";
+        mode = "0700";
+      }
       # Audio
       {
         directory = "/var/lib/pipewire";
