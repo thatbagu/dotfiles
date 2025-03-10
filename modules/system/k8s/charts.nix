@@ -13,6 +13,7 @@ let
   mkRawManifest = { name, namespace, resources }: {
     path = kubelib.toYAMLStreamFile resources;
     inherit namespace;
+    isSecret = false;
   };
 
   mkSecretRef =
@@ -88,7 +89,11 @@ in {
   # Pi-hole - Network-wide ad blocking
   pihole = mkChart {
     name = "pihole";
-    chart = nixhelm.mojo2600.pihole;
+    chart = pkgs.fetchurl {
+      url =
+        "https://github.com/MoJo2600/pihole-kubernetes/releases/download/pihole-2.29.1/pihole-2.29.1.tgz";
+      sha256 = "sha256-W1zqeXluuqqEe9n6DRCoF/vHk7cAVSiOxb/oRl4wdQs=";
+    };
     namespace = "pihole-system";
     values = {
       DNS1 = "192.168.1.1";
