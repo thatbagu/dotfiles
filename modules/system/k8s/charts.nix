@@ -89,20 +89,17 @@ in {
   # Pi-hole - Network-wide ad blocking
   pihole = mkChart {
     name = "pihole";
-    chart = pkgs.fetchurl {
-      url =
-        "https://github.com/MoJo2600/pihole-kubernetes/releases/download/pihole-2.29.1/pihole-2.29.1.tgz";
-      sha256 = "sha256-W1zqeXluuqqEe9n6DRCoF/vHk7cAVSiOxb/oRl4wdQs=";
-    };
+    chart = nixhelm.mojo2600.pihole;
     namespace = "pihole-system";
     values = {
       DNS1 = "192.168.1.1";
       persistentVolumeClaim = { enabled = true; };
-      adminPassword = {
-        value = null;
-        existingSecret = "pihole-password";
-        secretKey = "password";
-      };
+      # Fix the adminPassword configuration
+      adminPassword = "existingSecret"; # Set to a string value or placeholder
+      existingSecret = "pihole-password"; # Name of the existing secret
+      # OR simply use:
+      # adminPassword = null; # If you want to completely rely on the external secret
+
       ingress = {
         enabled = true;
         hosts = [ "pihole.home" ];
@@ -141,31 +138,31 @@ in {
   };
 
   # ExternalDNS for automatic DNS registration with Pi-hole
-  externaldns-pihole = mkChart {
-    name = "externaldns-pihole";
-    chart = nixhelm.bitnami.external-dns;
-    namespace = "pihole-system";
-    values = {
-      provider = "pihole";
-      policy = "upsert-only";
-      txtOwnerId = "homelab";
-      pihole = {
-        server = "http://pihole-web.pihole-system.svc.cluster.local";
-      };
-      extraEnvVars = [{
-        name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
-        valueFrom = {
-          secretKeyRef = {
-            name = "pihole-password";
-            key = "password";
-          };
-        };
-      }];
-      serviceAccount = {
-        create = true;
-        name = "external-dns";
-      };
-      ingressClassFilters = [ "nginx-internal" ];
-    };
-  };
+  # externaldns-pihole = mkChart {
+  #   name = "externaldns-pihole";
+  #   chart = nixhelm.bitnami.external-dns;
+  #   namespace = "pihole-system";
+  #   values = {
+  #     provider = "pihole";
+  #     policy = "upsert-only";
+  #     txtOwnerId = "homelab";
+  #     pihole = {
+  #       server = "http://pihole-web.pihole-system.svc.cluster.local";
+  #     };
+  #     extraEnvVars = [{
+  #       name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
+  #       valueFrom = {
+  #         secretKeyRef = {
+  #           name = "pihole-password";
+  #           key = "password";
+  #         };
+  #       };
+  #     }];
+  #     serviceAccount = {
+  #       create = true;
+  #       name = "external-dns";
+  #     };
+  #     ingressClassFilters = [ "nginx-internal" ];
+  #   };
+  # };
 }
