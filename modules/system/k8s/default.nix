@@ -1,4 +1,3 @@
-# In modules/system/k8s/default.nix
 { config, lib, pkgs, inputs, ... }:
 
 with lib;
@@ -12,8 +11,110 @@ let
   # Filter charts to get regular (non-secret) charts
   regularCharts = filterAttrs (_: chart: !chart.isSecret) charts;
 
+  # Define deployment groups with dependencies and order
+  deploymentGroups = [
+    {
+      name = "core-infrastructure";
+      charts = [ "longhorn" "metallb" ];
+      waitFor = { # Wait for these resources to be ready before proceeding
+        metallb = {
+          kind = "deployment";
+          name = "metallb-controller";
+          namespace = "metallb-system";
+          timeout = 120; # seconds
+        };
+        longhorn = {
+          kind = "deployment";
+          name = "longhorn-driver-deployer";
+          namespace = "longhorn-system";
+          timeout = 180;
+        };
+      };
+    }
+    {
+      name = "core-config";
+      charts = [ "metallb-config" ];
+      dependsOn = [ "core-infrastructure" ];
+      retryAttempts = 5;
+      retryDelay = 30; # seconds between retries
+    }
+    {
+      name = "applications";
+      charts = [ "ingress-nginx-internal" "pihole" ];
+      dependsOn = [ "core-config" ];
+      waitFor = {
+        nginx = {
+          kind = "deployment";
+          name = "ingress-nginx-internal-controller";
+          namespace = "nginx-system";
+          timeout = 180;
+        };
+      };
+    }
+  ];
+
   requiredNamespaces =
     unique (mapAttrsToList (_: chart: chart.namespace) charts);
+
+  # Generate the deployment script for a group
+  generateDeployScript = group: ''
+    echo "Deploying group: ${group.name}"
+
+    ${optionalString (group ? dependsOn) ''
+      # Check if dependent groups completed successfully
+      ${concatMapStringsSep "\n" (dep: ''
+        if [ ! -f "/var/lib/kubernetes/.deploy-${dep}-done" ]; then
+          echo "Dependent group ${dep} has not completed successfully. Aborting."
+          exit 1
+        fi
+      '') group.dependsOn}
+    ''}
+
+    # Deploy charts in this group
+    ${concatMapStringsSep "\n" (chartName: ''
+      echo "Deploying ${chartName} to namespace ${
+        regularCharts.${chartName}.namespace
+      }..."
+
+      retries=${toString (group.retryAttempts or 3)}
+      delay=${toString (group.retryDelay or 10)}
+      success=false
+
+      for i in $(seq 1 $retries); do
+        echo "Attempt $i of $retries for ${chartName}..."
+        if kubectl apply -f /var/lib/kubernetes/manifests/${chartName}.yaml --validate=false; then
+          success=true
+          break
+        else
+          echo "Failed to deploy ${chartName}, waiting $delay seconds before retry..."
+          sleep $delay
+        fi
+      done
+
+      if [ "$success" != "true" ]; then
+        echo "Failed to deploy ${chartName} after $retries attempts"
+        exit 1
+      fi
+    '') group.charts}
+
+    # Wait for resources if specified
+    ${optionalString (group ? waitFor) (concatStringsSep "\n" (mapAttrsToList
+      (resourceName: resource: ''
+        echo "Waiting for ${resource.kind} ${resource.name} in namespace ${resource.namespace} to be ready..."
+
+        kubectl wait --for=condition=Available --timeout=${
+          toString (resource.timeout or 120)
+        }s ${resource.kind}/${resource.name} -n ${resource.namespace} || {
+          echo "Timed out waiting for ${resource.kind}/${resource.name} to be ready"
+          # Continue anyway but warn
+          echo "WARNING: Resource not ready, but continuing..."
+        }
+      '') group.waitFor))}
+
+    # Mark this group as done
+    touch /var/lib/kubernetes/.deploy-${group.name}-done
+    echo "Group ${group.name} completed successfully"
+  '';
 in {
   options.modules.k8s = { enable = mkEnableOption "k8s"; };
 
@@ -40,9 +141,14 @@ in {
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
+        Restart = "on-failure";
+        RestartSec = "30s";
       };
 
       script = ''
+        # Clear previous deployment state
+        rm -f /var/lib/kubernetes/.deploy-*-done
+
         # Wait for k3s API to be ready
         echo "Waiting for Kubernetes API to be ready..."
         KUBECONFIG=/etc/rancher/k3s/k3s.yaml
@@ -79,15 +185,12 @@ in {
         '') secretRefs)}
 
         # Give a moment for the secrets to be fully stored
-        sleep 2
+        sleep 5
 
-        # Deploy regular charts
-        ${concatStringsSep "\n" (mapAttrsToList (name: _: ''
-          echo "Deploying ${name} to namespace ${
-            regularCharts.${name}.namespace
-          }..."
-          kubectl apply -f /var/lib/kubernetes/manifests/${name}.yaml --validate=false
-        '') regularCharts)}
+        # Deploy each group in sequence
+        ${concatMapStringsSep "\n\n" generateDeployScript deploymentGroups}
+
+        echo "All deployments completed successfully!"
       '';
     };
   };

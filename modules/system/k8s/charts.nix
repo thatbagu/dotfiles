@@ -97,8 +97,6 @@ in {
       # Fix the adminPassword configuration
       adminPassword = "existingSecret"; # Set to a string value or placeholder
       existingSecret = "pihole-password"; # Name of the existing secret
-      # OR simply use:
-      # adminPassword = null; # If you want to completely rely on the external secret
 
       ingress = {
         enabled = true;
@@ -137,7 +135,8 @@ in {
     };
   };
 
-  # ExternalDNS for automatic DNS registration with Pi-hole
+  # Uncomment this after ensuring the dependency is available
+  # # ExternalDNS for automatic DNS registration with Pi-hole
   # externaldns-pihole = mkChart {
   #   name = "externaldns-pihole";
   #   chart = nixhelm.bitnami.external-dns;
