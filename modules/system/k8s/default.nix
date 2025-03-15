@@ -40,13 +40,13 @@ let
     }
     {
       name = "dns-services";
-      charts = [ "external-dns" ];
+      charts = [ "externaldns-pihole" ];
       dependsOn = [ "core-config" ];
       waitFor = {
         externaldns = {
           kind = "deployment";
           name = "external-dns";
-          namespace = "external-dns";
+          namespace = "pihole-system";
           timeout = 120;
         };
       };
