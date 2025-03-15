@@ -135,33 +135,32 @@ in {
     };
   };
 
-  # Uncomment this after ensuring the dependency is available
-  # # ExternalDNS for automatic DNS registration with Pi-hole
-  # externaldns-pihole = mkChart {
-  #   name = "externaldns-pihole";
-  #   chart = nixhelm.bitnami.external-dns;
-  #   namespace = "pihole-system";
-  #   values = {
-  #     provider = "pihole";
-  #     policy = "upsert-only";
-  #     txtOwnerId = "homelab";
-  #     pihole = {
-  #       server = "http://pihole-web.pihole-system.svc.cluster.local";
-  #     };
-  #     extraEnvVars = [{
-  #       name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
-  #       valueFrom = {
-  #         secretKeyRef = {
-  #           name = "pihole-password";
-  #           key = "password";
-  #         };
-  #       };
-  #     }];
-  #     serviceAccount = {
-  #       create = true;
-  #       name = "external-dns";
-  #     };
-  #     ingressClassFilters = [ "nginx-internal" ];
-  #   };
-  # };
+  # ExternalDNS for automatic DNS registration with Pi-hole
+  externaldns-pihole = mkChart {
+    name = "externaldns-pihole";
+    chart = nixhelm.bitnami.external-dns;
+    namespace = "pihole-system";
+    values = {
+      provider = "pihole";
+      policy = "upsert-only";
+      txtOwnerId = "homelab";
+      pihole = {
+        server = "http://pihole-web.pihole-system.svc.cluster.local";
+      };
+      extraEnvVars = [{
+        name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
+        valueFrom = {
+          secretKeyRef = {
+            name = "pihole-password";
+            key = "existingSecret";
+          };
+        };
+      }];
+      serviceAccount = {
+        create = true;
+        name = "external-dns";
+      };
+      ingressClassFilters = [ "nginx-internal" ];
+    };
+  };
 }

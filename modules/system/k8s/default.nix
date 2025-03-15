@@ -39,6 +39,19 @@ let
       retryDelay = 30; # seconds between retries
     }
     {
+      name = "dns-services";
+      charts = [ "external-dns" ];
+      dependsOn = [ "core-config" ];
+      waitFor = {
+        externaldns = {
+          kind = "deployment";
+          name = "external-dns";
+          namespace = "external-dns";
+          timeout = 120;
+        };
+      };
+    }
+    {
       name = "applications";
       charts = [ "ingress-nginx-internal" "pihole" ];
       dependsOn = [ "core-config" ];
