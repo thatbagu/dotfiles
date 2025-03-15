@@ -152,7 +152,7 @@ in {
         valueFrom = {
           secretKeyRef = {
             name = "pihole-password";
-            key = "existingSecret";
+            key = "password";
           };
         };
       }];
