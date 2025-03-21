@@ -16,6 +16,7 @@
     ./snippets
     ./statusline
     ./telescope
+    ./typr
     ./ui
     ./utils
   ];
