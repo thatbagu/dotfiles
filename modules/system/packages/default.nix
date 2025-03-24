@@ -15,6 +15,7 @@ in {
       sops
       age
       colmena
+      devenv
     ];
   };
 }
