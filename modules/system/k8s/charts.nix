@@ -82,7 +82,7 @@ in {
   pihole-secret = mkSecretRef {
     name = "pihole-secret";
     namespace = "pihole-system";
-    secretName = "pihole-password";
+    secretName = "pihole-secret"; # Changed to match the name
     sopsSecretName = "pihole_password";
   };
 
@@ -94,9 +94,10 @@ in {
     values = {
       DNS1 = "192.168.1.1";
       persistentVolumeClaim = { enabled = true; };
-      # Fix the adminPassword configuration
-      adminPassword = "existingSecret"; # Set to a string value or placeholder
-      existingSecret = "pihole-password"; # Name of the existing secret
+      # Use SOPS-managed secret
+      adminPassword = null;
+      existingSecret = "pihole-secret"; # Changed to match secretName
+      passwordKey = "password";
 
       ingress = {
         enabled = true;
@@ -138,28 +139,65 @@ in {
   # ExternalDNS for automatic DNS registration with Pi-hole
   externaldns-pihole = mkChart {
     name = "externaldns-pihole";
-    chart = nixhelm.bitnami.external-dns;
+    chart = nixhelm.external-dns.external-dns;
     namespace = "pihole-system";
     values = {
       provider = "pihole";
-      policy = "upsert-only";
-      txtOwnerId = "homelab";
-      pihole = {
-        server = "http://pihole-web.pihole-system.svc.cluster.local";
-      };
-      extraEnvVars = [{
-        name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
-        valueFrom = {
-          secretKeyRef = {
-            name = "pihole-password";
-            key = "password";
-          };
-        };
-      }];
+      sources = [ "service" "ingress" ];
+      registry = "noop"; # Pihole only supports A/AAAA/CNAME records
+      policy = "upsert-only"; # Protect manually managed records
+      # Service Account and RBAC configuration
       serviceAccount = {
         create = true;
         name = "external-dns";
       };
+      rbac = {
+        create = true;
+        clusterRole = true;
+        rules = [
+          {
+            apiGroups = [ "" ];
+            resources = [ "services" "endpoints" "pods" ];
+            verbs = [ "get" "watch" "list" ];
+          }
+          {
+            apiGroups = [ "extensions" "networking.k8s.io" ];
+            resources = [ "ingresses" ];
+            verbs = [ "get" "watch" "list" ];
+          }
+          {
+            apiGroups = [ "" ];
+            resources = [ "nodes" ];
+            verbs = [ "list" "watch" ];
+          }
+        ];
+      };
+
+      # Deployment specific settings
+      deploymentStrategy = { type = "Recreate"; };
+
+      securityContext = {
+        fsGroup = 65534; # For ExternalDNS to read Kubernetes token files
+      };
+
+      env = [
+        {
+          name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
+          valueFrom = {
+            secretKeyRef = {
+              name = "pihole-secret";
+              key = "password";
+              optional = false;
+            };
+          };
+        }
+        {
+          name = "EXTERNAL_DNS_PIHOLE_SERVER";
+          value = "http://pihole-web.pihole-system.svc.cluster.local";
+        }
+      ];
+
+      # Filter which ingress classes to watch
       ingressClassFilters = [ "nginx-internal" ];
     };
   };

@@ -203,6 +203,16 @@ let light_theme = {
 #     carapace $spans.0 nushell ...$spans | from json
 # }
 
+# Aliases
+alias ls = eza
+alias ll = eza -l
+alias la = eza -la
+alias lt = eza --tree
+alias l = eza -l
+alias cat = bat
+alias cd = z
+alias grep = rg --smart-case
+
 # The default config record. This is where much of your global configuration is setup.
 def create_left_prompt [] {
     let current_dir = (pwd | path basename)

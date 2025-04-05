@@ -35,6 +35,7 @@ in {
 
       # Graphics
       gimp
+      blender
 
       # System Utils
       brightnessctl

@@ -39,6 +39,19 @@ let
       retryDelay = 30; # seconds between retries
     }
     {
+      name = "networking-services";
+      charts = [ "ingress-nginx-internal" "pihole" ];
+      dependsOn = [ "core-config" ];
+      waitFor = {
+        nginx = {
+          kind = "deployment";
+          name = "ingress-nginx-internal-controller";
+          namespace = "nginx-system";
+          timeout = 180;
+        };
+      };
+    }
+    {
       name = "dns-services";
       charts = [ "externaldns-pihole" ];
       dependsOn = [ "core-config" ];
@@ -48,19 +61,6 @@ let
           name = "external-dns";
           namespace = "pihole-system";
           timeout = 120;
-        };
-      };
-    }
-    {
-      name = "applications";
-      charts = [ "ingress-nginx-internal" "pihole" ];
-      dependsOn = [ "core-config" ];
-      waitFor = {
-        nginx = {
-          kind = "deployment";
-          name = "ingress-nginx-internal-controller";
-          namespace = "nginx-system";
-          timeout = 180;
         };
       };
     }
@@ -82,20 +82,19 @@ let
         fi
       '') group.dependsOn}
     ''}
-
-    # Deploy charts in this group
     ${concatMapStringsSep "\n" (chartName: ''
       echo "Deploying ${chartName} to namespace ${
         regularCharts.${chartName}.namespace
       }..."
-
       retries=${toString (group.retryAttempts or 3)}
       delay=${toString (group.retryDelay or 10)}
       success=false
-
       for i in $(seq 1 $retries); do
         echo "Attempt $i of $retries for ${chartName}..."
-        if kubectl apply -f /var/lib/kubernetes/manifests/${chartName}.yaml --validate=false; then
+        # Add the -n flag with the namespace
+        if kubectl apply -f /var/lib/kubernetes/manifests/${chartName}.yaml --validate=false -n ${
+          regularCharts.${chartName}.namespace
+        }; then
           success=true
           break
         else
@@ -103,7 +102,6 @@ let
           sleep $delay
         fi
       done
-
       if [ "$success" != "true" ]; then
         echo "Failed to deploy ${chartName} after $retries attempts"
         exit 1
@@ -136,11 +134,20 @@ in {
 
     # Create manifest directory only
     system.activationScripts.kubernetes-prepare = ''
-      mkdir -p /var/lib/kubernetes/manifests
-      ${concatStringsSep "\n" (mapAttrsToList (name: chart: ''
-        echo "Copying ${name} chart..."
-        cp ${chart.path} /var/lib/kubernetes/manifests/${name}.yaml
-      '') regularCharts)}
+        mkdir -p /var/lib/kubernetes/manifests
+        ${
+          concatStringsSep "\n" (mapAttrsToList (name: chart: ''
+            echo "Copying ${name} chart..."
+            cp ${chart.path} /var/lib/kubernetes/manifests/${name}.yaml
+          '') regularCharts)
+        }
+
+      # Clear all deployment status files to force complete redeployment
+      rm -f /var/lib/kubernetes/.deploy-*-done
+
+      # Force stop and start the k8s-deploy service to trigger redeployment
+      systemctl stop k8s-deploy
+      systemctl start k8s-deploy
     '';
 
     # Deployment service
@@ -153,58 +160,56 @@ in {
 
       serviceConfig = {
         Type = "oneshot";
-        RemainAfterExit = true;
-        Restart = "on-failure";
+        RemainAfterExit = false;
+        Restart = "always";
         RestartSec = "30s";
+        ExecStart = "${pkgs.writeShellScript "k8s-deploy" ''
+          # Wait for k3s API to be ready
+          echo "Waiting for Kubernetes API to be ready..."
+          KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+          export KUBECONFIG
+
+          count=0
+          max_attempts=30
+          until kubectl get nodes &>/dev/null; do
+            echo "Waiting for Kubernetes API... Attempt $count of $max_attempts"
+            sleep 10
+            count=$((count + 1))
+            if [ $count -ge $max_attempts ]; then
+              echo "Kubernetes API did not become available in time"
+              exit 1
+            fi
+          done
+
+          # Create required namespaces first
+          echo "Creating namespaces: ${
+            concatStringsSep ", " requiredNamespaces
+          }"
+          ${concatMapStringsSep "\n" (ns: ''
+            kubectl get namespace ${ns} &>/dev/null || kubectl create namespace ${ns}
+          '') requiredNamespaces}
+
+          # Create secrets first from SOPS
+          ${concatStringsSep "\n" (mapAttrsToList (name: secretRef: ''
+            echo "Creating secret ${secretRef.secretName} in namespace ${secretRef.namespace}..."
+            SECRET_VALUE=$(cat ${
+              config.sops.secrets.${secretRef.sopsSecretName}.path
+            })
+            kubectl create secret generic ${secretRef.secretName} \
+              -n ${secretRef.namespace} \
+              --from-literal=${secretRef.secretKey}="$SECRET_VALUE" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          '') secretRefs)}
+
+          # Give a moment for the secrets to be fully stored
+          sleep 5
+
+          # Deploy each group in sequence
+          ${concatMapStringsSep "\n\n" generateDeployScript deploymentGroups}
+
+          echo "All deployments completed successfully!"
+        ''}";
       };
-
-      script = ''
-        # Clear previous deployment state
-        rm -f /var/lib/kubernetes/.deploy-*-done
-
-        # Wait for k3s API to be ready
-        echo "Waiting for Kubernetes API to be ready..."
-        KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-        export KUBECONFIG
-
-        count=0
-        max_attempts=30
-        until kubectl get nodes &>/dev/null; do
-          echo "Waiting for Kubernetes API... Attempt $count of $max_attempts"
-          sleep 10
-          count=$((count + 1))
-          if [ $count -ge $max_attempts ]; then
-            echo "Kubernetes API did not become available in time"
-            exit 1
-          fi
-        done
-
-        # Create required namespaces first
-        echo "Creating namespaces: ${concatStringsSep ", " requiredNamespaces}"
-        ${concatMapStringsSep "\n" (ns: ''
-          kubectl get namespace ${ns} &>/dev/null || kubectl create namespace ${ns}
-        '') requiredNamespaces}
-
-        # Create secrets first from SOPS
-        ${concatStringsSep "\n" (mapAttrsToList (name: secretRef: ''
-          echo "Creating secret ${secretRef.secretName} in namespace ${secretRef.namespace}..."
-          SECRET_VALUE=$(cat ${
-            config.sops.secrets.${secretRef.sopsSecretName}.path
-          })
-          kubectl create secret generic ${secretRef.secretName} \
-            -n ${secretRef.namespace} \
-            --from-literal=${secretRef.secretKey}="$SECRET_VALUE" \
-            --dry-run=client -o yaml | kubectl apply -f -
-        '') secretRefs)}
-
-        # Give a moment for the secrets to be fully stored
-        sleep 5
-
-        # Deploy each group in sequence
-        ${concatMapStringsSep "\n\n" generateDeployScript deploymentGroups}
-
-        echo "All deployments completed successfully!"
-      '';
     };
   };
 }
