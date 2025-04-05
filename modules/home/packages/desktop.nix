@@ -37,6 +37,9 @@ in {
       gimp
       blender
 
+      # Minecraft
+      prismlauncher
+
       # System Utils
       brightnessctl
       antimicrox

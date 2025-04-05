@@ -535,6 +535,22 @@
         "type": "github"
       }
     },
+    "libnbtplusplus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1699286814,
+        "narHash": "sha256-yy0q+bky80LtK1GWzz7qpM+aAGrOqLuewbid8WT1ilk=",
+        "owner": "PrismLauncher",
+        "repo": "libnbtplusplus",
+        "rev": "23b955121b8217c1c348a9ed2483167a6f3ff4ad",
+        "type": "github"
+      },
+      "original": {
+        "owner": "PrismLauncher",
+        "repo": "libnbtplusplus",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -811,6 +827,27 @@
         "type": "github"
       }
     },
+    "prismlauncher": {
+      "inputs": {
+        "libnbtplusplus": "libnbtplusplus",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1743757300,
+        "narHash": "sha256-hKlnjLZZ9LiMSwvxFc59QSNnTW5gOyq+wH5hFPGH62I=",
+        "owner": "PrismLauncher",
+        "repo": "PrismLauncher",
+        "rev": "c1b460fa05fd110179dcacfbeb819c34547a2b3b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "PrismLauncher",
+        "repo": "PrismLauncher",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "colmena": "colmena",
@@ -823,6 +860,7 @@
         "nixhelm": "nixhelm",
         "nixpkgs": "nixpkgs_3",
         "nixvim": "nixvim",
+        "prismlauncher": "prismlauncher",
         "sops-nix": "sops-nix",
         "stylix": "stylix"
       }
