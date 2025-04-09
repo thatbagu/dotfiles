@@ -203,6 +203,34 @@ let light_theme = {
 #     carapace $spans.0 nushell ...$spans | from json
 # }
 
+# Initialize zoxide hook
+if (not ($env | default false __zoxide_hooked | get __zoxide_hooked)) {
+  $env.__zoxide_hooked = true
+  $env.config = ($env | default {} config).config
+  $env.config = ($env.config | default {} hooks)
+  $env.config = ($env.config | update hooks ($env.config.hooks | default {} env_change))
+  $env.config = ($env.config | update hooks.env_change ($env.config.hooks.env_change | default [] PWD))
+  $env.config = ($env.config | update hooks.env_change.PWD ($env.config.hooks.env_change.PWD | append {|_, dir|
+    zoxide add -- $dir
+  }))
+}
+
+# Zoxide functions
+def --env --wrapped __zoxide_z [...rest:string] {
+  let arg0 = ($rest | append '~').0
+  let arg0_is_dir = (try {$arg0 | path expand | path type}) == 'dir'
+  let path = if (($rest | length) <= 1) and ($arg0 == '-' or $arg0_is_dir) {
+    $arg0
+  } else {
+    (zoxide query --exclude $env.PWD -- ...$rest | str trim -r -c "\n")
+  }
+  cd $path
+}
+
+def --env --wrapped __zoxide_zi [...rest:string] {
+  cd $'(zoxide query --interactive -- ...$rest | str trim -r -c "\n")'
+}
+
 # Aliases
 alias ls = eza
 alias ll = eza -l
@@ -210,7 +238,9 @@ alias la = eza -la
 alias lt = eza --tree
 alias l = eza -l
 alias cat = bat
-alias cd = z
+alias cd = __zoxide_z
+alias z = __zoxide_z
+alias zi = __zoxide_zi
 alias grep = rg --smart-case
 
 # The default config record. This is where much of your global configuration is setup.
