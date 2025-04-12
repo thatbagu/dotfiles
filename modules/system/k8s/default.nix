@@ -137,24 +137,48 @@ in {
       text = ''
         mkdir -p /var/lib/kubernetes/manifests
 
-        # Record timestamp for deployment detection
-        date +%s > /var/lib/kubernetes/.last-update
+        # Create a simple sentinel file to track when charts are copied
+        echo "${
+          builtins.toString
+          (mapAttrsToList (name: chart: chart.path) regularCharts)
+        }" > /var/lib/kubernetes/.chart-paths
 
-        # Copy charts
+        # Copy charts 
         ${concatStringsSep "\n" (mapAttrsToList (name: chart: ''
           echo "Copying ${name} chart..."
           cp ${chart.path} /var/lib/kubernetes/manifests/${name}.yaml
         '') regularCharts)}
 
-        # Clear all deployment status files to force complete redeployment
-        rm -f /var/lib/kubernetes/.deploy-*-done
+        # Clear deployment markers for groups containing modified charts
+        ${concatStringsSep "\n" (map (group:
+          let groupCharts = concatStringsSep "\\|" group.charts;
+          in ''
+            # Check if any charts in this group were modified
+            for chart in ${concatStringsSep " " group.charts}; do
+              if [ -z "$modified_groups" ] || ! echo "$modified_groups" | grep -q "${group.name}"; then
+                echo "Clearing markers for group ${group.name} and dependencies"
+                rm -f /var/lib/kubernetes/.deploy-${group.name}-done
+                modified_groups="${group.name} $modified_groups"
+                ${
+                  optionalString (group ? dependsOn) (concatMapStringsSep "\n"
+                    (dep: ''
+                      if [ -z "$modified_deps" ] || ! echo "$modified_deps" | grep -q "${dep}"; then
+                        echo "Group ${group.name} depends on ${dep}, clearing its marker"
+                        rm -f /var/lib/kubernetes/.deploy-${dep}-done
+                        modified_deps="${dep} $modified_deps"
+                      fi
+                    '') group.dependsOn)
+                }
+                break
+              fi
+            done
+          '') deploymentGroups)}
 
-        # Safely trigger a redeployment
+        # Always attempt to restart k8s-deploy
         if command -v systemctl >/dev/null 2>&1; then
-          echo "Stopping k8s-deploy service"
-          systemctl stop k8s-deploy || true
-          echo "Starting k8s-deploy service"
-          systemctl start k8s-deploy || true
+          echo "Triggering k8s-deploy service"
+          systemctl stop k8s-deploy 2>/dev/null || true
+          systemctl start k8s-deploy 2>/dev/null || true
         else
           echo "systemctl not available, deployment will be handled at next boot"
         fi
@@ -162,20 +186,22 @@ in {
       deps = [ "specialfs" "users" "groups" ];
     };
 
-    # Primary deployment service - oneshot that runs and exits
+    # Deployment service
     systemd.services.k8s-deploy = {
       description = "Deploy Kubernetes resources";
       after = [ "k3s.service" ];
       wants = [ "k3s.service" ];
       wantedBy = [ "multi-user.target" ];
       path = with pkgs; [ kubectl coreutils bash ];
+
+      # This will cause the script to be regenerated every time the path to any chart changes
+      # (which happens when chart content changes)
       restartTriggers = [
-        # This will cause the service to be restarted when any chart changes
         (builtins.hashString "sha256" (builtins.toString
           (mapAttrsToList (name: chart: chart.path) regularCharts)))
       ];
 
-      # Configure as a true oneshot service
+      # Configure as a oneshot service
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
