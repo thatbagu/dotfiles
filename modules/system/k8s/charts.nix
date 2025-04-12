@@ -82,7 +82,7 @@ in {
   pihole-secret = mkSecretRef {
     name = "pihole-secret";
     namespace = "pihole-system";
-    secretName = "pihole-secret"; # Changed to match the name
+    secretName = "pihole-password"; # Changed to match the name
     sopsSecretName = "pihole_password";
   };
 
@@ -96,7 +96,7 @@ in {
       persistentVolumeClaim = { enabled = true; };
       # Use SOPS-managed secret
       adminPassword = null;
-      existingSecret = "pihole-secret"; # Changed to match secretName
+      existingSecret = "pihole-password";
       passwordKey = "password";
 
       ingress = {

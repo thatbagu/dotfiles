@@ -132,37 +132,53 @@ in {
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ kubectl kubernetes-helm ];
 
-    # Create manifest directory only
-    system.activationScripts.kubernetes-prepare = ''
+    # Create manifest directory and prepare for redeployment
+    system.activationScripts.kubernetes-prepare = {
+      text = ''
         mkdir -p /var/lib/kubernetes/manifests
-        ${
-          concatStringsSep "\n" (mapAttrsToList (name: chart: ''
-            echo "Copying ${name} chart..."
-            cp ${chart.path} /var/lib/kubernetes/manifests/${name}.yaml
-          '') regularCharts)
-        }
 
-      # Clear all deployment status files to force complete redeployment
-      rm -f /var/lib/kubernetes/.deploy-*-done
+        # Record timestamp for deployment detection
+        date +%s > /var/lib/kubernetes/.last-update
 
-      # Force stop and start the k8s-deploy service to trigger redeployment
-      systemctl stop k8s-deploy
-      systemctl start k8s-deploy
-    '';
+        # Copy charts
+        ${concatStringsSep "\n" (mapAttrsToList (name: chart: ''
+          echo "Copying ${name} chart..."
+          cp ${chart.path} /var/lib/kubernetes/manifests/${name}.yaml
+        '') regularCharts)}
 
-    # Deployment service
+        # Clear all deployment status files to force complete redeployment
+        rm -f /var/lib/kubernetes/.deploy-*-done
+
+        # Safely trigger a redeployment
+        if command -v systemctl >/dev/null 2>&1; then
+          echo "Stopping k8s-deploy service"
+          systemctl stop k8s-deploy || true
+          echo "Starting k8s-deploy service"
+          systemctl start k8s-deploy || true
+        else
+          echo "systemctl not available, deployment will be handled at next boot"
+        fi
+      '';
+      deps = [ "specialfs" "users" "groups" ];
+    };
+
+    # Primary deployment service - oneshot that runs and exits
     systemd.services.k8s-deploy = {
       description = "Deploy Kubernetes resources";
       after = [ "k3s.service" ];
       wants = [ "k3s.service" ];
       wantedBy = [ "multi-user.target" ];
       path = with pkgs; [ kubectl coreutils bash ];
+      restartTriggers = [
+        # This will cause the service to be restarted when any chart changes
+        (builtins.hashString "sha256" (builtins.toString
+          (mapAttrsToList (name: chart: chart.path) regularCharts)))
+      ];
 
+      # Configure as a true oneshot service
       serviceConfig = {
         Type = "oneshot";
-        RemainAfterExit = false;
-        Restart = "always";
-        RestartSec = "30s";
+        RemainAfterExit = true;
         ExecStart = "${pkgs.writeShellScript "k8s-deploy" ''
           # Wait for k3s API to be ready
           echo "Waiting for Kubernetes API to be ready..."
