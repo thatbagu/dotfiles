@@ -92,16 +92,26 @@ in {
     chart = nixhelm.mojo2600.pihole;
     namespace = "pihole-system";
     values = {
+      image = {
+        repository = "pihole/pihole";
+        tag = "2024.07.0"; # The last 5.x version released in Dec 2024
+      };
       DNS1 = "192.168.1.1";
       persistentVolumeClaim = { enabled = true; };
-      # Use SOPS-managed secret
-      adminPassword = null;
-      existingSecret = "pihole-password";
-      passwordKey = "password";
+
+      env = [{
+        name = "WEBPASSWORD";
+        valueFrom = {
+          secretKeyRef = {
+            name = "pihole-password";
+            key = "password";
+          };
+        };
+      }];
 
       ingress = {
         enabled = true;
-        hosts = [ "pihole.home" ];
+        hosts = [ "pihole.home" "pihole.test" ];
       };
       serviceWeb = {
         loadBalancerIP = "192.168.1.250";
@@ -144,9 +154,9 @@ in {
     values = {
       provider = "pihole";
       sources = [ "service" "ingress" ];
-      registry = "noop"; # Pihole only supports A/AAAA/CNAME records
-      policy = "upsert-only"; # Protect manually managed records
-      # Service Account and RBAC configuration
+      registry = "noop";
+      policy = "upsert-only";
+
       serviceAccount = {
         create = true;
         name = "external-dns";
@@ -173,32 +183,41 @@ in {
         ];
       };
 
-      # Deployment specific settings
       deploymentStrategy = { type = "Recreate"; };
 
-      securityContext = {
-        fsGroup = 65534; # For ExternalDNS to read Kubernetes token files
-      };
+      securityContext = { fsGroup = 65534; };
 
       env = [
+        {
+          name = "EXTERNAL_DNS_PIHOLE_SERVER";
+          value = "http://192.168.1.250";
+        }
         {
           name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
           valueFrom = {
             secretKeyRef = {
-              name = "pihole-secret";
+              name = "pihole-password";
               key = "password";
-              optional = false;
             };
           };
         }
-        {
-          name = "EXTERNAL_DNS_PIHOLE_SERVER";
-          value = "http://pihole-web.pihole-system.svc.cluster.local";
-        }
       ];
 
-      # Filter which ingress classes to watch
-      ingressClassFilters = [ "nginx-internal" ];
+      args = [
+        "--source=service"
+        "--source=ingress"
+        "--provider=pihole"
+        "--registry=noop"
+        "--policy=upsert-only"
+        "--log-level=debug"
+      ];
+      extraArgs = [
+        # "--pihole-api-version=6"
+        "--pihole-tls-skip-verify"
+        "--txt-owner-id=k8s"
+      ];
+
+      # ingressClassFilters = [ "nginx-internal" ];
     };
   };
 }

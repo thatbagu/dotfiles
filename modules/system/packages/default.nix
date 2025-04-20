@@ -8,6 +8,7 @@ in {
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       acpi
+      dnsutils
       tlp
       gnutls
       curl

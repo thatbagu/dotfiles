@@ -234,13 +234,14 @@ in {
           # Create secrets first from SOPS
           ${concatStringsSep "\n" (mapAttrsToList (name: secretRef: ''
             echo "Creating secret ${secretRef.secretName} in namespace ${secretRef.namespace}..."
+            # Read the secret value directly from SOPS
             SECRET_VALUE=$(cat ${
               config.sops.secrets.${secretRef.sopsSecretName}.path
             })
-            kubectl create secret generic ${secretRef.secretName} \
-              -n ${secretRef.namespace} \
-              --from-literal=${secretRef.secretKey}="$SECRET_VALUE" \
-              --dry-run=client -o yaml | kubectl apply -f -
+
+            # Create a JSON representation of the secret and apply it directly
+            # This prevents double base64 encoding of the password
+            echo -n "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"${secretRef.secretName}\",\"namespace\":\"${secretRef.namespace}\"},\"type\":\"Opaque\",\"stringData\":{\"${secretRef.secretKey}\":\"$SECRET_VALUE\"}}" | kubectl apply -f -
           '') secretRefs)}
 
           # Give a moment for the secrets to be fully stored
