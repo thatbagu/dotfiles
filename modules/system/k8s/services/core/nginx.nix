@@ -10,7 +10,7 @@ let
         enabled = true;
         serviceMonitor = { enabled = true; };
       };
-      resources = mkResourceRequirements {
+      resources = {
         requests = {
           cpu = "100m";
           memory = "128Mi";
@@ -27,8 +27,6 @@ let
         "server-tokens" = "false";
         "ssl-protocols" = "TLSv1.2 TLSv1.3";
         "ssl-ciphers" = "HIGH:!aNULL:!MD5";
-        "log-format-upstream" = ''
-          $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_length $request_time [$proxy_upstream_name] [$proxy_alternative_upstream_name] $upstream_addr $upstream_response_length $upstream_response_time $upstream_status $req_id'';
       };
     };
   };
@@ -57,14 +55,6 @@ let
     };
   };
 
-  # Generate standard labels for NGINX controllers
-  nginxLabels = isExternal:
-    mkLabels {
-      name = "ingress-nginx${if isExternal then "-external" else "-internal"}";
-      component = "ingress-controller";
-      part = if isExternal then "external-access" else "internal-services";
-    };
-
   # Common NGINX configuration generator with better defaults handling
   mkNginxIngress = { name, ingressClass, isDefault ? false, isExternal ? false
     , additionalValues ? { } }:
@@ -88,8 +78,6 @@ let
             parameters = { };
           };
           ingressClass = ingressClass;
-          labels = nginxLabels isExternal;
-          podLabels = nginxLabels isExternal;
         };
       };
     };
@@ -122,10 +110,6 @@ in {
             "0.0.0.0/0"; # Can be restricted to specific IPs
           "ssl-redirect" =
             "true"; # Always redirect to HTTPS for external traffic
-        };
-        extraArgs = {
-          "default-ssl-certificate" =
-            "${vars.namespaces.dns}/default-tls-cert"; # Optional default certificate
         };
       };
     };

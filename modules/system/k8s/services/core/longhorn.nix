@@ -3,7 +3,7 @@
 with lib;
 
 let
-  # Default values for Longhorn
+  # Values for Longhorn
   longhornValues = {
     persistence = {
       defaultClass = true;

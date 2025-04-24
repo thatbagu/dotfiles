@@ -52,23 +52,6 @@ let
 
   # Function to overlay values on top of defaults
   overlayValues = defaults: overlay: recursiveMerge' [ defaults overlay ];
-
-  # Function to create a consistent label set
-  mkLabels = { name, component, part ? null }:
-    {
-      "app.kubernetes.io/name" = name;
-      "app.kubernetes.io/component" = component;
-    }
-    // (if part != null then { "app.kubernetes.io/part-of" = part; } else { });
-
-  # Function to generate standard annotations
-  mkAnnotations = { managed-by ? "nix-k8s", owner ? null, annotations ? { } }:
-    {
-      "app.kubernetes.io/managed-by" = managed-by;
-    } // (if owner != null then {
-      "app.kubernetes.io/created-by" = owner;
-    } else
-      { }) // annotations;
 in {
   # Common chart creation functions
 
@@ -85,7 +68,7 @@ in {
     isSecret = false;
   };
 
-  # Function to create a raw Kubernetes manifest with standard metadata
+  # Function to create a raw Kubernetes manifest
   mkRawManifest = { name, namespace, resources }: {
     path = kubelib.toYAMLStreamFile resources;
     inherit namespace;
@@ -99,34 +82,6 @@ in {
       isSecret = true;
     };
 
-  # Function to generate consistent resources
-  mkResources = { cpu ? null, memory ? null, storage ? null }:
-    builtins.removeAttrs { inherit cpu memory storage; } (builtins.filter
-      (k: builtins.getAttr k { inherit cpu memory storage; } == null) [
-        "cpu"
-        "memory"
-        "storage"
-      ]);
-
-  # Function to generate consistent resource requirements
-  mkResourceRequirements = { requests ? { }, limits ? { } }:
-    builtins.removeAttrs {
-      requests = mkResources requests;
-      limits = mkResources limits;
-    } (builtins.filter
-      (k: builtins.getAttr k { inherit requests limits; } == { }) [
-        "requests"
-        "limits"
-      ]);
-
-  # Helper to generate standard metadata
-  mkMetadata = { name, namespace, labels ? { }, annotations ? { } }: {
-    inherit name namespace;
-    labels = labels;
-    annotations = annotations;
-  };
-
   # Expose helper functions and libraries
-  inherit nixhelm kubelib overlayValues mkLabels mkAnnotations recursiveMerge
-    recursiveMerge';
+  inherit nixhelm kubelib overlayValues recursiveMerge recursiveMerge';
 }

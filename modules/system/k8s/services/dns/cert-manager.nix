@@ -3,43 +3,11 @@
 with lib;
 
 let
-  # Default values for cert-manager
-  certManagerDefaults = {
-    installCRDs = true;
-    prometheus = { enabled = true; };
-    resources = mkResourceRequirements {
-      requests = {
-        cpu = "100m";
-        memory = "128Mi";
-      };
-      limits = {
-        cpu = "200m";
-        memory = "256Mi";
-      };
-    };
-    global = { leaderElection = { namespace = vars.namespaces.dns; }; };
-  };
-
-  # Standard metadata for cert-manager resources  
-  certManagerLabels = mkLabels {
-    name = "cert-manager";
-    component = "cert-manager";
-    part = "dns-management";
-  };
-
   # Create a function to generate ACME issuers with shared config
   mkAcmeIssuer = { name, server }: {
     apiVersion = "cert-manager.io/v1";
     kind = "ClusterIssuer";
-    metadata = mkMetadata {
-      name = name;
-      namespace = vars.namespaces.dns;
-      labels = certManagerLabels;
-      annotations = mkAnnotations {
-        owner = "cert-manager";
-        annotations = { "cert-manager.io/issuer-kind" = "ClusterIssuer"; };
-      };
-    };
+    metadata = { name = name; };
     spec = {
       acme = {
         server = server;
@@ -58,6 +26,23 @@ let
         }];
       };
     };
+  };
+
+  # Default values for cert-manager
+  certManagerDefaults = {
+    installCRDs = true;
+    prometheus = { enabled = true; };
+    resources = {
+      requests = {
+        cpu = "100m";
+        memory = "128Mi";
+      };
+      limits = {
+        cpu = "200m";
+        memory = "256Mi";
+      };
+    };
+    global = { leaderElection = { namespace = vars.namespaces.dns; }; };
   };
 
   # Custom values for cert-manager

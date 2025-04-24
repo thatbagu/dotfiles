@@ -52,7 +52,6 @@ in {
 
       # JavaScript/TypeScript/Web
       nodePackages.prettier
-      nodePackages.prettierd
 
       # Rust
       rustc

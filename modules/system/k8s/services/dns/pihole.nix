@@ -56,7 +56,6 @@ in {
     name = "pihole";
     chart = nixhelm.mojo2600.pihole;
     namespace = vars.namespaces.pihole;
-    defaultValues = piholeDefaults;
-    values = piholeValues;
+    values = finalValues;
   };
 }
