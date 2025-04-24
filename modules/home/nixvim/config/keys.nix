@@ -110,7 +110,6 @@
         };
       }
 
-      # Windows
       {
         mode = "n";
         key = "<leader>ww";
@@ -151,25 +150,31 @@
         };
       }
 
-      # {
-      #   mode = "n";
-      #   key = "<leader>-";
-      #   action = "<C-W>s";
-      #   options = {
-      #     silent = true;
-      #     desc = "Split window below";
-      #   };
-      # }
-
-      # {
-      #   mode = "n";
-      #   key = "<leader>|";
-      #   action = "<C-W>v";
-      #   options = {
-      #     silent = true;
-      #     desc = "Split window right";
-      #   };
-      # }
+      # Window navigation - Use leader key instead of Alt
+      {
+        mode = "n";
+        key = "<leader>wh";
+        action = "<C-w>h";
+        options = { desc = "Go to left window"; };
+      }
+      {
+        mode = "n";
+        key = "<leader>wj";
+        action = "<C-w>j";
+        options = { desc = "Go to lower window"; };
+      }
+      {
+        mode = "n";
+        key = "<leader>wk";
+        action = "<C-w>k";
+        options = { desc = "Go to upper window"; };
+      }
+      {
+        mode = "n";
+        key = "<leader>wl";
+        action = "<C-w>l";
+        options = { desc = "Go to right window"; };
+      }
 
       {
         mode = "n";
@@ -411,12 +416,7 @@
         action = "<Esc>";
       }
 
-      {
-        mode = "n";
-        key = "<C-f>";
-        action = "!tmux new tmux-sessionizer<CR>";
-        options = { desc = "Switch between projects"; };
-      }
+      # CHANGED: Removed conflicting <C-f> binding
 
       # Set highlight on search, but clear on pressing <Esc> in normal mode
       {
@@ -431,6 +431,20 @@
         key = "<Esc>";
         action = "<C-\\><C-n>";
         options = { desc = "Exit terminal mode"; };
+      }
+
+      # Buffer navigation - use leader instead of shift-h/l that might conflict
+      {
+        mode = "n";
+        key = "<leader>bn";
+        action = "<cmd>BufferLineCycleNext<cr>";
+        options = { desc = "Next buffer"; };
+      }
+      {
+        mode = "n";
+        key = "<leader>bp";
+        action = "<cmd>BufferLineCyclePrev<cr>";
+        options = { desc = "Previous buffer"; };
       }
     ];
   };
