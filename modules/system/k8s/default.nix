@@ -54,7 +54,7 @@ let
     {
       name = "dns-services";
       charts = [ "externaldns-pihole" ];
-      dependsOn = [ "core-config" ];
+      dependsOn = [ "networking-services" ];
       waitFor = {
         externaldns = {
           kind = "deployment";
@@ -63,6 +63,43 @@ let
           timeout = 120;
         };
       };
+    }
+    {
+      name = "external-access";
+      charts = [ "ingress-nginx-external" "cert-manager" ];
+      dependsOn = [ "core-config" ];
+      waitFor = {
+        nginx = {
+          kind = "deployment";
+          name = "ingress-nginx-external-controller";
+          namespace = "nginx-system";
+          timeout = 180;
+        };
+        certmanager = {
+          kind = "deployment";
+          name = "cert-manager";
+          namespace = "cert-manager";
+          timeout = 180;
+        };
+      };
+    }
+    {
+      name = "external-dns";
+      charts = [ "externaldns-cloudflare" "cert-manager-issuers" ];
+      dependsOn = [ "external-access" ];
+      waitFor = {
+        externaldns = {
+          kind = "deployment";
+          name = "external-dns";
+          namespace = "external-dns";
+          timeout = 120;
+        };
+      };
+    }
+    {
+      name = "external-ingress";
+      charts = [ "pihole-external-ingress" ];
+      dependsOn = [ "external-dns" "networking-services" ];
     }
   ];
 

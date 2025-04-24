@@ -1,0 +1,44 @@
+{ pkgs, inputs, lib, vars }:
+
+with lib;
+
+let
+  # Default values for MetalLB
+  metallbDefaults = { };
+
+  # Pool configuration 
+  poolConfig = {
+    apiVersion = "metallb.io/v1beta1";
+    kind = "IPAddressPool";
+    metadata = {
+      name = "pool";
+      namespace = vars.namespaces.metallb;
+    };
+    spec = { addresses = [ vars.ipPools.metallb ]; };
+  };
+
+  # L2Advertisement configuration
+  l2AdvertisementConfig = {
+    apiVersion = "metallb.io/v1beta1";
+    kind = "L2Advertisement";
+    metadata = {
+      name = "pool";
+      namespace = vars.namespaces.metallb;
+    };
+    spec = { ipAddressPools = [ "pool" ]; };
+  };
+in {
+  # MetalLB - Load balancer for bare metal Kubernetes clusters
+  metallb = mkChart {
+    name = "metallb";
+    chart = nixhelm.metallb.metallb;
+    namespace = vars.namespaces.metallb;
+    values = metallbDefaults;
+  };
+
+  metallb-config = mkRawManifest {
+    name = "metallb-config";
+    namespace = vars.namespaces.metallb;
+    resources = [ poolConfig l2AdvertisementConfig ];
+  };
+}

@@ -5,16 +5,6 @@ in {
   options.modules.packages.core = { enable = mkEnableOption "core packages"; };
   config = mkIf cfg.enable {
     home.shellAliases = {
-      # eza replacements for ls
-      ls = "eza";
-      ll = "eza -l";
-      la = "eza -la";
-      lt = "eza --tree";
-      l = "eza -l";
-
-      # bat replacement for cat
-      cat = "bat";
-
       # zoxide replacement for cd
       cd = "z";
 
@@ -43,17 +33,26 @@ in {
       python3
       ruff
       python311Packages.flake8
+      python311Packages.black
 
       # Go
       go
       golangci-lint
       gopls
       go-tools
+      gotools
 
       # Nix
       statix
       nil
       nixfmt
+
+      # Lua
+      stylua
+
+      # JavaScript/TypeScript/Web
+      nodePackages.prettier
+      nodePackages.prettierd
 
       # Rust
       rustc

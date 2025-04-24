@@ -232,13 +232,6 @@ def --env --wrapped __zoxide_zi [...rest:string] {
 }
 
 # Aliases
-alias ls = eza
-alias ll = eza -l
-alias la = eza -la
-alias lt = eza --tree
-alias l = eza -l
-alias cat = bat
-alias cd = __zoxide_z
 alias z = __zoxide_z
 alias zi = __zoxide_zi
 alias grep = rg --smart-case

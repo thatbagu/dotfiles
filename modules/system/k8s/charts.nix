@@ -1,223 +1,79 @@
-{ pkgs, inputs, ... }:
+{ pkgs, input{ pkgs, inputs, ... }:
 
 let
-  nixhelm = inputs.nixhelm.charts { inherit pkgs; };
-  kubelib = inputs.nix-kube-generators.lib { inherit pkgs; };
+  # Import lib.nix for helper functions but not variables
+  lib = import ./lib.nix { inherit pkgs inputs; };
 
-  mkChart = { name, namespace, chart, values ? { } }: {
-    path = kubelib.buildHelmChart { inherit name chart namespace values; };
-    inherit namespace;
-    isSecret = false;
-  };
-
-  mkRawManifest = { name, namespace, resources }: {
-    path = kubelib.toYAMLStreamFile resources;
-    inherit namespace;
-    isSecret = false;
-  };
-
-  mkSecretRef =
-    { name, namespace, secretName, secretKey ? "password", sopsSecretName }: {
-      inherit namespace name secretName secretKey sopsSecretName;
-      isSecret = true;
+  # Centralized variables for all services
+  vars = rec {
+    domain = "egor.house";
+    cloudflareEmail = "austos243@gmail.com";
+    
+    # Namespace definitions
+    namespaces = {
+      dns = "dns-system";
+      pihole = "pihole-system";
+      nginx = "nginx-system";
+      metallb = "metallb-system";
+      longhorn = "longhorn-system";
     };
-
-in {
-
-  # Longhorn - Distributed storage for Kubernetes
-  longhorn = mkChart {
-    name = "longhorn";
-    chart = nixhelm.longhorn.longhorn;
-    namespace = "longhorn-system";
-    values = {
-      persistence = {
-        defaultClass = true;
-        defaultClassReplicaCount = 3;
-      };
-      defaultSettings = {
-        createDefaultDiskLabeledNodes = true;
-        defaultDataPath = "/var/lib/longhorn";
-        backupstorePollInterval = 300; # Seconds between backup store polling
-
-        # Replica settings
-        replicaSoftAntiAffinity = true; # Try to avoid same node for replicas
-        replicaAutoBalance = "best-effort"; # Balance replicas across nodes
-      };
+    
+    # IP address pools - notice how we can reference other variables
+    ipPools = {
+      metallb = "192.168.1.192/26";
+      nginxExternal = "192.168.1.193";
+      pihole = "192.168.1.250";
     };
-  };
-
-  # MetalLB - Load balancer for bare metal Kubernetes clusters
-  metallb = mkChart {
-    name = "metallb";
-    chart = nixhelm.metallb.metallb;
-    namespace = "metallb-system";
-    values = { };
-  };
-
-  metallb-config = mkRawManifest {
-    name = "metallb-config";
-    namespace = "metallb-system";
-    resources = [
-      {
-        apiVersion = "metallb.io/v1beta1";
-        kind = "IPAddressPool";
-        metadata = {
-          name = "pool";
-          namespace = "metallb-system";
-        };
-        spec = { addresses = [ "192.168.1.192/26" ]; };
-      }
-      {
-        apiVersion = "metallb.io/v1beta1";
-        kind = "L2Advertisement";
-        metadata = {
-          name = "pool";
-          namespace = "metallb-system";
-        };
-        spec = { ipAddressPools = [ "pool" ]; };
-      }
-    ];
-  };
-
-  pihole-secret = mkSecretRef {
-    name = "pihole-secret";
-    namespace = "pihole-system";
-    secretName = "pihole-password"; # Changed to match the name
-    sopsSecretName = "pihole_password";
-  };
-
-  # Pi-hole - Network-wide ad blocking
-  pihole = mkChart {
-    name = "pihole";
-    chart = nixhelm.mojo2600.pihole;
-    namespace = "pihole-system";
-    values = {
-      image = {
-        repository = "pihole/pihole";
-        tag = "2024.07.0"; # The last 5.x version released in Dec 2024
-      };
-      DNS1 = "192.168.1.1";
-      persistentVolumeClaim = { enabled = true; };
-
-      env = [{
-        name = "WEBPASSWORD";
-        valueFrom = {
-          secretKeyRef = {
-            name = "pihole-password";
-            key = "password";
-          };
-        };
-      }];
-
-      ingress = {
-        enabled = true;
-        hosts = [ "pihole.home" "pihole.test" ];
-      };
-      serviceWeb = {
-        loadBalancerIP = "192.168.1.250";
-        annotations = { "metallb.universe.tf/allow-shared-ip" = "pihole-svc"; };
-        type = "LoadBalancer";
-      };
-      serviceDns = {
-        loadBalancerIP = "192.168.1.250";
-        annotations = { "metallb.universe.tf/allow-shared-ip" = "pihole-svc"; };
-        type = "LoadBalancer";
-      };
-      replicaCount = 1;
+    
+    # References to make code cleaner (no duplication)
+    piholeIp = ipPools.pihole;
+    
+    # Version control for images
+    versions = {
+      pihole = "2024.07.0";
+      certManager = "v1.14.1";
+      externaldns = "0.14.0";
+    };
+    
+    # Common configuration patterns
+    defaultReplicas = 1;
+    defaultTimeout = 180; # seconds
+    shortTimeout = 120; # seconds
+    
+    # TLS configuration
+    tls = {
+      defaultIssuer = "letsencrypt-prod";
+      stagingIssuer = "letsencrypt-staging";
+      acmeServerProduction = "https://acme-v02.api.letsencrypt.org/directory";
+      acmeServerStaging = "https://acme-staging-v02.api.letsencrypt.org/directory";
     };
   };
 
-  # NGINX Ingress Controller for internal network
-  ingress-nginx-internal = mkChart {
-    name = "ingress-nginx-internal";
-    chart = nixhelm.kubernetes-ingress-nginx.ingress-nginx;
-    namespace = "nginx-system";
-    values = {
-      controller = {
-        ingressClassResource = {
-          name = "nginx-internal";
-          enabled = true;
-          default = true;
-          controllerValue = "k8s.io/ingress-nginx";
-          parameters = { };
-        };
-        ingressClass = "nginx-internal";
-      };
-    };
+  # Import all service configurations, passing the vars
+  coreServices = {
+    longhorn = import ./services/core/longhorn.nix { inherit pkgs inputs lib vars; };
+    metallb = import ./services/core/metallb.nix { inherit pkgs inputs lib vars; };
+    nginx = import ./services/core/nginx.nix { inherit pkgs inputs lib vars; };
   };
 
-  # ExternalDNS for automatic DNS registration with Pi-hole
-  externaldns-pihole = mkChart {
-    name = "externaldns-pihole";
-    chart = nixhelm.external-dns.external-dns;
-    namespace = "pihole-system";
-    values = {
-      provider = "pihole";
-      sources = [ "service" "ingress" ];
-      registry = "noop";
-      policy = "upsert-only";
-
-      serviceAccount = {
-        create = true;
-        name = "external-dns";
-      };
-      rbac = {
-        create = true;
-        clusterRole = true;
-        rules = [
-          {
-            apiGroups = [ "" ];
-            resources = [ "services" "endpoints" "pods" ];
-            verbs = [ "get" "watch" "list" ];
-          }
-          {
-            apiGroups = [ "extensions" "networking.k8s.io" ];
-            resources = [ "ingresses" ];
-            verbs = [ "get" "watch" "list" ];
-          }
-          {
-            apiGroups = [ "" ];
-            resources = [ "nodes" ];
-            verbs = [ "list" "watch" ];
-          }
-        ];
-      };
-
-      deploymentStrategy = { type = "Recreate"; };
-
-      securityContext = { fsGroup = 65534; };
-
-      env = [
-        {
-          name = "EXTERNAL_DNS_PIHOLE_SERVER";
-          value = "http://192.168.1.250";
-        }
-        {
-          name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
-          valueFrom = {
-            secretKeyRef = {
-              name = "pihole-password";
-              key = "password";
-            };
-          };
-        }
-      ];
-
-      args = [
-        "--source=service"
-        "--source=ingress"
-        "--provider=pihole"
-        "--registry=noop"
-        "--policy=upsert-only"
-        "--log-level=debug"
-      ];
-      extraArgs = [
-        # "--pihole-api-version=6"
-        "--pihole-tls-skip-verify"
-        "--txt-owner-id=k8s"
-      ];
-
-      # ingressClassFilters = [ "nginx-internal" ];
-    };
+  dnsServices = {
+    pihole = import ./services/dns/pihole.nix { inherit pkgs inputs lib vars; };
+    externaldns = import ./services/dns/externaldns.nix { inherit pkgs inputs lib vars; };
+    certManager = import ./services/dns/cert-manager.nix { inherit pkgs inputs lib vars; };
   };
-}
+
+  ingressResources = {
+    ingress = import ./services/ingress/ingress.nix { inherit pkgs inputs lib vars; };
+  };
+
+  # Combine all services into a flat attribute set
+  allServices = 
+    coreServices.longhorn //
+    coreServices.metallb //
+    coreServices.nginx //
+    dnsServices.pihole //
+    dnsServices.externaldns //
+    dnsServices.certManager //
+    ingressResources.ingress;
+
+in allServices
