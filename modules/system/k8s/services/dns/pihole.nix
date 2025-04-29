@@ -12,6 +12,11 @@ let
     DNS1 = "192.168.1.1";
     persistentVolumeClaim = { enabled = true; };
     replicaCount = vars.defaultReplicas;
+    # Remove monitoring settings
+    monitoring = {
+      enabled = false;
+      serviceMonitor = { enabled = false; };
+    };
   };
 
   # Custom values specific to this deployment

@@ -3,8 +3,22 @@
 with lib;
 
 let
-  # Default values for MetalLB
-  metallbDefaults = { };
+  # Default values for MetalLB with monitoring removed
+  metallbDefaults = {
+    # Remove any Prometheus/serviceMonitor settings
+    prometheus = {
+      serviceMonitor = { enabled = false; };
+      prometheusRule = { enabled = false; };
+    };
+    controller = {
+      # Disable metrics reporting
+      metrics = { enabled = false; };
+    };
+    speaker = {
+      # Disable metrics reporting
+      metrics = { enabled = false; };
+    };
+  };
 
   # Pool configuration 
   poolConfig = {

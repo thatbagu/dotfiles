@@ -82,6 +82,8 @@ in {
       isSecret = true;
     };
 
+  mkService = serviceFunction:
+    serviceFunction { inherit pkgs inputs lib vars; };
   # Expose helper functions and libraries
   inherit nixhelm kubelib overlayValues recursiveMerge recursiveMerge';
 }

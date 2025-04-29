@@ -101,6 +101,26 @@ let
       charts = [ "pihole-external-ingress" ];
       dependsOn = [ "external-dns" "networking-services" ];
     }
+    # Lightweight monitoring deployment group
+    {
+      name = "monitoring";
+      charts = [ "metrics-server" "kubernetes-dashboard" ];
+      dependsOn = [ "networking-services" ];
+      waitFor = {
+        metricsServer = {
+          kind = "deployment";
+          name = "metrics-server";
+          namespace = "monitoring-system";
+          timeout = 120;
+        };
+        dashboard = {
+          kind = "deployment";
+          name = "kubernetes-dashboard";
+          namespace = "monitoring-system";
+          timeout = 120;
+        };
+      };
+    }
   ];
 
   requiredNamespaces =

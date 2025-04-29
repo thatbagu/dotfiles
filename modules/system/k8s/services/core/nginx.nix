@@ -6,10 +6,7 @@ let
   # Common defaults for all NGINX controllers
   nginxDefaults = {
     controller = {
-      metrics = {
-        enabled = true;
-        serviceMonitor = { enabled = true; };
-      };
+      # Remove metrics section
       resources = {
         requests = {
           cpu = "100m";
@@ -78,6 +75,11 @@ let
             parameters = { };
           };
           ingressClass = ingressClass;
+          # Remove Prometheus service monitors and metrics ports
+          metrics = {
+            enabled = false;
+            serviceMonitor = { enabled = false; };
+          };
         };
       };
     };

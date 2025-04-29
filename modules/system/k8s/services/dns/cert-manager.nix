@@ -7,12 +7,12 @@ let
   mkAcmeIssuer = { name, server }: {
     apiVersion = "cert-manager.io/v1";
     kind = "ClusterIssuer";
-    metadata = { name = name; };
+    metadata = { inherit name; };
     spec = {
       acme = {
-        server = server;
+        inherit server;
         email = vars.cloudflareEmail;
-        privateKeySecretRef = { name = name; };
+        privateKeySecretRef = { inherit name; };
         solvers = [{
           dns01 = {
             cloudflare = {
@@ -28,10 +28,10 @@ let
     };
   };
 
-  # Default values for cert-manager
+  # Default values for cert-manager with monitoring removed
   certManagerDefaults = {
     installCRDs = true;
-    prometheus = { enabled = true; };
+    prometheus = { enabled = false; };
     resources = {
       requests = {
         cpu = "100m";
@@ -49,11 +49,8 @@ let
   certManagerValues = {
     installCRDs = true;
     prometheus = {
-      enabled = true;
-      servicemonitor = {
-        enabled = true;
-        prometheusInstance = "default";
-      };
+      enabled = false;
+      servicemonitor = { enabled = false; };
     };
     startupapicheck = { timeout = "5m"; };
     webhook = { timeoutSeconds = 30; };
