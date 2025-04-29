@@ -74,7 +74,7 @@ in {
     namespace = vars.namespaces.dns;
     secretName = "cloudflare-api-token";
     secretKey = "api-token";
-    sopsSecretName = "cloudflare_api_token";
+    sopsSecretName = "cloudflare_token";
   };
 
   # Cluster issuer for Let's Encrypt
