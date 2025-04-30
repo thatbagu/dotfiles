@@ -45,34 +45,33 @@ let
     };
   };
 
-  # Import all service configurations using the service builder
+  # Import all service configurations directly with the standard pattern
   coreServices = {
-    longhorn = mkService (import ./services/core/longhorn.nix);
-    metallb = mkService (import ./services/core/metallb.nix);
-    nginx = mkService (import ./services/core/nginx.nix);
+    longhorn =
+      import ./services/core/longhorn.nix { inherit pkgs inputs lib vars; };
+    metallb =
+      import ./services/core/metallb.nix { inherit pkgs inputs lib vars; };
+    nginx = import ./services/core/nginx.nix { inherit pkgs inputs lib vars; };
   };
 
   dnsServices = {
-    pihole = mkService (import ./services/dns/pihole.nix);
-    externaldns = mkService (import ./services/dns/externaldns.nix);
-    certManager = mkService (import ./services/dns/cert-manager.nix);
+    pihole = import ./services/dns/pihole.nix { inherit pkgs inputs lib vars; };
+    externaldns =
+      import ./services/dns/externaldns.nix { inherit pkgs inputs lib vars; };
+    certManager =
+      import ./services/dns/cert-manager.nix { inherit pkgs inputs lib vars; };
   };
 
   ingressResources = {
-    ingress = mkService (import ./services/ingress/ingress.nix);
+    ingress =
+      import ./services/ingress/ingress.nix { inherit pkgs inputs lib vars; };
   };
 
-  monitoringServices = {
-    metricsServer = mkService (import ./services/monitoring/metrics-server.nix);
-    kubernetesDashboard =
-      mkService (import ./services/monitoring/kubernetes-dashboard.nix);
-  };
+  # Create a list of all service attribute sets
+  services = builtins.concatLists
+    (map builtins.attrValues [ coreServices dnsServices ingressResources ]);
 
-  # Combine all services into a flat attribute set
-  allServices = coreServices.longhorn // coreServices.metallb
-    // coreServices.nginx // dnsServices.pihole // dnsServices.externaldns
-    // dnsServices.certManager // ingressResources.ingress
-    // monitoringServices.metricsServer
-    // monitoringServices.kubernetesDashboard;
+  # Combine them all with a single fold operation
+  allServices = lib.recursiveMerge' services;
 
 in allServices

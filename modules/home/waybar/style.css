@@ -1,50 +1,50 @@
-*  {
-    border: none;
+* {
+  border: none;
 
-    font-family: "JetBrainsMono Nerd Font";
-    font-weight: bold;
-    font-size: 14px;
-    min-height: 0;
+  font-family: "JetBrainsMono Nerd Font";
+  font-weight: bold;
+  font-size: 12px;
+  min-height: 0;
 }
 
 window#waybar {
-    background: rgba(30, 30, 46, 0.8);
-    color: #cdd6f4;
+  background: rgba(30, 30, 46, 0.8);
+  color: #cdd6f4;
 }
 
 tooltip {
-    background: #1e1e2e;
-    border-radius: 10px;
-    border: 2px solid #89b4fa;
+  background: #1e1e2e;
+  border-radius: 4px;
+  border: 2px solid #f5c2e7;
 }
 
 #workspaces button {
-    padding: 5px;
-    margin: 5px 3px;
-    color: #6c7086;
-    background: #313244;
-    border-radius: 10px;
-    box-shadow: none;  /* Add this line */
-    transition: none;  /* Optional: removes animation */
+  padding: 2px 6px;
+  margin: 3px 2px;
+  color: #6c7086;
+  background: #313244;
+  border-radius: 4px;
+  box-shadow: none;
+  transition: none;
 }
 
 #workspaces button.active {
-    color: #cdd6f4;
-    background: #89b4fa;
-    box-shadow: none;  /* Add this line */
+  color: #1e1e2e;
+  background: #f5c2e7;
+  box-shadow: none;
 }
 
 #workspaces button.urgent {
-    color: #1e1e2e;
-    background: #f38ba8;
-    box-shadow: none;  /* Add this line */
+  color: #1e1e2e;
+  background: #f38ba8;
+  box-shadow: none; /* Add this line */
 }
 
 #workspaces button:hover {
-    color: #cdd6f4;
-    background: #74c7ec;
-    box-shadow: none;  /* Add this line */
-    text-shadow: none;
+  color: #1e1e2e;
+  background: #f2cdcd;
+  box-shadow: none;
+  text-shadow: none;
 }
 #language,
 #clock,
@@ -52,28 +52,28 @@ tooltip {
 #wireplumber,
 #backlight,
 #battery {
-    background: #313244;
-    padding: 0px 10px;
-    margin: 5px;
-    border-radius: 10px;
+  background: #313244;
+  padding: 0px 8px;
+  margin: 3px 2px;
+  border-radius: 4px;
 }
 
 #battery.charging {
-    color: #a6e3a1;
+  color: #a6e3a1;
 }
 
 #battery.warning {
-    color: #fab387;
+  color: #fab387;
 }
 
 #battery.critical {
-    color: #f38ba8;
+  color: #f38ba8;
 }
 
 #network.disconnected {
-    color: #f38ba8;
+  color: #f38ba8;
 }
 
 #wireplumber.muted {
-    color: #f38ba8;
+  color: #f38ba8;
 }

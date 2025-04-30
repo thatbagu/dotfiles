@@ -9,7 +9,13 @@ in {
     programs.foot = {
       enable = true;
       server.enable = false;
-      settings = { main = { pad = "12x12"; }; };
+      settings = {
+        main = {
+          pad = "12x12";
+          term = "xterm-256color";
+        };
+        tweak = { sixel = true; };
+      };
     };
   };
 }

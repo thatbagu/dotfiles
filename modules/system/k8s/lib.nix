@@ -53,8 +53,6 @@ let
   # Function to overlay values on top of defaults
   overlayValues = defaults: overlay: recursiveMerge' [ defaults overlay ];
 in {
-  # Common chart creation functions
-
   # Function to create a Helm chart with defaults
   mkChart = { name, namespace, chart, values ? { }, defaultValues ? { } }: {
     path = kubelib.buildHelmChart {
@@ -82,8 +80,6 @@ in {
       isSecret = true;
     };
 
-  mkService = serviceFunction:
-    serviceFunction { inherit pkgs inputs lib vars; };
   # Expose helper functions and libraries
   inherit nixhelm kubelib overlayValues recursiveMerge recursiveMerge';
 }
