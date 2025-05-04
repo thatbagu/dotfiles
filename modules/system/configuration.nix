@@ -36,6 +36,17 @@
   };
 
   boot = {
+    kernelModules = [ "btusb" "btintel" ];
+    kernelParams = [ "usbcore.autosuspend=-1" "btusb.enable_autosuspend=0" ];
+    extraModprobeConfig = ''
+      # Options for Bluetooth modules
+      options btusb reset=1 
+      options btintel debug=1
+      options btusb enable_autosuspend=0
+
+      # Options for Wi-Fi to prevent interference with Bluetooth
+      options iwlwifi bt_coex_active=0 swcrypto=1
+    '';
     tmp.cleanOnBoot = true;
     loader = {
       efi.canTouchEfiVariables = true;
@@ -137,6 +148,20 @@
   };
 
   # Bluetooth
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    package = pkgs.bluez5-experimental;
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,Socket";
+        Experimental = true;
+      };
+    };
+  };
+  hardware.enableAllFirmware = true;
+  hardware.enableRedistributableFirmware = true;
+  hardware.firmware = with pkgs; [ linux-firmware firmwareLinuxNonfree ];
+
   system.stateVersion = "24.05";
 }

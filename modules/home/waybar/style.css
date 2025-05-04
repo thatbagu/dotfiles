@@ -77,3 +77,22 @@ tooltip {
 #wireplumber.muted {
   color: #f38ba8;
 }
+
+#custom-spotify {
+  background: #313244;
+  padding: 0px 8px;
+  margin: 3px 2px;
+  border-radius: 4px;
+}
+
+#custom-spotify.true {
+  color: #a6e3a1;
+}
+
+#custom-spotify.false {
+  color: #cdd6f4;
+}
+
+#custom-spotify.stopped {
+  color: #6c7086;
+}

@@ -113,12 +113,19 @@ in {
             "return-type" = "json";
             "max-length" = 40;
             "interval" = 1;
+            "signal" = 5;
             "exec" = ''
-              spotify_player get playback --format '{"text": "{{artist}} - {{title}}", "tooltip": "{{title}} by {{artist}} from {{album}}", "alt": "{{status}}", "class": "{{status}}"}' 2>/dev/null
+              PLAYBACK=$(spotify_player get key playback)
+              if [ $? -eq 0 ]; then
+                ARTIST=$(echo $PLAYBACK | jq -r '.item.artists[0].name')
+                TITLE=$(echo $PLAYBACK | jq -r '.item.name')
+                ALBUM=$(echo $PLAYBACK | jq -r '.item.album.name')
+                IS_PLAYING=$(echo $PLAYBACK | jq -r '.is_playing')
+                echo "{\"text\": \"$ARTIST - $TITLE\", \"tooltip\": \"$TITLE by $ARTIST from $ALBUM\", \"alt\": \"$IS_PLAYING\", \"class\": \"$IS_PLAYING\"}"
+              else
+                echo "{\"text\": \"No music playing\", \"tooltip\": \"Spotify not running\", \"alt\": \"stopped\", \"class\": \"stopped\"}"
+              fi
             '';
-            "on-click" = "spotify_player playback play-pause";
-            "on-scroll-up" = "spotify_player playback next";
-            "on-scroll-down" = "spotify_player playback previous";
           };
         };
       };
