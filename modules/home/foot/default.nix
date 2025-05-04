@@ -11,7 +11,7 @@ in {
       server.enable = false;
       settings = {
         main = {
-          pad = "12x12";
+          pad = "8x8";
           term = "xterm-256color";
         };
         tweak = { sixel = true; };

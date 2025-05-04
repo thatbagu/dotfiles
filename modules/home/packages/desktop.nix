@@ -18,6 +18,8 @@ in {
       mpv
       pqiv
       anki-bin
+      playerctl
+      spotify-player
 
       # Wayland Tools
       grim
