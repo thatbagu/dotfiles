@@ -8,6 +8,7 @@ in {
       enable = true;
       settings = {
         k9s = {
+          liveViewAutoRefresh = false;
           refreshRate = 2;
           maxConnRetry = 5;
           readOnly = false;
@@ -21,54 +22,53 @@ in {
           };
         };
       };
+
+      # Define the transparent skin
+      skins = {
+        transparent = {
+          k9s = {
+            body = { bgColor = "default"; };
+            prompt = { bgColor = "default"; };
+            info = { sectionColor = "default"; };
+            dialog = {
+              bgColor = "default";
+              labelFgColor = "default";
+              fieldFgColor = "default";
+            };
+            frame = {
+              crumbs = { bgColor = "default"; };
+              title = {
+                bgColor = "default";
+                counterColor = "default";
+              };
+              menu = { fgColor = "default"; };
+            };
+            views = {
+              charts = { bgColor = "default"; };
+              table = {
+                bgColor = "default";
+                header = {
+                  fgColor = "default";
+                  bgColor = "default";
+                };
+              };
+              xray = { bgColor = "default"; };
+              logs = {
+                bgColor = "default";
+                indicator = {
+                  bgColor = "default";
+                  toggleOnColor = "default";
+                  toggleOffColor = "default";
+                };
+              };
+              yaml = {
+                colonColor = "default";
+                valueColor = "default";
+              };
+            };
+          };
+        };
+      };
     };
-
-    # Add the transparent skin configuration
-    xdg.configFile."k9s/skins/transparent.yaml".text = ''
-      # -----------------------------------------------------------------------------
-      # Transparent skin
-      # Preserve your terminal session background color
-      # -----------------------------------------------------------------------------
-
-      # Skin...
-      k9s:
-        body:
-          bgColor: default
-        prompt:
-          bgColor: default
-        info:
-          sectionColor: default
-        dialog:
-          bgColor: default
-          labelFgColor: default
-          fieldFgColor: default
-        frame:
-          crumbs:
-            bgColor: default
-          title:
-            bgColor: default
-            counterColor: default
-          menu:
-            fgColor: default
-        views:
-          charts:
-            bgColor: default
-          table:
-            bgColor: default
-            header:
-              fgColor: default
-              bgColor: default
-          xray:
-            bgColor: default
-          logs:
-            bgColor: default
-            indicator:
-              bgColor: default
-              toggleOnColor: default
-              toggleOffColor: default
-          yaml:
-            colonColor: default
-            valueColor: default
-    '';
   };
 }
