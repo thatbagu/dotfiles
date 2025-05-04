@@ -13,6 +13,7 @@
     ./nixvim
     ./nushell
     ./zellij
+    ./k9s
 
     # Development
     ./git

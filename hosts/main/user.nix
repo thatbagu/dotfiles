@@ -13,6 +13,7 @@
     nixvim.enable = true;
     nushell.enable = true;
     zellij.enable = true;
+    k9s.enable = true;
 
     # Development
     git.enable = true;

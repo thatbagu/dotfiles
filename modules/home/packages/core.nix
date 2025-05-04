@@ -65,7 +65,6 @@ in {
       google-cloud-sdk
       awscli
       kubectl
-      k9s
 
       # System Utils
       htop
