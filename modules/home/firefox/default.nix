@@ -26,6 +26,7 @@ in {
           tridactyl
           multi-account-containers
           youtube-shorts-block
+          firenvim
         ];
         search.engines = {
           "Nix Packages" = {

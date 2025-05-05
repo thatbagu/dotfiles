@@ -22,6 +22,7 @@
     ./wilder.nix
     ./leap.nix
     ./venv-selector.nix
+    ./firenvim.nix
   ];
 
   options = { utils.enable = lib.mkEnableOption "Enable utils module"; };
@@ -48,5 +49,6 @@
     wilder.enable = lib.mkDefault true;
     leap.enable = lib.mkDefault true;
     venv-selector.enable = lib.mkDefault true;
+    firenvim.enable = lib.mkDefault true;
   };
 }
