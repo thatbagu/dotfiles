@@ -8,6 +8,7 @@
     ./hyprland
     ./fuzzel
     ./waybar
+    ./qbittorrent
 
     # Terminal & Shell
     ./nixvim
