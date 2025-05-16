@@ -1,13 +1,5 @@
-{
-  lib,
-  config,
-  ...
-}:
-{
-  imports = [
-    ./cmp.nix
-    ./copilot.nix
-  ];
+{ lib, config, ... }: {
+  imports = [ ./cmp.nix ./copilot.nix ];
 
   options = {
     completion.enable = lib.mkEnableOption "Enable completion module";

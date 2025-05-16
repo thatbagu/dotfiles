@@ -203,9 +203,8 @@ let light_theme = {
 #     carapace $spans.0 nushell ...$spans | from json
 # }
 
-# Initialize zoxide hook
-if not ($env.__zoxide_hooked? | default false) {
-  $env.__zoxide_hooked = true
+if not (($env.__zoxide_hooked? | default "false") == "true") {
+  $env.__zoxide_hooked = "true"
   $env.config = ($env | default {} config).config
   $env.config = ($env.config | default {} hooks)
   $env.config = ($env.config | update hooks ($env.config.hooks | default {} env_change))
@@ -376,11 +375,6 @@ $env.config = {
             completer: null # check 'carapace_completer' above as an example
         }
         use_ls_colors: true # set this to true to enable file/path/directory completions using LS_COLORS
-    }
-
-    filesize: {
-        metric: false # true => KB, MB, GB (ISO standard), false => KiB, MiB, GiB (Windows standard)
-        format: "auto" # b, kb, kib, mb, mib, gb, gib, tb, tib, pb, pib, eb, eib, auto
     }
 
     cursor_shape: {
