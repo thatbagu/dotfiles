@@ -14,20 +14,23 @@ in {
         browserPkg
       else
         browserPkg.override {
+          # Fixed: changed from extraNativeMessagingHosts to nativeMessagingHosts
           nativeMessagingHosts = [ pkgs.tridactyl-native ];
         };
       profiles.${config.home.username} = {
         isDefault = true;
-        extensions = with inputs.firefox-addons.packages.${pkgs.system}; [
-          bitwarden
-          ublock-origin
-          sponsorblock
-          darkreader
-          tridactyl
-          multi-account-containers
-          youtube-shorts-block
-          firenvim
-        ];
+        # Fixed: moved extensions to extensions.packages
+        extensions.packages =
+          with inputs.firefox-addons.packages.${pkgs.system}; [
+            bitwarden
+            ublock-origin
+            sponsorblock
+            darkreader
+            tridactyl
+            multi-account-containers
+            youtube-shorts-block
+            firenvim
+          ];
         search.engines = {
           "Nix Packages" = {
             urls = [{

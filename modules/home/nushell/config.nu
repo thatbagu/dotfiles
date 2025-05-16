@@ -204,7 +204,7 @@ let light_theme = {
 # }
 
 # Initialize zoxide hook
-if (not ($env | default false __zoxide_hooked | get __zoxide_hooked)) {
+if not ($env.__zoxide_hooked? | default false) {
   $env.__zoxide_hooked = true
   $env.config = ($env | default {} config).config
   $env.config = ($env.config | default {} hooks)

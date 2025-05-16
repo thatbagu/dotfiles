@@ -1,5 +1,4 @@
-{ lib, config, ... }:
-{
+{ lib, config, ... }: {
   options = {
     nvim-dap.enable = lib.mkEnableOption "Enable Debug Adapter Protocol module";
   };
@@ -20,42 +19,26 @@
           texthl = "DapLogPoint";
         };
       };
-      extensions = {
-        dap-python = {
-          enable = true;
-        };
-        dap-ui = {
-          enable = true;
-          floating.mappings = {
-            close = [
-              "<ESC>"
-              "q"
-            ];
-          };
-        };
-        dap-virtual-text = {
-          enable = true;
-        };
-      };
-configurations = {
+      # Remove extensions here - they've been moved to top-level plugins
+      configurations = {
         rust = [
           {
             name = "Launch file";
             type = "codelldb";
             request = "launch";
             program = "#{workspaceFolder}/target/debug/#{program}";
-            args = [];
+            args = [ ];
             cwd = "#{workspaceFolder}";
             stopOnEntry = false;
-            sourceLanguages = ["rust"];
+            sourceLanguages = [ "rust" ];
           }
           {
             name = "Attach to process";
             type = "codelldb";
             request = "attach";
             pid = "\${require('dap.utils').pick_process()}";
-            args = [];
-            sourceLanguages = ["rust"];
+            args = [ ];
+            sourceLanguages = [ "rust" ];
           }
         ];
         python = [
@@ -64,19 +47,15 @@ configurations = {
             request = "launch";
             name = "Launch file";
             program = "#{file}";
-            pythonPath = lib.mkDefault (
-              "#{env:PYTHONPATH}"
-            );
+            pythonPath = lib.mkDefault ("#{env:PYTHONPATH}");
           }
           {
             type = "python";
             request = "launch";
             name = "Launch with arguments";
             program = "#{file}";
-            args = [];
-            pythonPath = lib.mkDefault (
-              "#{env:PYTHONPATH}"
-            );
+            args = [ ];
+            pythonPath = lib.mkDefault ("#{env:PYTHONPATH}");
           }
           {
             type = "python";
@@ -121,13 +100,22 @@ configurations = {
       };
     };
 
+    # These plugins are now top-level, not extensions
+    plugins.dap-python = { enable = true; };
+
+    plugins.dap-ui = {
+      enable = true;
+      settings = { floating = { mappings = { close = [ "<ESC>" "q" ]; }; }; };
+    };
+
+    plugins.dap-virtual-text = { enable = true; };
+
     keymaps = [
       {
         mode = "n";
         key = "<leader>dB";
-        action = "
-        <cmd>lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: '))<cr>
-      ";
+        action =
+          "\n        <cmd>lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: '))<cr>\n      ";
         options = {
           silent = true;
           desc = "Breakpoint Condition";
@@ -190,9 +178,7 @@ configurations = {
       {
         mode = "n";
         key = "<leader>dj";
-        action = "
-        <cmd>lua require('dap').down()<cr>
-      ";
+        action = "\n        <cmd>lua require('dap').down()<cr>\n      ";
         options = {
           silent = true;
           desc = "Down";
@@ -289,10 +275,7 @@ configurations = {
         };
       }
       {
-        mode = [
-          "n"
-          "v"
-        ];
+        mode = [ "n" "v" ];
         key = "<leader>de";
         action = "<cmd>lua require('dapui').eval()<cr>";
         options = {

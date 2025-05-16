@@ -61,6 +61,5 @@
         };
       };
     };
-    options.laststatus = 3;
   };
 }

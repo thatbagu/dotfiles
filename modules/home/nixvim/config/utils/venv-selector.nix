@@ -8,13 +8,15 @@
       [
         (buildVimPlugin {
           pname = "venv-selector.nvim";
-          version = "2024-03-14";
+          version = "2025-03-22";
           src = pkgs.fetchFromGitHub {
             owner = "linux-cultist";
             repo = "venv-selector.nvim";
-            rev = "e82594274bf7b54387f9a2abe65f74909ac66e97";
-            sha256 = "sha256-AyxITaKoeM+l+RbFp2UWy0zVrxrIxy8S/oDJsEr/VDQ=";
+            rev = "regexp"; # Use latest main branch
+            sha256 =
+              "sha256-ogd4T+mIbb86qFUbDczzDra8yWm/bwKmYCRGYCJz6fM="; # Nix will tell us the correct hash
           };
+          doCheck = false;
         })
       ];
 
@@ -37,4 +39,3 @@
     extraPackages = with pkgs; [ fd ];
   };
 }
-
