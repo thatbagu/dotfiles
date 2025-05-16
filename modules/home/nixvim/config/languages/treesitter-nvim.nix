@@ -51,6 +51,7 @@
         };
         indent = { enable = true; };
         autopairs = { enable = true; };
+        # Enable treesitter folding for supported languages
         folding = { enable = true; };
 
         # Don't use ensure_installed with nixvim - use grammarPackages instead

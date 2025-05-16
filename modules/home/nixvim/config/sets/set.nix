@@ -60,7 +60,7 @@
       cursorline = false; # Highlight the line where the cursor is located
 
       # Set fold settings
-      # These options were reccommended by nvim-ufo
+      # These options were recommended by nvim-ufo
       # See: https://github.com/kevinhwang91/nvim-ufo#minimal-configuration
       foldcolumn = "0";
       foldlevel = 99;
@@ -97,8 +97,8 @@
       listchars =
         "eol:↲,tab:|->,lead:·,space: ,trail:•,extends:→,precedes:←,nbsp:␣";
 
-      # More space in the neovim command line for displaying messages
-      cmdheight = 2;
+      # Minimum space in the neovim command line for displaying messages
+      cmdheight = 1;
 
       # We don't need to see things like INSERT anymore
       showmode = false;
@@ -128,7 +128,17 @@
       local opt = vim.opt
       local g = vim.g
       local o = vim.o
-        -- Neovide
+
+      -- Disable folding for Nushell files to avoid Treesitter errors
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = {"nu"},
+        callback = function()
+          vim.opt_local.foldmethod = "indent"
+          vim.opt_local.foldexpr = ""
+        end
+      })
+
+      -- Neovide
       if g.neovide then
         g.neovide_fullscreen = false
         g.neovide_hide_mouse_when_typing = false
