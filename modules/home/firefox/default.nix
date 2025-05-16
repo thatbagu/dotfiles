@@ -14,7 +14,7 @@ in {
         browserPkg
       else
         browserPkg.override {
-          extraNativeMessagingHosts = [ pkgs.tridactyl-native ];
+          nativeMessagingHosts = [ pkgs.tridactyl-native ];
         };
       profiles.${config.home.username} = {
         isDefault = true;
