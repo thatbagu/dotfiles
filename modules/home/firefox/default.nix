@@ -69,12 +69,14 @@ in {
           "identity.fxaccounts.enabled" = false;
           "privacy.trackingprotection.enabled" = true;
           "signon.rememberSignons" = false;
-          # Use Yazi as the default file manager
+          # Use Yazi as the default file manager through XDG portal
           "widget.use-xdg-desktop-portal.file-picker" = 1;
           "widget.use-xdg-desktop-portal.mime-handler" = 1;
+          "widget.use-xdg-desktop-portal" = 1;
           # Configure Yazi as the file explorer
           "helpers.useExternalProtocolHandler" = true;
           "helpers.useExternalSoftwareHandler" = true;
+          # Download settings
           "browser.download.dir" = "/home/${config.home.username}/Downloads";
           "browser.download.folderList" = 2;
           "browser.download.useDownloadDir" = true;

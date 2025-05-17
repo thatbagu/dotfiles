@@ -10,7 +10,7 @@ in {
       name = "Yazi File Manager";
       genericName = "File Manager";
       comment = "Open directories in Yazi";
-      exec = "foot -e yazi %u";
+      exec = "firefox-file-handler %u";
       terminal = false;
       categories = [ "System" "FileManager" "Utility" ];
       mimeType = [ 

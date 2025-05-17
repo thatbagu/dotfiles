@@ -28,11 +28,15 @@ in {
       };
     };
 
-    # Wayland stuff: enable XDG integration, allow sway to use brillo
+    # Wayland stuff: enable XDG integration
     xdg = {
       portal = {
         enable = true;
+        # Ensure xdg-desktop-portal is included
+        xdgOpenUsePortal = true;
         extraPortals = with pkgs; [
+          # Make sure we have all the necessary portals
+          xdg-desktop-portal
           xdg-desktop-portal-wlr
           xdg-desktop-portal-gtk
           xdg-desktop-portal-hyprland
@@ -40,12 +44,13 @@ in {
         # Configure XDG portal
         config = {
           common = {
-            default = "*";
+            default = ["gtk" "hyprland"];
           };
           hyprland = {
             default = ["hyprland" "gtk"];
             "org.freedesktop.impl.portal.FileChooser" = "gtk";
             "org.freedesktop.impl.portal.AppChooser" = "gtk";
+            "org.freedesktop.impl.portal.Settings" = "gtk";
           };
         };
         wlr = {
@@ -60,6 +65,16 @@ in {
           };
         };
       };
+      # Make sure mime types are properly registered
+      mime.enable = true;
+      # Enable XDG autostart
+      autostart.enable = true;
+    };
+
+    # Enable D-Bus for proper portal communication
+    services.dbus = {
+      enable = true;
+      packages = with pkgs; [ dconf ];
     };
 
     # Remove unnecessary preinstalled packages
