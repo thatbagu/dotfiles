@@ -80,6 +80,9 @@
     keyMap = "us";
   };
 
+  # Enable fish shell
+  programs.fish.enable = true;
+
   # Set up user and enable sudo
   users.users.${username} = {
     isNormalUser = true;

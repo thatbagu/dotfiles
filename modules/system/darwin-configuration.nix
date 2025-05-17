@@ -43,6 +43,9 @@
   # Set up locales (timezone and keyboard layout)
   time.timeZone = "Asia/Almaty";
 
+  # Enable fish shell
+  programs.fish.enable = true;
+
   # Set up user
   users.users.${username} = {
     name = "${username}";
