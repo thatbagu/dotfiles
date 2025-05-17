@@ -129,6 +129,14 @@
       local g = vim.g
       local o = vim.o
 
+      -- Set up Nushell filetype detection
+      vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+        pattern = {"*.nu"},
+        callback = function()
+          vim.bo.filetype = "nu"
+        end
+      })
+
       -- Disable folding for Nushell files to avoid Treesitter errors
       vim.api.nvim_create_autocmd("FileType", {
         pattern = {"nu"},

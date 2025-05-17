@@ -1,12 +1,5 @@
-{
-  lib,
-  config,
-  ...
-}:
-{
-  imports = [
-    ./lazy-nvim.nix
-  ];
+{ lib, config, ... }: {
+  imports = [ ./lazy-nvim.nix ];
 
   options = {
     pluginmanagers.enable = lib.mkEnableOption "Enable pluginmanagers module";

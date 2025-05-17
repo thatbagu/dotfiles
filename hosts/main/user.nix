@@ -8,7 +8,7 @@
     hyprland.enable = true;
     fuzzel.enable = true;
     waybar.enable = true;
-    qbittorrent.enable = true;
+    rtorrent.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

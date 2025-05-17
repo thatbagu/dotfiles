@@ -15,9 +15,8 @@ in {
       # Media
       ffmpeg
       imagemagick
-      mpv
+      vlc
       pqiv
-      anki-bin
       playerctl
       spotify-player
 

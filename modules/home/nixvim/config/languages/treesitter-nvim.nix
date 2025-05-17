@@ -74,7 +74,7 @@
       nixvimInjections = true;
     };
 
-    # Disable treesitter's installation system completely
+    # Configure treesitter with special handling for Nushell
     extraConfigLua = ''
       -- Ensure treesitter doesn't try to install anything at runtime
       local ts_install = require('nvim-treesitter.install')
@@ -93,6 +93,28 @@
       -- Disable the installation prompt
       ts_install.prefer_git = false
       ts_install.compilers = {}
+
+      -- Explicitly register the Nushell parser
+      vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
+        pattern = {"*.nu"},
+        callback = function()
+          -- Ensure the nu parser is loaded and used for highlighting
+          local ft = vim.bo.filetype
+          if ft ~= "nu" then
+            vim.bo.filetype = "nu"
+          end
+          
+          -- Force treesitter to use the nu parser for this buffer
+          local ok, parsers = pcall(require, "nvim-treesitter.parsers")
+          if ok then
+            local lang = parsers.ft_to_lang(ft)
+            if lang ~= "nu" then
+              -- Register the filetype -> parser mapping
+              vim.treesitter.language.register('nu', 'nu')
+            end
+          end
+        end
+      })
     '';
 
     plugins.treesitter-textobjects = {
