@@ -9,6 +9,7 @@
     ./fuzzel
     ./waybar
     ./rtorrent
+    ./gtk
 
     # Terminal & Shell
     ./nixvim

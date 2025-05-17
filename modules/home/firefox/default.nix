@@ -6,6 +6,10 @@ let
   browserPkg = if isDarwin then pkgs.firefox-bin else pkgs.firefox;
 
 in {
+  imports = [
+    ./file-picker.nix
+  ];
+  
   options.modules.firefox = { enable = mkEnableOption "firefox"; };
   config = mkIf cfg.enable {
     programs.firefox = {
