@@ -11,7 +11,7 @@ in {
     programs.zellij.enable = true;
 
     home.shellAliases = shellAliases;
-    programs.nushell.shellAliases = shellAliases;
+    programs.fish.shellAliases = shellAliases;
 
     xdg.configFile."zellij/config.kdl".source = ./config.kdl;
   };

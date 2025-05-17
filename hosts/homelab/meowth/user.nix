@@ -3,7 +3,7 @@
   config.modules = {
     # Terminal & Shell
     nixvim.enable = true;
-    nushell.enable = true;
+    fish.enable = true;
     zellij.enable = true;
     k9s.enable = true;
 

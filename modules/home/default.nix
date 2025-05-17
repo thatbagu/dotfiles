@@ -12,7 +12,7 @@
 
     # Terminal & Shell
     ./nixvim
-    ./nushell
+    ./fish
     ./zellij
     ./k9s
 

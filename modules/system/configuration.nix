@@ -88,7 +88,7 @@
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQRS6OzC9Ip5lUhIyFvG03KgyupxJE55gmY3Dis0u18 cluster"
     ];
-    shell = pkgs.nushell;
+    shell = pkgs.fish;
   };
 
   programs.ssh = {

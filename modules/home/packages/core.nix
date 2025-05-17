@@ -17,7 +17,6 @@ in {
       enableBashIntegration = true;
       enableZshIntegration = true;
       enableFishIntegration = true;
-      enableNushellIntegration = true;
     };
 
     home.packages = with pkgs; [
