@@ -60,8 +60,11 @@ in {
       # Add custom functions
       functions = {
         fish_prompt = ''
-          # Custom prompt with higher contrast
+          # Custom 2-layer prompt with higher contrast
           set -l last_status $status
+
+          # First line with user, host, directory, git, and kubeconfig info
+          echo -n ""  # Start with a newline for better separation
 
           # User and host with better contrast
           set_color brgreen --bold
@@ -69,9 +72,11 @@ in {
           set_color normal
           printf '@'
           set_color brblue --bold
-          printf '%s ' (hostname)
+          printf '%s' (hostname)
 
           # Current directory with better contrast
+          set_color normal
+          printf ' in '
           set_color green --bold
           printf '%s' (prompt_pwd)
 
@@ -88,13 +93,29 @@ in {
               end
           end
 
-          # Status indicator
+          # Kubernetes context if available
+          if set -q KUBECONFIG
+              set -l kube_context (kubectl config current-context 2>/dev/null)
+              if test -n "$kube_context"
+                  set_color normal
+                  printf ' ['
+                  set_color cyan --bold
+                  printf 'k8s: %s' $kube_context
+                  set_color normal
+                  printf ']'
+              end
+          end
+
+          # Add a newline to separate the two layers
+          echo
+
+          # Second line with status indicator
           if test $last_status -eq 0
               set_color green
           else
               set_color red --bold
           end
-          printf ' ❯ '
+          printf '❯ '
           set_color normal
         '';
       };

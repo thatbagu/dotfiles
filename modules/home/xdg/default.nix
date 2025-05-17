@@ -1,9 +1,13 @@
-{ pkgs, lib, config, ... }:
+{ lib, config, ... }:
 
 with lib;
 let cfg = config.modules.xdg;
 
 in {
+    imports = [
+        ./yazi-file-handler.nix
+    ];
+    
     options.modules.xdg = { enable = mkEnableOption "xdg"; };
     config = mkIf cfg.enable {
         xdg.userDirs = {
