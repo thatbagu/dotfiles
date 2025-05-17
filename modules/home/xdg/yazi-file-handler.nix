@@ -13,7 +13,11 @@ in {
       exec = "foot -e yazi %u";
       terminal = false;
       categories = [ "System" "FileManager" "Utility" ];
-      mimeType = [ "inode/directory" "x-scheme-handler/file" ];
+      mimeType = [ 
+        "inode/directory" 
+        "x-scheme-handler/file" 
+        "application/x-gnome-saved-search"
+      ];
       type = "Application";
     };
 
@@ -23,6 +27,7 @@ in {
       defaultApplications = {
         "inode/directory" = [ "yazi-file-handler.desktop" ];
         "x-scheme-handler/file" = [ "yazi-file-handler.desktop" ];
+        "application/x-gnome-saved-search" = [ "yazi-file-handler.desktop" ];
       };
     };
   };

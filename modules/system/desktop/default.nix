@@ -35,9 +35,30 @@ in {
         extraPortals = with pkgs; [
           xdg-desktop-portal-wlr
           xdg-desktop-portal-gtk
+          xdg-desktop-portal-hyprland
         ];
-        # Add this new configuration for XDG portal
-        config = { common.default = "*"; };
+        # Configure XDG portal
+        config = {
+          common = {
+            default = "*";
+          };
+          hyprland = {
+            default = ["hyprland" "gtk"];
+            "org.freedesktop.impl.portal.FileChooser" = "gtk";
+            "org.freedesktop.impl.portal.AppChooser" = "gtk";
+          };
+        };
+        wlr = {
+          enable = true;
+          settings = {
+            screencast = {
+              output_name = "eDP-1";
+              max_fps = 30;
+              chooser_type = "simple";
+              chooser_cmd = "${pkgs.slurp}/bin/slurp -f %o -or";
+            };
+          };
+        };
       };
     };
 
@@ -126,8 +147,12 @@ in {
       GTK_RC_FILES = "$HOME/.local/share/gtk-1.0/gtkrc";
       GTK2_RC_FILES = "$HOME/.local/share/gtk-2.0/gtkrc";
       MOZ_ENABLE_WAYLAND = "1";
+      MOZ_DBUS_REMOTE = "1";
+      MOZ_USE_XINPUT2 = "1";
       ANKI_WAYLAND = "1";
       DISABLE_QT5_COMPAT = "0";
+      # Force Firefox to use the portal
+      GTK_USE_PORTAL = "1";
     }];
   };
 }
