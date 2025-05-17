@@ -14,12 +14,10 @@ in {
         browserPkg
       else
         browserPkg.override {
-          # Fixed: changed from extraNativeMessagingHosts to nativeMessagingHosts
           nativeMessagingHosts = [ pkgs.tridactyl-native ];
         };
       profiles.${config.home.username} = {
         isDefault = true;
-        # Fixed: moved extensions to extensions.packages
         extensions.packages =
           with inputs.firefox-addons.packages.${pkgs.system}; [
             bitwarden
@@ -76,6 +74,10 @@ in {
           # Configure Yazi as the file explorer
           "helpers.useExternalProtocolHandler" = true;
           "helpers.useExternalSoftwareHandler" = true;
+          # Force Firefox to use the system's file:// protocol handler
+          "network.protocol-handler.external.file" = true;
+          "network.protocol-handler.expose.file" = false;
+          "network.protocol-handler.warn-external.file" = false;
           # Download settings
           "browser.download.dir" = "/home/${config.home.username}/Downloads";
           "browser.download.folderList" = 2;

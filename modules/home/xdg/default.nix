@@ -6,6 +6,7 @@ let cfg = config.modules.xdg;
 in {
     imports = [
         ./yazi-file-handler.nix
+        ./firefox-protocol-handler.nix
     ];
     
     options.modules.xdg = { enable = mkEnableOption "xdg"; };
