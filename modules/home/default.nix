@@ -10,6 +10,7 @@
     ./waybar
     ./rtorrent
     ./gtk
+    ./yazi
 
     # Terminal & Shell
     ./nixvim

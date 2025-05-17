@@ -9,6 +9,7 @@
     fuzzel.enable = true;
     waybar.enable = true;
     gtk.enable = true;
+    yazi.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

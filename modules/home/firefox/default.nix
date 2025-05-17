@@ -6,12 +6,39 @@ let
   browserPkg = if isDarwin then pkgs.firefox-bin else pkgs.firefox;
 
 in {
-  imports = [
-    ./file-picker.nix
-  ];
-  
+  imports = [ ./file-picker.nix ];
+
   options.modules.firefox = { enable = mkEnableOption "firefox"; };
   config = mkIf cfg.enable {
+    # Add the custom file picker userscript
+    home.file.".mozilla/firefox/${config.home.username}/chrome/userChrome.js".text =
+      ''
+        // Enable userChrome.js
+        pref("general.config.obscure_value", 0);
+        pref("general.config.filename", "config.js");
+      '';
+
+    home.file.".mozilla/firefox/${config.home.username}/chrome/config.js".text =
+      ''
+        // Enable userscripts
+        const {classes:Cc, interfaces:Ci, utils:Cu} = Components;
+        Cu.import("resource://gre/modules/Services.jsm");
+
+        // Load userscripts
+        Services.obs.addObserver(function(document) {
+          if (document.location.protocol !== "chrome:") return;
+          
+          try {
+            // Load custom file picker script
+            Services.scriptloader.loadSubScript("chrome://userscripts/content/custom-file-picker.js", document.defaultView);
+          } catch(e) {
+            console.error("Error loading userscript:", e);
+          }
+        }, "document-element-inserted", false);
+      '';
+
+    home.file.".mozilla/firefox/${config.home.username}/chrome/userscripts/content/custom-file-picker.js".source =
+      ./custom-file-picker.js;
     programs.firefox = {
       enable = true;
       package = if isDarwin then
