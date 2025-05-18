@@ -1,15 +1,16 @@
 { lib, config, ... }: {
-  imports = [ ./cmp.nix ./copilot.nix ];
+  imports = [ ./cmp.nix ./codecompanion.nix ];
 
   options = {
     completion.enable = lib.mkEnableOption "Enable completion module";
   };
   config = lib.mkIf config.completion.enable {
     cmp.enable = lib.mkDefault true;
-    avante = {
+    codecompanion = {
       enable = lib.mkDefault true;
-      position = "right";
-      width = 30;
+      chatPosition = "vertical";
+      chatWidth = 0.45;
+      defaultAdapter = "anthropic";
     };
   };
 }
