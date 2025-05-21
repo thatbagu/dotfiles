@@ -3,8 +3,10 @@
     ./better-escape.nix
     ./cloak.nix
     ./harpoon.nix
+    ./image-nvim.nix # Added image.nvim import
     ./markdown-preview.nix
     ./mini.nix
+    ./molten-nvim.nix # Added molten-nvim import
     ./neotest.nix
     ./nvim-autopairs.nix
     ./nvim-colorizer.nix
@@ -30,8 +32,10 @@
     better-escape.enable = lib.mkDefault true;
     cloak.enable = lib.mkDefault true;
     harpoon.enable = lib.mkDefault true;
+    image-nvim.enable = lib.mkDefault true; # Enable image.nvim by default
     markdown-preview.enable = lib.mkDefault true;
     mini.enable = lib.mkDefault true;
+    molten-nvim.enable = lib.mkDefault true; # Enable molten-nvim by default
     neotest.enable = lib.mkDefault true;
     nvim-autopairs.enable = lib.mkDefault true;
     nvim-colorizer.enable = lib.mkDefault true;

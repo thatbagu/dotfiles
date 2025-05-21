@@ -9,7 +9,7 @@
         icons = {
           breadcrumb = "»";
           group = "+";
-          separator = ""; # ➜
+          separator = ""; # ➜
         };
         spec = [
           # Harpoon Configs
@@ -47,9 +47,9 @@
 
           # Molten-nvim group
           {
-            __unkeyed-1 = "<localleader>m";
+            __unkeyed-1 = "<localleader>j";
             mode = [ "n" "v" ];
-            group = "+molten";
+            group = "+jupyter";
             icon = "󰒓";
           }
 

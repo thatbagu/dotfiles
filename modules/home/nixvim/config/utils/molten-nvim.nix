@@ -3,11 +3,13 @@
     molten-nvim.enable = lib.mkEnableOption "Enable molten-nvim module";
   };
   config = lib.mkIf config.molten-nvim.enable {
+    # Use the built-in molten plugin in nixvim
     plugins.molten = {
       enable = true;
-      settings = { };
+      # Avoid setting any options that might conflict
     };
 
+    # Add the required Python packages (these don't conflict)
     extraPackages = with pkgs;
       [
         # Required Python packages
@@ -25,25 +27,11 @@
           ]))
       ];
 
-    # Global configuration for molten
-    globals = {
-      molten_image_provider =
-        "image.nvim"; # Will use image.nvim with the proper backend
-      molten_output_win_max_height = 20;
-      molten_virt_text_output = true;
-      molten_wrap_output = true;
-      molten_virt_lines_off_by_1 = true; # Better for markdown
-      molten_auto_open_output = false; # Don't auto-open output window
-      molten_copy_output = false;
-      molten_output_crop_border = true;
-      molten_output_win_border = [ "" "━" "" "" ];
-    };
-
-    # Add recommended keymaps for molten
+    # Add keybindings (these don't conflict)
     keymaps = [
       {
         mode = "n";
-        key = "<localleader>mi";
+        key = "<localleader>ji";
         action = ":MoltenInit<CR>";
         options = {
           silent = true;
@@ -52,7 +40,7 @@
       }
       {
         mode = "n";
-        key = "<localleader>me";
+        key = "<localleader>je";
         action = ":MoltenEvaluateOperator<CR>";
         options = {
           silent = true;
@@ -61,7 +49,7 @@
       }
       {
         mode = "n";
-        key = "<localleader>ml";
+        key = "<localleader>jl";
         action = ":MoltenEvaluateLine<CR>";
         options = {
           silent = true;
@@ -70,7 +58,7 @@
       }
       {
         mode = "n";
-        key = "<localleader>mr";
+        key = "<localleader>jr";
         action = ":MoltenReevaluateCell<CR>";
         options = {
           silent = true;
@@ -79,7 +67,7 @@
       }
       {
         mode = "v";
-        key = "<localleader>m";
+        key = "<localleader>j";
         action = ":<C-u>MoltenEvaluateVisual<CR>gv";
         options = {
           silent = true;
@@ -88,7 +76,7 @@
       }
       {
         mode = "n";
-        key = "<localleader>md";
+        key = "<localleader>jd";
         action = ":MoltenDelete<CR>";
         options = {
           silent = true;
@@ -97,7 +85,7 @@
       }
       {
         mode = "n";
-        key = "<localleader>mh";
+        key = "<localleader>jh";
         action = ":MoltenHideOutput<CR>";
         options = {
           silent = true;
@@ -106,17 +94,78 @@
       }
       {
         mode = "n";
-        key = "<localleader>ms";
+        key = "<localleader>js";
         action = ":noautocmd MoltenEnterOutput<CR>";
         options = {
           silent = true;
           desc = "Show/enter output";
         };
       }
+      # Additional useful keybindings
+      {
+        mode = "n";
+        key = "<localleader>jk";
+        action = ":MoltenInterrupt<CR>";
+        options = {
+          silent = true;
+          desc = "Interrupt execution";
+        };
+      }
+      {
+        mode = "n";
+        key = "<localleader>jR";
+        action = ":MoltenRestart<CR>";
+        options = {
+          silent = true;
+          desc = "Restart kernel";
+        };
+      }
+      {
+        mode = "n";
+        key = "<localleader>jI";
+        action = ":MoltenInfo<CR>";
+        options = {
+          silent = true;
+          desc = "Show kernel info";
+        };
+      }
+      {
+        mode = "n";
+        key = "<localleader>jn";
+        action = ":MoltenNext<CR>";
+        options = {
+          silent = true;
+          desc = "Go to next cell";
+        };
+      }
+      {
+        mode = "n";
+        key = "<localleader>jp";
+        action = ":MoltenPrev<CR>";
+        options = {
+          silent = true;
+          desc = "Go to previous cell";
+        };
+      }
     ];
 
-    # Add autocommands for better integration with your workflow
-    extraConfigLua = ''
+    # Configure Molten options via extraConfigLua instead of globals
+    extraConfigLuaPre = ''
+      -- Set Molten configuration via vim.g instead of using the globals option
+      vim.g.molten_image_provider = "image.nvim"
+      vim.g.molten_output_win_max_height = 20
+      vim.g.molten_virt_text_output = true
+      vim.g.molten_wrap_output = true
+      vim.g.molten_virt_lines_off_by_1 = true
+      vim.g.molten_auto_open_output = false
+      vim.g.molten_copy_output = false
+      vim.g.molten_output_crop_border = true
+      vim.g.molten_output_win_border = { "", "━", "", "" }
+
+      -- Terminal-specific configuration for Foot and Ghostty
+      local foot_socket = os.getenv("FOOT_DIRECT_INPUT_FD")
+      local ghostty_sock = os.getenv("GHOSTTY_RESOURCES_DIR")
+
       -- Add useful status line integration
       vim.api.nvim_create_autocmd("User", {
         pattern = "MoltenInitPost",
@@ -124,41 +173,6 @@
           vim.notify("Molten kernel initialized", vim.log.levels.INFO)
         end
       })
-
-      -- Add molten status to your statusline (useful with lualine)
-      -- If you have lualine, you can add this to a section:
-      -- vim.api.nvim_create_autocmd("User", {
-      --   pattern = {"MoltenInitPost", "MoltenKernelReady"},
-      --   callback = function()
-      --     -- If lualine is available, refresh it
-      --     pcall(function() require("lualine").refresh() end)
-      --   end
-      -- })
-
-      -- Terminal-specific configuration for Foot and Ghostty
-      local foot_socket = os.getenv("FOOT_DIRECT_INPUT_FD")
-      local ghostty_sock = os.getenv("GHOSTTY_RESOURCES_DIR")
-
-      -- Foot terminal might need some tweaking for virtual text
-      if foot_socket then
-        -- Foot may work better with non-virtual text in some cases
-        -- Uncomment the next line if you experience issues with virtual text
-        -- vim.g.molten_virt_text_output = false
-      end
-
-      -- Ghostty specific settings (if needed)
-      if ghostty_sock then
-        -- Ghostty should work well with the defaults
-        -- You can add specific settings here if needed
-      end
-
-      -- Auto-initialize the kernel when opening supported filetypes (optional)
-      -- vim.api.nvim_create_autocmd("FileType", {
-      --   pattern = {"python", "r", "julia"},
-      --   callback = function()
-      --     vim.cmd("MoltenInit")
-      --   end
-      -- })
     '';
   };
 }

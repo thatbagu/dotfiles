@@ -6,19 +6,13 @@
     plugins.image = {
       enable = true;
       settings = {
-        # Detect backend based on OS/terminal
-        backend = "auto"; # 'auto' will attempt to detect the best backend
+        # Use "kitty" as the default backend as it's more widely compatible
+        backend = "kitty"; # Valid values are "kitty" or "ueberzug"
         integrations = { }; # Disable markdown integration, let molten handle it
         max_width =
           100; # Important to prevent terminal crashes with large images
         max_height =
           12; # Important to prevent terminal crashes with large images
-        max_height_window_percentage =
-          null; # Set to math.huge in Lua, use null in Nix
-        max_width_window_percentage =
-          null; # Set to math.huge in Lua, use null in Nix
-        window_overlap_clear_enabled = true; # Clear images when windows overlap
-        window_overlap_clear_ft_ignore = [ "cmp_menu" "cmp_docs" "" ];
       };
     };
 
@@ -34,50 +28,50 @@
       libsixel # For terminals that support sixel protocol
     ];
 
-    extraConfigLua = ''
+    extraConfigLuaPre = ''
       -- Configure image.nvim with terminal-specific settings
-      local image = require('image')
-      local os_name = vim.loop.os_uname().sysname
-
-      -- Convert null to math.huge for window percentage limits
-      local image_config = image.config
-      if image_config then
-        if image_config.max_height_window_percentage == nil then
-          image_config.max_height_window_percentage = math.huge
+      -- This will run after the plugin is loaded
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "ImageLoaded",
+        callback = function()
+          local foot_socket = os.getenv("FOOT_DIRECT_INPUT_FD")
+          local ghostty_sock = os.getenv("GHOSTTY_RESOURCES_DIR")
+          
+          -- Apply config after image.nvim is fully loaded
+          vim.defer_fn(function()
+            local image = require('image')
+            if not image or not image.setup then return end
+            
+            -- Set window percentage limits to math.huge
+            if image.config then
+              image.config.max_height_window_percentage = math.huge
+              image.config.max_width_window_percentage = math.huge
+            end
+            
+            -- For Foot terminal on Linux
+            if foot_socket then
+              image.setup({ backend = "ueberzug" })
+              vim.notify("Foot terminal detected, configured image.nvim to use ueberzug backend", vim.log.levels.INFO)
+            end
+            
+            -- For Ghostty on macOS
+            if ghostty_sock then
+              image.setup({ backend = "kitty" })
+              vim.notify("Ghostty terminal detected, configured image.nvim to use kitty backend", vim.log.levels.INFO)
+            end
+            
+            -- Show current backend
+            if image.backend and image.backend._name then
+              vim.notify('Image.nvim using ' .. image.backend._name .. ' backend', vim.log.levels.INFO)
+            end
+          end, 1000)
         end
-        if image_config.max_width_window_percentage == nil then
-          image_config.max_width_window_percentage = math.huge
-        end
-      end
-
-      -- Try to auto-detect terminal and configure accordingly
-      local backend = 'auto'
-      local term = os.getenv("TERM")
-      local foot_socket = os.getenv("FOOT_DIRECT_INPUT_FD")
-      local ghostty_sock = os.getenv("GHOSTTY_RESOURCES_DIR")
-
-      -- For Foot terminal on Linux
-      if foot_socket then
-        backend = 'sixel'
-      end
-
-      -- For Ghostty on macOS
-      if ghostty_sock then
-        backend = 'kitty'
-        -- Ghostty is compatible with Kitty's graphics protocol
-      end
-
-      -- Apply the detected backend
-      image.setup({
-        backend = backend
       })
 
-      -- Add notification for the current backend
+      -- Create event if it doesn't exist
       vim.defer_fn(function()
-        if image.backend and image.backend._name then
-          vim.notify('Image.nvim using ' .. image.backend._name .. ' backend', vim.log.levels.INFO)
-        end
-      end, 1000)
+        vim.api.nvim_exec_autocmds("User", {pattern = "ImageLoaded"})
+      end, 1500)
     '';
   };
 }
