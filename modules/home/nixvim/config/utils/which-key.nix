@@ -1,5 +1,4 @@
-{ lib, config, ... }:
-{
+{ lib, config, ... }: {
   options = {
     which-key.enable = lib.mkEnableOption "Enable which-key module";
   };
@@ -46,21 +45,23 @@
             group = "Harpoon File 4";
           }
 
+          # Molten-nvim group
+          {
+            __unkeyed-1 = "<localleader>m";
+            mode = [ "n" "v" ];
+            group = "+molten";
+            icon = "󰒓";
+          }
+
           # General Mappings
           {
             __unkeyed-1 = "<leader>c";
-            mode = [
-              "n"
-              "v"
-            ];
+            mode = [ "n" "v" ];
             group = "+code";
           }
           {
             __unkeyed-1 = "<leader>d";
-            mode = [
-              "n"
-              "v"
-            ];
+            mode = [ "n" "v" ];
             group = "+debug";
           }
           {
@@ -71,10 +72,7 @@
 
           {
             __unkeyed-1 = "<leader>g";
-            mode = [
-              "n"
-              "v"
-            ];
+            mode = [ "n" "v" ];
             group = "+git";
           }
 

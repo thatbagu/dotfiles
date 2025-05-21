@@ -80,5 +80,15 @@
         };
       };
     };
+    keymaps = [{
+      mode = "n";
+      key = "<leader>at";
+      action =
+        "function() vim.api.nvim_exec_autocmds('User', { pattern = 'AvanteDisplayTokens' }) end";
+      options = {
+        silent = true;
+        desc = "Display Avante token usage";
+      };
+    }];
   };
 }
