@@ -238,7 +238,6 @@ in {
           (mapAttrsToList (name: chart: chart.path) regularCharts)))
       ];
 
-      # Configure as a oneshot service
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
@@ -267,6 +266,11 @@ in {
           ${concatMapStringsSep "\n" (ns: ''
             kubectl get namespace ${ns} &>/dev/null || kubectl create namespace ${ns}
           '') requiredNamespaces}
+
+          echo "Cleaning up all existing jobs..."
+          kubectl delete jobs --all --all-namespaces --ignore-not-found=true
+          # Wait a moment for cleanup to complete
+          sleep 5
 
           # Create secrets first from SOPS
           ${concatStringsSep "\n" (mapAttrsToList (name: secretRef: ''

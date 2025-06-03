@@ -8,28 +8,45 @@ in {
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
-                # Load Anthropic API key from the path stored in ANTHROPIC_API_KEY_LOAD
-                function load_anthropic_key --on-variable ANTHROPIC_API_KEY_LOAD
-                    if test -n "$ANTHROPIC_API_KEY_LOAD" -a -r "$ANTHROPIC_API_KEY_LOAD"
-                        set -gx ANTHROPIC_API_KEY (cat $ANTHROPIC_API_KEY_LOAD)
+                # Generic function to load secrets from files
+                function load_secret_from_file --argument-names var_name env_var_path
+                    if test -n "$$env_var_path" -a -r "$$env_var_path"
+                        set -gx $var_name (cat $$env_var_path)
                     end
                 end
 
-                # Run the function once at startup to load the key
-                if test -n "$ANTHROPIC_API_KEY_LOAD" -a -r "$ANTHROPIC_API_KEY_LOAD"
-                    set -gx ANTHROPIC_API_KEY (cat $ANTHROPIC_API_KEY_LOAD)
-                end
+                # Define secret mappings (path variable -> environment variable)
+                set -g __secret_mappings
+                set -a __secret_mappings ANTHROPIC_API_KEY_LOAD ANTHROPIC_API_KEY
+                set -a __secret_mappings GITHUB_TOKEN_PATH GITHUB_TOKEN
+                set -a __secret_mappings CLOUDFLARE_EMAIL_PATH CLOUDFLARE_EMAIL
+                set -a __secret_mappings GIT_USER_EMAIL_PATH GIT_USER_EMAIL
 
-                # Load GitHub token from the path stored in GITHUB_TOKEN_PATH
-                function load_github_token --on-variable GITHUB_TOKEN_PATH
-                    if test -n "$GITHUB_TOKEN_PATH" -a -r "$GITHUB_TOKEN_PATH"
-                        set -gx GITHUB_TOKEN (cat $GITHUB_TOKEN_PATH)
+                # Special handling for Git email configuration
+                function update_git_email --on-variable GIT_USER_EMAIL
+                    if test -n "$GIT_USER_EMAIL"
+                        set -gx GIT_AUTHOR_EMAIL $GIT_USER_EMAIL
+                        set -gx GIT_COMMITTER_EMAIL $GIT_USER_EMAIL
                     end
                 end
 
-                # Run the function once at startup to load the token
-                if test -n "$GITHUB_TOKEN_PATH" -a -r "$GITHUB_TOKEN_PATH"
-                    set -gx GITHUB_TOKEN (cat $GITHUB_TOKEN_PATH)
+                # Load all secrets at startup
+                for i in (seq 1 2 (count $__secret_mappings))
+                    set -l path_var $__secret_mappings[$i]
+                    set -l env_var $__secret_mappings[(math $i + 1)]
+                    load_secret_from_file $env_var $path_var
+                end
+
+                # Generic event handler for all path variables
+                # Create individual event handlers for each path variable
+                for i in (seq 1 2 (count $__secret_mappings))
+                    set -l path_var $__secret_mappings[$i]
+                    set -l env_var $__secret_mappings[(math $i + 1)]
+                    
+                    # Create a function with the correct event handler syntax
+                    eval "function __handle_"$path_var"_change --on-variable "$path_var"
+                        load_secret_from_file "$env_var" "$path_var"
+                    end"
                 end
 
                 # Custom greeting function

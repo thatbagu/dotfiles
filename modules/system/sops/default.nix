@@ -13,6 +13,8 @@ in {
 
       secrets.antropic_key = { owner = "${username}"; };
       secrets.github_token = { owner = "${username}"; };
+      secrets.git_email = { owner = "${username}"; };
+      secrets.cloudflare_email = { owner = "${username}"; };
       secrets.k3s_token = { owner = "${username}"; };
       secrets.pihole_password = { owner = "${username}"; };
       secrets.cloudflare_token = { owner = "${username}"; };

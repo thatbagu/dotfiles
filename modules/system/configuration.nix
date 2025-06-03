@@ -131,6 +131,8 @@
     DIRENV_LOG_FORMAT = "";
     ANTHROPIC_API_KEY_LOAD = config.sops.secrets.antropic_key.path;
     GITHUB_TOKEN_PATH = config.sops.secrets.github_token.path;
+    GITHUB_EMAIL_PATH = config.sops.secrets.git_email.path;
+    CLOUDFLARE_EMAIL_PATH = config.sops.secrets.cloudflare_email.path;
     SOPS_AGE_KEY_FILE = "/persist/etc/sops-nix/keys.txt";
   };
 

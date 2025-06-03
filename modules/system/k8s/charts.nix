@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, lib, inputs, config, ... }:
 
 let
   # Import lib.nix for helper functions but not variables
@@ -7,7 +7,8 @@ let
   # Centralized variables for all services
   vars = rec {
     domain = "egor.house";
-    cloudflareEmail = "your-cloudflare-email@example.com";
+    cloudflareEmail =
+      lib.strings.fileContents config.sops.secrets.cloudflare_email.path;
 
     # Namespace definitions
     namespaces = {
