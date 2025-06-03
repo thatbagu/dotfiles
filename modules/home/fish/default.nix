@@ -4,7 +4,6 @@ let cfg = config.modules.fish;
 in {
   options.modules.fish = { enable = mkEnableOption "fish"; };
   config = mkIf cfg.enable {
-
     programs.fish = {
       enable = true;
       interactiveShellInit = ''
@@ -14,29 +13,21 @@ in {
                         set -gx $var_name (cat $$env_var_path)
                     end
                 end
-
                 # Define secret mappings (path variable -> environment variable)
                 set -g __secret_mappings
                 set -a __secret_mappings ANTHROPIC_API_KEY_LOAD ANTHROPIC_API_KEY
                 set -a __secret_mappings GITHUB_TOKEN_PATH GITHUB_TOKEN
                 set -a __secret_mappings CLOUDFLARE_EMAIL_PATH CLOUDFLARE_EMAIL
-                set -a __secret_mappings GIT_USER_EMAIL_PATH GIT_USER_EMAIL
-
-                # Special handling for Git email configuration
-                function update_git_email --on-variable GIT_USER_EMAIL
-                    if test -n "$GIT_USER_EMAIL"
-                        set -gx GIT_AUTHOR_EMAIL $GIT_USER_EMAIL
-                        set -gx GIT_COMMITTER_EMAIL $GIT_USER_EMAIL
-                    end
-                end
-
                 # Load all secrets at startup
                 for i in (seq 1 2 (count $__secret_mappings))
                     set -l path_var $__secret_mappings[$i]
                     set -l env_var $__secret_mappings[(math $i + 1)]
                     load_secret_from_file $env_var $path_var
                 end
-
+                if test -n "$GITHUB_EMAIL_PATH" -a -r "$GITHUB_EMAIL_PATH"
+                    set -gx GIT_AUTHOR_EMAIL (cat $GITHUB_EMAIL_PATH)
+                    set -gx GIT_COMMITTER_EMAIL (cat $GITHUB_EMAIL_PATH)
+                end
                 # Generic event handler for all path variables
                 # Create individual event handlers for each path variable
                 for i in (seq 1 2 (count $__secret_mappings))
@@ -48,7 +39,6 @@ in {
                         load_secret_from_file "$env_var" "$path_var"
                     end"
                 end
-
                 # Custom greeting function
                 function fish_greeting
                     set -l hour (date +%H)
@@ -57,11 +47,10 @@ in {
                     
                     # ASCII art for the greeting
                     set -l ascii_art "
-              |\      _,,,---,,_
+              |\      *,,,---,,*
         ZZZzz /,`.-'`'    -.  ;-;;,_
              |,4-  ) )-,_. ,\ (  `'-'
             '---'\'(_/--'  `-'\_)
-
                     "
                     
                     # Time-based greetings
@@ -128,7 +117,6 @@ in {
                     set_color normal
                     echo ""
                 end
-
                 # Improve contrast for command line text
                 set -g fish_color_command brwhite --bold
                 set -g fish_color_param brwhite
@@ -153,16 +141,13 @@ in {
         vi = "nvim";
         vim = "nvim";
       };
-
       # Add custom functions
       functions = {
         fish_prompt = ''
           # Custom 2-layer prompt with higher contrast
           set -l last_status $status
-
           # First line with user, host, directory, git, and kubeconfig info
           echo -n ""  # Start with a newline for better separation
-
           # User and host with better contrast
           set_color brgreen --bold
           printf '%s' $USER
@@ -170,13 +155,11 @@ in {
           printf '@'
           set_color brblue --bold
           printf '%s' (hostname)
-
           # Current directory with better contrast
           set_color normal
           printf ' in '
           set_color green --bold
           printf '%s' (prompt_pwd)
-
           # Git status if available
           if type -q git
               set -l git_branch (git branch 2>/dev/null | sed -n '/\* /s///p')
@@ -189,7 +172,6 @@ in {
                   printf ')'
               end
           end
-
           # Kubernetes context if available
           if set -q KUBECONFIG
               set -l kube_context (kubectl config current-context 2>/dev/null)
@@ -202,10 +184,8 @@ in {
                   printf ']'
               end
           end
-
           # Add a newline to separate the two layers
           echo
-
           # Second line with status indicator
           if test $last_status -eq 0
               set_color green
