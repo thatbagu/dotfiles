@@ -11,12 +11,18 @@ let
     spec = {
       acme = {
         inherit server;
-        email = vars.cloudflareEmail;
+        emailSecretRef = {
+          name = "cloudflare-email";
+          key = "email";
+        };
         privateKeySecretRef = { inherit name; };
         solvers = [{
           dns01 = {
             cloudflare = {
-              email = vars.cloudflareEmail;
+              emailSecretRef = {
+                name = "cloudflare-email";
+                key = "email";
+              };
               apiTokenSecretRef = {
                 name = "cloudflare-api-token";
                 key = "api-token";
@@ -72,6 +78,14 @@ in {
     secretName = "cloudflare-api-token";
     secretKey = "api-token";
     sopsSecretName = "cloudflare_token";
+  };
+
+  cloudflare-email-secret = mkSecretRef {
+    name = "cloudflare-email-secret";
+    namespace = vars.namespaces.dns;
+    secretName = "cloudflare-email";
+    secretKey = "email";
+    sopsSecretName = "cloudflare_email";
   };
 
   # Cluster issuer for Let's Encrypt

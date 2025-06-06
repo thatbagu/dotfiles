@@ -1,4 +1,4 @@
-{ pkgs, lib, inputs, config, ... }:
+{ pkgs, inputs, ... }:
 
 let
   # Import lib.nix for helper functions but not variables
@@ -7,8 +7,6 @@ let
   # Centralized variables for all services
   vars = rec {
     domain = "egor.house";
-    cloudflareEmail =
-      lib.strings.fileContents config.sops.secrets.cloudflare_email.path;
 
     # Namespace definitions
     namespaces = {
@@ -46,7 +44,6 @@ let
     };
   };
 
-  # Import all service configurations directly with the standard pattern
   coreServices = {
     longhorn =
       import ./services/core/longhorn.nix { inherit pkgs inputs lib vars; };
