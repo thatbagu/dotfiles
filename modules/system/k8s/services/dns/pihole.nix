@@ -44,6 +44,21 @@ let
         };
       };
     }];
+
+    dnsmasq = {
+      customDnsEntries = [
+        # Point local domain to Pi-hole IP
+        "address=/pihole.home/${vars.ipPools.pihole}"
+      ];
+      additionalHostsEntries = [
+        "${vars.ipPools.pihole} pihole.home"
+        "${vars.ipPools.pihole} pihole.test"
+        "${vars.ipPools.pihole} pihole.${vars.domain}" # pihole.egor.house
+      ];
+      # customCnameEntries = [
+      #   "cname=alias.home,pihole.home"
+      # ];
+    };
   };
 
   # Final values are the defaults merged with custom values
