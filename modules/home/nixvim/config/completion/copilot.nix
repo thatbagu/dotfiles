@@ -35,13 +35,17 @@
           # Enable cursor planning mode for more efficient token usage with larger codebases
           enable_cursor_planning_mode = true;
         };
-        # Claude configuration with optimized settings
-        claude = {
-          endpoint = "https://api.anthropic.com";
-          model = "claude-3-7-sonnet-20250219";
-          timeout = 60000; # Increase timeout to 60 seconds
-          temperature = 0;
-          max_tokens = 4096;
+        # Claude configuration with optimized settings - FIXED: using providers.claude
+        providers = {
+          claude = {
+            endpoint = "https://api.anthropic.com";
+            model = "claude-3-7-sonnet-20250219";
+            timeout = 60000; # Increase timeout to 60 seconds
+            extra_request_body = {
+              temperature = 0;
+              max_tokens = 4096;
+            };
+          };
         };
         # Optional: Configure a more token-efficient model for applying changes
         cursor_applying_provider =
