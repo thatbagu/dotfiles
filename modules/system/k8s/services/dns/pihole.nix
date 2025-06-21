@@ -19,7 +19,7 @@ let
     };
   };
 
-  # Custom values specific to this deployment
+  # Custom values specific to this deployment - AVOIDING subPath mounts
   piholeValues = {
     ingress = {
       enabled = true;
@@ -35,30 +35,74 @@ let
       annotations = { "metallb.universe.tf/allow-shared-ip" = "pihole-svc"; };
       type = "LoadBalancer";
     };
-    env = [{
-      name = "WEBPASSWORD";
-      valueFrom = {
-        secretKeyRef = {
-          name = "pihole-password";
-          key = "password";
+    env = [
+      {
+        name = "WEBPASSWORD";
+        valueFrom = {
+          secretKeyRef = {
+            name = "pihole-password";
+            key = "password";
+          };
         };
-      };
-    }];
+      }
+      # Use environment variables instead of subPath mounts
+      {
+        name = "CUSTOM_HOSTS";
+        value = ''
+          ${vars.ipPools.pihole} pihole.home
+          ${vars.ipPools.pihole} pihole.test
+          ${vars.ipPools.pihole} pihole.${vars.domain}
+        '';
+      }
+      {
+        name = "PIHOLE_DNS_1";
+        value = "192.168.1.1";
+      }
+      {
+        name = "PIHOLE_DNS_2";
+        value = "8.8.4.4";
+      }
+      {
+        name = "TZ";
+        value = "UTC";
+      }
+      # Add dnsmasq config via environment
+      {
+        name = "FTLCONF_dns_upstreams";
+        value = "192.168.1.1;8.8.4.4";
+      }
+      {
+        name = "FTLCONF_webserver_port";
+        value = "80";
+      }
+      {
+        name = "VIRTUAL_HOST";
+        value = "pi.hole";
+      }
+      {
+        name = "FTLCONF_misc_etc_dnsmasq_d";
+        value = "true";
+      }
+      {
+        name = "FTLCONF_webserver_api_password";
+        valueFrom = {
+          secretKeyRef = {
+            name = "pihole-password";
+            key = "password";
+          };
+        };
+      }
+    ];
 
-    dnsmasq = {
-      customDnsEntries = [
-        # Point local domain to Pi-hole IP
-        "address=/pihole.home/${vars.ipPools.pihole}"
-      ];
-      additionalHostsEntries = [
-        "${vars.ipPools.pihole} pihole.home"
-        "${vars.ipPools.pihole} pihole.test"
-        "${vars.ipPools.pihole} pihole.${vars.domain}" # pihole.egor.house
-      ];
-      # customCnameEntries = [
-      #   "cname=alias.home,pihole.home"
-      # ];
-    };
+    # # Simplified dnsmasq config without subPath issues
+    # dnsmasq = {
+    #   customDnsEntries = [
+    #     # Point local domain to Pi-hole IP
+    #     "address=/pihole.home/${vars.ipPools.pihole}"
+    #   ];
+    #   # Remove additionalHostsEntries to avoid subPath mounting
+    #   # Instead use CUSTOM_HOSTS environment variable above
+    # };
   };
 
   # Final values are the defaults merged with custom values
