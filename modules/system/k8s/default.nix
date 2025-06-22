@@ -16,12 +16,12 @@ let
     {
       name = "core-infrastructure";
       charts = [ "longhorn" "metallb" ];
-      waitFor = { # Wait for these resources to be ready before proceeding
+      waitFor = {
         metallb = {
           kind = "deployment";
           name = "metallb-controller";
           namespace = "metallb-system";
-          timeout = 120; # seconds
+          timeout = 120;
         };
         longhorn = {
           kind = "deployment";
@@ -36,16 +36,16 @@ let
       charts = [ "metallb-config" ];
       dependsOn = [ "core-infrastructure" ];
       retryAttempts = 5;
-      retryDelay = 30; # seconds between retries
+      retryDelay = 30;
     }
     {
       name = "networking-services";
-      charts = [ "ingress-nginx-internal" "pihole" ];
+      charts = [ "ingress-nginx" "pihole" ];
       dependsOn = [ "core-config" ];
       waitFor = {
         nginx = {
           kind = "deployment";
-          name = "ingress-nginx-internal-controller";
+          name = "ingress-nginx-controller"; # Updated name
           namespace = "nginx-system";
           timeout = 180;
         };
@@ -66,15 +66,10 @@ let
     }
     {
       name = "external-access";
-      charts = [ "ingress-nginx-external" "cert-manager" ];
+      # Changed: Remove external nginx, only cert-manager now
+      charts = [ "cert-manager" ];
       dependsOn = [ "core-config" ];
       waitFor = {
-        nginx = {
-          kind = "deployment";
-          name = "ingress-nginx-external-controller";
-          namespace = "nginx-system";
-          timeout = 180;
-        };
         certmanager = {
           kind = "deployment";
           name = "cert-manager";
