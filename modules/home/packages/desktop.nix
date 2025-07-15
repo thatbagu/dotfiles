@@ -16,6 +16,7 @@ in {
       ffmpeg
       imagemagick
       vlc
+      obs-studio
       pqiv
       playerctl
       spotify-player
@@ -37,6 +38,9 @@ in {
       # Graphics
       gimp
       blender
+      godot
+      inochi-creator
+      inochi-session
 
       # Minecraft
       prismlauncher

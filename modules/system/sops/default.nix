@@ -10,21 +10,26 @@ in {
       age.keyFile = "/persist/etc/sops-nix/keys.txt";
       defaultSopsFile = ./secrets.yaml;
       defaultSopsFormat = "yaml";
+      secrets = {
+        antropic_key = { owner = "${username}"; };
+        github_token = { owner = "${username}"; };
+        git_email = { owner = "${username}"; };
+        cloudflare_email = { owner = "${username}"; };
+        k3s_token = { owner = "${username}"; };
+        pihole_password = { owner = "${username}"; };
+        cloudflare_token = { owner = "${username}"; };
 
-      secrets.antropic_key = { owner = "${username}"; };
-      secrets.github_token = { owner = "${username}"; };
-      secrets.git_email = { owner = "${username}"; };
-      secrets.cloudflare_email = { owner = "${username}"; };
-      secrets.k3s_token = { owner = "${username}"; };
-      secrets.pihole_password = { owner = "${username}"; };
-      secrets.cloudflare_token = { owner = "${username}"; };
+        # wireguard
+        egor_main_wg_public_key = { owner = "${username}"; };
+        egor_main_wg_private_key = { owner = "${username}"; };
 
-      secrets.user_password = { neededForUsers = true; };
+        user_password = { neededForUsers = true; };
 
-      secrets.private_ssh_key = {
-        path = "/home/${username}/.ssh/ssh_host_ed25519_key";
-        mode = "0600";
-        owner = "${username}";
+        private_ssh_key = {
+          path = "/home/${username}/.ssh/ssh_host_ed25519_key";
+          mode = "0600";
+          owner = "${username}";
+        };
       };
     };
   };

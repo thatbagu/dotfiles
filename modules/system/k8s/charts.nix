@@ -16,6 +16,7 @@ let
       metallb = "metallb-system";
       longhorn = "longhorn-system";
       monitoring = "monitoring-system";
+      wireguard = "wireguard-system";
     };
 
     # IP address pools
@@ -23,6 +24,7 @@ let
       metallb = "192.168.1.192/26";
       nginxExternal = "192.168.1.193";
       pihole = "192.168.1.250";
+      wireguard = "192.168.1.194";
     };
 
     # References to make code cleaner
@@ -65,9 +67,18 @@ let
       import ./services/ingress/ingress.nix { inherit pkgs inputs lib vars; };
   };
 
+  vpnServices = {
+    wireguard =
+      import ./services/vpn/wireguard.nix { inherit pkgs inputs lib vars; };
+  };
+
   # Create a list of all service attribute sets
-  services = builtins.concatLists
-    (map builtins.attrValues [ coreServices dnsServices ingressResources ]);
+  services = builtins.concatLists (map builtins.attrValues [
+    coreServices
+    dnsServices
+    ingressResources
+    vpnServices
+  ]);
 
   # Combine them all with a single fold operation
   allServices = lib.recursiveMerge' services;

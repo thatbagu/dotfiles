@@ -36,7 +36,7 @@
   };
 
   boot = {
-    kernelModules = [ "btusb" "btintel" ];
+    kernelModules = [ "btusb" "btintel" "v4l2loopback" ];
     kernelParams = [ "usbcore.autosuspend=-1" "btusb.enable_autosuspend=0" ];
     extraModprobeConfig = ''
       # Options for Bluetooth modules

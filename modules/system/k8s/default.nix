@@ -96,6 +96,24 @@ let
       charts = [ "pihole-external-ingress" ];
       dependsOn = [ "external-dns" "networking-services" ];
     }
+    {
+      name = "vpn-services";
+      charts = [
+        "wireguard-config"
+        "wireguard-storage"
+        "wireguard-deployment"
+        "wireguard-service"
+      ];
+      dependsOn = [ "core-config" ];
+      waitFor = {
+        wireguard = {
+          kind = "deployment";
+          name = "wireguard";
+          namespace = "wireguard-system";
+          timeout = 120;
+        };
+      };
+    }
   ];
 
   requiredNamespaces =
