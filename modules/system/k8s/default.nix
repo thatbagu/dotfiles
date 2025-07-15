@@ -3,7 +3,7 @@
 with lib;
 let
   cfg = config.modules.k8s;
-  charts = import ./charts.nix { inherit pkgs inputs; };
+  charts = import ./charts.nix { inherit pkgs inputs config; };
 
   # Filter charts to get only secret references
   secretRefs = filterAttrs (_: chart: chart.isSecret) charts;

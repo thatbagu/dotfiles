@@ -19,9 +19,29 @@ in {
         pihole_password = { owner = "${username}"; };
         cloudflare_token = { owner = "${username}"; };
 
-        # wireguard
-        egor_main_wg_public_key = { owner = "${username}"; };
-        egor_main_wg_private_key = { owner = "${username}"; };
+        # WireGuard server secrets
+        wireguard_server_private_key = {
+          owner = "root";
+          mode = "0644";
+        };
+        wireguard_server_public_key = {
+          owner = "root";
+          mode = "0644";
+        };
+        wireguard_server_endpoint = {
+          owner = "root";
+          mode = "0644";
+        };
+
+        # WireGuard user secrets
+        egor_main_wg_public_key = {
+          owner = "root";
+          mode = "0644";
+        };
+        egor_main_wg_private_key = {
+          owner = "${username}";
+          mode = "0600";
+        };
 
         user_password = { neededForUsers = true; };
 

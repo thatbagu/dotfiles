@@ -1,11 +1,13 @@
 { pkgs, inputs, lib, vars, config }:
 
-with lib;
-
 let
+  # Import standard lib functions we need from pkgs.lib
+  inherit (pkgs.lib)
+    filterAttrs mapAttrs mapAttrsToList concatStringsSep listToAttrs toUpper;
+
   # Import users configuration
   usersConfig = import ./users.nix { inherit config lib; };
-  
+
   # Filter enabled users only
   enabledUsers = filterAttrs (_: user: user.enabled) usersConfig.wireguardUsers;
 
@@ -62,11 +64,7 @@ let
     spec = {
       accessModes = [ "ReadWriteOnce" ];
       storageClassName = "longhorn";
-      resources = {
-        requests = {
-          storage = "1Gi";
-        };
-      };
+      resources = { requests = { storage = "1Gi"; }; };
     };
   };
 
@@ -81,100 +79,160 @@ let
     spec = {
       replicas = 1;
       strategy = { type = "Recreate"; };
-      selector = {
-        matchLabels = { app = "wireguard"; };
-      };
+      selector = { matchLabels = { app = "wireguard"; }; };
       template = {
-        metadata = {
-          labels = { app = "wireguard"; };
-        };
+        metadata = { labels = { app = "wireguard"; }; };
         spec = {
           securityContext = {
             capabilities = { add = [ "NET_ADMIN" "SYS_MODULE" ]; };
             privileged = true;
           };
-          initContainers = [
-            {
-              name = "setup-config";
-              image = "alpine:3.18";
-              command = [ "/bin/sh" "-c" ];
-              args = [
-                ''
-                  # Copy template to the config directory  
-                  cp /config-template/wg0.conf.template /config/wg_confs/wg0.conf
-                  
-                  # Replace server private key
-                  sed -i "s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g" /config/wg_confs/wg0.conf
-                  
-                  # Replace user public keys from SOPS secrets
-                  ${concatStringsSep "\n" (mapAttrsToList (name: user: ''
-                    sed -i "s|__${toUpper name}_PUBLIC_KEY__|$(cat /secrets/${user.publicKeySecret})|g" /config/wg_confs/wg0.conf
-                  '') enabledUsers)}
-                  
-                  # For client configs, replace server public key and endpoint
-                  SERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)
-                  WG_ENDPOINT=$(cat /secrets/wg-server-endpoint)
-                  
-                  # Replace placeholders in all client config files
-                  for file in /config-template/*; do
-                    if [[ $file != *.template ]]; then
-                      filename=$(basename "$file")
-                      cp "$file" "/config/$filename"
-                      sed -i "s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g" "/config/$filename"
-                      sed -i "s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g" "/config/$filename"
-                    fi
-                  done
-                  
-                  # Set proper permissions
-                  chmod 600 /config/wg_confs/wg0.conf
-                  
-                  echo "WireGuard config ready with ${toString (length (attrNames enabledUsers))} users"
-                ''
-              ];
-              volumeMounts = [
-                { name = "config-template"; mountPath = "/config-template"; }
-                { name = "wireguard-data"; mountPath = "/config"; }
-                { name = "wireguard-secrets"; mountPath = "/secrets"; }
-              ];
-            }
-          ];
-          containers = [
-            {
+          initContainers = [{
+            name = "setup-config";
+            image = "alpine:3.18";
+            command = [ "/bin/sh" "-c" ];
+            args = [''
+              # Copy template to the config directory  
+              cp /config-template/wg0.conf.template /config/wg_confs/wg0.conf
+
+              # Replace server private key
+              sed -i "s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g" /config/wg_confs/wg0.conf
+
+              # Replace user public keys from SOPS secrets
+              ${concatStringsSep "\n" (mapAttrsToList (name: user: ''
+                sed -i "s|__${
+                  toUpper name
+                }_PUBLIC_KEY__|$(cat /secrets/${user.publicKeySecret})|g" /config/wg_confs/wg0.conf
+              '') enabledUsers)}
+
+              # For client configs, replace server public key and endpoint
+              SERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)
+              WG_ENDPOINT=$(cat /secrets/wg-server-endpoint)
+
+              # Replace placeholders in all client config files
+              for file in /config-template/*; do
+                if [[ $file != *.template ]]; then
+                  filename=$(basename "$file")
+                  cp "$file" "/config/$filename"
+                  sed -i "s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g" "/config/$filename"
+                  sed -i "s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g" "/config/$filename"
+                fi
+              done
+
+              # Set proper permissions
+              chmod 600 /config/wg_confs/wg0.conf
+
+              echo "WireGuard config ready with ${
+                toString (builtins.length (builtins.attrNames enabledUsers))
+              } users"
+            ''];
+            volumeMounts = [
+              {
+                name = "config-template";
+                mountPath = "/config-template";
+              }
+              {
+                name = "wireguard-data";
+                mountPath = "/config";
+              }
+              {
+                name = "wireguard-secrets";
+                mountPath = "/secrets";
+              }
+            ];
+          }];
+          containers = [{
+            name = "wireguard";
+            image = "lscr.io/linuxserver/wireguard:latest";
+            env = [
+              {
+                name = "PUID";
+                value = "1000";
+              }
+              {
+                name = "PGID";
+                value = "1000";
+              }
+              {
+                name = "TZ";
+                value = "UTC";
+              }
+              {
+                name = "PEERS";
+                value = "1";
+              }
+              {
+                name = "SERVERURL";
+                value = "auto";
+              }
+              {
+                name = "SERVERPORT";
+                value = "51820";
+              }
+              {
+                name = "PEERDNS";
+                value = "192.168.1.1";
+              }
+              {
+                name = "INTERNAL_SUBNET";
+                value = "10.0.100.0";
+              }
+              {
+                name = "ALLOWEDIPS";
+                value = "192.168.1.0/24";
+              }
+            ];
+            ports = [{
               name = "wireguard";
-              image = "lscr.io/linuxserver/wireguard:latest";
-              env = [
-                { name = "PUID"; value = "1000"; }
-                { name = "PGID"; value = "1000"; }
-                { name = "TZ"; value = "UTC"; }
-                { name = "PEERS"; value = "1"; }
-                { name = "SERVERURL"; value = "auto"; }
-                { name = "SERVERPORT"; value = "51820"; }
-                { name = "PEERDNS"; value = "192.168.1.1"; }
-                { name = "INTERNAL_SUBNET"; value = "10.0.100.0"; }
-                { name = "ALLOWEDIPS"; value = "192.168.1.0/24"; }
-              ];
-              ports = [
-                { name = "wireguard"; containerPort = 51820; protocol = "UDP"; }
-              ];
-              resources = {
-                requests = { cpu = "100m"; memory = "128Mi"; };
-                limits = { cpu = "500m"; memory = "256Mi"; };
+              containerPort = 51820;
+              protocol = "UDP";
+            }];
+            resources = {
+              requests = {
+                cpu = "100m";
+                memory = "128Mi";
               };
-              volumeMounts = [
-                { name = "wireguard-data"; mountPath = "/config"; }
-                { name = "lib-modules"; mountPath = "/lib/modules"; readOnly = true; }
-              ];
-              securityContext = {
-                capabilities = { add = [ "NET_ADMIN" "SYS_MODULE" ]; };
-                privileged = true;
+              limits = {
+                cpu = "500m";
+                memory = "256Mi";
+              };
+            };
+            volumeMounts = [
+              {
+                name = "wireguard-data";
+                mountPath = "/config";
+              }
+              {
+                name = "lib-modules";
+                mountPath = "/lib/modules";
+                readOnly = true;
+              }
+            ];
+            securityContext = {
+              capabilities = { add = [ "NET_ADMIN" "SYS_MODULE" ]; };
+              privileged = true;
+            };
+          }];
+          volumes = [
+            {
+              name = "wireguard-data";
+              persistentVolumeClaim = { claimName = "wireguard-data"; };
+            }
+            {
+              name = "config-template";
+              configMap = { name = "wireguard-config"; };
+            }
+            {
+              name = "wireguard-secrets";
+              secret = { secretName = "wireguard-secrets"; };
+            }
+            {
+              name = "lib-modules";
+              hostPath = {
+                path = "/lib/modules";
+                type = "Directory";
               };
             }
-          ];
-          volumes = [
-            { name = "wireguard-data"; persistentVolumeClaim = { claimName = "wireguard-data"; }; }
-            { name = "config-template"; configMap = { name = "wireguard-config"; }; }
-            { name = "wireguard-secrets"; secret = { secretName = "wireguard-secrets"; }; }
-            { name = "lib-modules"; hostPath = { path = "/lib/modules"; type = "Directory"; }; }
           ];
         };
       };
@@ -196,15 +254,30 @@ let
       type = "LoadBalancer";
       loadBalancerIP = vars.ipPools.wireguard;
       selector = { app = "wireguard"; };
-      ports = [
-        { name = "wireguard"; port = 51820; targetPort = 51820; protocol = "UDP"; }
-      ];
+      ports = [{
+        name = "wireguard";
+        port = 51820;
+        targetPort = 51820;
+        protocol = "UDP";
+      }];
     };
   };
 
+  # Generate user secret references dynamically
+  userSecrets = listToAttrs (mapAttrsToList (name: user: {
+    name = "wireguard-user-${name}";
+    value = lib.mkSecretRef {
+      name = "wireguard-user-${name}";
+      namespace = vars.namespaces.wireguard;
+      secretName = "wireguard-secrets";
+      secretKey = user.publicKeySecret;
+      sopsSecretName = user.publicKeySecret;
+    };
+  }) enabledUsers);
+
 in {
   # Server public key and endpoint secrets
-  wireguard-server-public-key = mkSecretRef {
+  wireguard-server-public-key = lib.mkSecretRef {
     name = "wireguard-server-public-key";
     namespace = vars.namespaces.wireguard;
     secretName = "wireguard-secrets";
@@ -212,7 +285,7 @@ in {
     sopsSecretName = "wireguard_server_public_key";
   };
 
-  wireguard-server-endpoint = mkSecretRef {
+  wireguard-server-endpoint = lib.mkSecretRef {
     name = "wireguard-server-endpoint";
     namespace = vars.namespaces.wireguard;
     secretName = "wireguard-secrets";
@@ -220,7 +293,7 @@ in {
     sopsSecretName = "wireguard_server_endpoint";
   };
 
-  wireguard-server-key = mkSecretRef {
+  wireguard-server-key = lib.mkSecretRef {
     name = "wireguard-server-key";
     namespace = vars.namespaces.wireguard;
     secretName = "wireguard-secrets";
@@ -228,43 +301,31 @@ in {
     sopsSecretName = "wireguard_server_private_key";
   };
 
-  # User public key secrets (all from SOPS)
-  ${builtins.listToAttrs (mapAttrsToList (name: user: {
-    name = "wireguard-user-${name}";
-    value = mkSecretRef {
-      name = "wireguard-user-${name}";
-      namespace = vars.namespaces.wireguard;
-      secretName = "wireguard-secrets";
-      secretKey = user.publicKeySecret;
-      sopsSecretName = user.publicKeySecret;
-    };
-  }) enabledUsers)}
-
   # WireGuard configuration
-  wireguard-config = mkRawManifest {
+  wireguard-config = lib.mkRawManifest {
     name = "wireguard-config";
     namespace = vars.namespaces.wireguard;
     resources = [ configMapResource ];
   };
 
   # WireGuard storage
-  wireguard-storage = mkRawManifest {
+  wireguard-storage = lib.mkRawManifest {
     name = "wireguard-storage";
     namespace = vars.namespaces.wireguard;
     resources = [ pvcResource ];
   };
 
   # WireGuard deployment
-  wireguard-deployment = mkRawManifest {
+  wireguard-deployment = lib.mkRawManifest {
     name = "wireguard-deployment";
     namespace = vars.namespaces.wireguard;
     resources = [ deploymentResource ];
   };
 
   # WireGuard service
-  wireguard-service = mkRawManifest {
+  wireguard-service = lib.mkRawManifest {
     name = "wireguard-service";
     namespace = vars.namespaces.wireguard;
     resources = [ serviceResource ];
   };
-}
+} // userSecrets

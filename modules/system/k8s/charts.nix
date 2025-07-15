@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, config ? null, ... }:
 
 let
   # Import lib.nix for helper functions but not variables
@@ -68,8 +68,9 @@ let
   };
 
   vpnServices = {
-    wireguard =
-      import ./services/vpn/wireguard.nix { inherit pkgs inputs lib vars; };
+    wireguard = import ./services/vpn/wireguard.nix {
+      inherit pkgs inputs lib vars config;
+    };
   };
 
   # Create a list of all service attribute sets
