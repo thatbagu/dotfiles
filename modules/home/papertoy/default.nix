@@ -9,9 +9,9 @@ in {
 
     shader = mkOption {
       type = types.nullOr types.path;
-      default = null;
+      default = ../../../pics/shapes.glsl;
       description = "Path to the shader file to use as wallpaper";
-      example = literalExpression "../../../pics/shapes.glsl";
+      example = literalExpression "./shaders/seascape.glsl";
     };
 
     output = mkOption {
@@ -19,48 +19,31 @@ in {
       default = 0;
       description = "Output index to render to";
     };
-
-    autostart = mkOption {
-      type = types.bool;
-      default = true;
-      description = "Whether to automatically start papertoy with Hyprland";
-    };
   };
 
   config = mkIf cfg.enable {
     home.packages = [ papertoy ];
 
-    # Add to Hyprland autostart if both are enabled and shader is specified
-    wayland.windowManager.hyprland = mkIf
-      (config.modules.hyprland.enable && cfg.autostart && cfg.shader != null) {
-        extraConfig = ''
-          # Start papertoy animated wallpaper
-          exec-once = ${papertoy}/bin/papertoy --output ${
-            toString cfg.output
-          } ${cfg.shader}
-        '';
+    # Create systemd user service for papertoy
+    systemd.user.services.papertoy = mkIf (cfg.shader != null) {
+      Unit = {
+        Description = "Papertoy animated wallpaper";
+        After = [ "graphical-session.target" ];
+        PartOf = [ "graphical-session.target" ];
+        Requisite = [ "graphical-session.target" ];
       };
 
-    # Create a script for easy shader switching
-    home.file.".local/bin/papertoy-switch" = mkIf (cfg.shader != null) {
-      text = ''
-        #!/usr/bin/env bash
-        # Kill existing papertoy instance
-        pkill papertoy
+      Service = {
+        Type = "simple";
+        ExecStart = "${papertoy}/bin/papertoy --output ${
+            toString cfg.output
+          } ${cfg.shader}";
+        Restart = "on-failure";
+        RestartSec = "5";
+        Environment = [ "WAYLAND_DISPLAY=wayland-1" ];
+      };
 
-        # Start new instance with selected shader
-        SHADER_FILE="''${1:-${cfg.shader}}"
-        OUTPUT="''${2:-${toString cfg.output}}"
-
-        if [[ -f "$SHADER_FILE" ]]; then
-          ${papertoy}/bin/papertoy --output "$OUTPUT" "$SHADER_FILE" &
-          echo "Started papertoy with shader: $SHADER_FILE"
-        else
-          echo "Shader file not found: $SHADER_FILE"
-          exit 1
-        fi
-      '';
-      executable = true;
+      Install = { WantedBy = [ "graphical-session.target" ]; };
     };
   };
 }
