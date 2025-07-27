@@ -7,7 +7,7 @@ let
     controller = {
       service = {
         type = "LoadBalancer";
-        loadBalancerIP = vars.ipPools.nginxExternal; # 192.168.1.193
+        loadBalancerIP = vars.ipPools.nginxExternal;
         externalTrafficPolicy = "Local";
         annotations = { "metallb.universe.tf/allow-shared-ip" = "nginx-svc"; };
       };

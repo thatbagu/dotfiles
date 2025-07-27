@@ -50,7 +50,7 @@ let
       additionalHostsEntries = [
         "${vars.ipPools.pihole} pihole.home"
         "${vars.ipPools.pihole} pihole.test"
-        "${vars.ipPools.pihole} pihole.${vars.domain}" # pihole.egor.house
+        "${vars.ipPools.pihole} pihole.${vars.domain}"
       ];
     };
   };

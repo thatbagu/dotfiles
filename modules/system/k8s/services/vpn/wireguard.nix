@@ -17,8 +17,18 @@ let
     Address = 10.0.100.1/24
     ListenPort = 51820
     PrivateKey = __SERVER_PRIVATE_KEY__
-    PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-    PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+    # Fixed PostUp/PostDown rules for container networking
+    PostUp = echo 1 > /proc/sys/net/ipv4/ip_forward
+    PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
+    PostUp = iptables -A FORWARD -o wg0 -j ACCEPT  
+    PostUp = iptables -t nat -A POSTROUTING -s 10.0.100.0/24 ! -d 10.0.100.0/24 -j MASQUERADE
+    PostUp = iptables -A INPUT -p udp --dport 51820 -j ACCEPT
+
+    PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+    PostDown = iptables -D FORWARD -o wg0 -j ACCEPT
+    PostDown = iptables -t nat -D POSTROUTING -s 10.0.100.0/24 ! -d 10.0.100.0/24 -j MASQUERADE  
+    PostDown = iptables -D INPUT -p udp --dport 51820 -j ACCEPT
 
     ${concatStringsSep "\n\n" (mapAttrsToList (name: user: ''
       [Peer]
@@ -158,10 +168,6 @@ let
                 value = "UTC";
               }
               {
-                name = "PEERS";
-                value = "1";
-              }
-              {
                 name = "SERVERURL";
                 value = "auto";
               }
@@ -179,7 +185,12 @@ let
               }
               {
                 name = "ALLOWEDIPS";
-                value = "192.168.1.0/24";
+                value = "0.0.0.0/0";
+              }
+              # Enable IP forwarding and NAT
+              {
+                name = "LOG_CONFS";
+                value = "true";
               }
             ];
             ports = [{
@@ -239,7 +250,7 @@ let
     };
   };
 
-  # LoadBalancer service
+  # LoadBalancer service with external DNS
   serviceResource = {
     apiVersion = "v1";
     kind = "Service";
@@ -248,6 +259,8 @@ let
       namespace = vars.namespaces.wireguard;
       annotations = {
         "metallb.universe.tf/allow-shared-ip" = "wireguard-svc";
+        "external-dns.alpha.kubernetes.io/hostname" = "vpn.${vars.domain}";
+        "external-dns.alpha.kubernetes.io/ttl" = "120";
       };
     };
     spec = {

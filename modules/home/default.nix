@@ -6,6 +6,7 @@
     ./foot
     ./dunst
     ./hyprland
+    ./papertoy
     ./fuzzel
     ./waybar
     ./rtorrent

@@ -6,6 +6,7 @@
     foot.enable = true;
     dunst.enable = true;
     hyprland.enable = true;
+    papertoy.enable = true;
     fuzzel.enable = true;
     waybar.enable = true;
     gtk.enable = true;

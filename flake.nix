@@ -40,6 +40,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    papertoy = {
+      url = "github:sin-ack/papertoy";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     impermanence.url = "github:nix-community/impermanence";
     colmena.url = "github:zhaofengli/colmena";
     nixhelm.url = "github:farcaller/nixhelm";
@@ -47,7 +52,7 @@
   };
 
   outputs = { self, home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin
-    , disko, impermanence, colmena, nixhelm, ... }@inputs:
+    , disko, impermanence, colmena, nixhelm, papertoy, ... }@inputs:
     let
       # Function to get clean hostname without path
       cleanHostname = hostname:
