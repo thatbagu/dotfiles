@@ -45,16 +45,6 @@ in {
         size = 20;
       };
       polarity = "dark"; # Explicitly set dark mode
-
-      # Add scaling for GTK and Qt applications
-      gtk.enable = true;
-      targets.gtk.enable = true;
-      targets.gtk.extraCss = ''
-        /* Scale widgets to approximately 80% */
-        window, dialog, messagedialog, assistant {
-          scale-factor: 0.8;
-        }
-      '';
     };
   };
 }
