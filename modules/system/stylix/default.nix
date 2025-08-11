@@ -13,7 +13,6 @@ in {
       description = "Overall UI scale factor";
     };
   };
-
   config = mkIf cfg.enable {
     stylix = {
       enable = true;
@@ -33,18 +32,26 @@ in {
         };
         sizes = {
           # Scale font sizes based on scale factor
-          applications = 12 * cfg.scale;
-          desktop = 12 * cfg.scale;
-          terminal = 12 * cfg.scale;
+          applications = builtins.floor (12 * cfg.scale);
+          desktop = builtins.floor (12 * cfg.scale);
+          terminal = builtins.floor (12 * cfg.scale);
         };
       };
       # Add Bibata cursor with scaled size
       cursor = {
         package = pkgs.bibata-cursors;
         name = "Bibata-Modern-Classic";
-        size = 20;
+        size = builtins.floor (20 * cfg.scale);
       };
       polarity = "dark"; # Explicitly set dark mode
+    };
+
+    # For GTK3 applications (integer scaling only)
+    environment.sessionVariables = {
+      # GTK3 only supports integer scaling
+      GDK_SCALE = toString (builtins.ceil cfg.scale);
+      # Compensate for integer scaling with DPI scaling for text
+      GDK_DPI_SCALE = toString (cfg.scale / (builtins.ceil cfg.scale));
     };
   };
 }
