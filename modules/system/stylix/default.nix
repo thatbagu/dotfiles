@@ -32,10 +32,10 @@ in {
           package = pkgs.nerd-fonts.jetbrains-mono;
         };
         sizes = {
-          # Scale font sizes to 80% of original
-          applications = 12 * scale;
-          desktop = 12 * scale;
-          terminal = 12 * scale;
+          # Scale font sizes based on scale factor
+          applications = 12 * cfg.scale;
+          desktop = 12 * cfg.scale;
+          terminal = 12 * cfg.scale;
         };
       };
       # Add Bibata cursor with scaled size
