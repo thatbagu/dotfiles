@@ -5,7 +5,15 @@ let
   wallpaper = pkgs.copyPathToStore
     ../../../pics/wallpaper.png; # This ensures the image is in the Nix store
 in {
-  options.modules.stylix = { enable = mkEnableOption "stylix"; };
+  options.modules.stylix = {
+    enable = mkEnableOption "stylix";
+    scale = mkOption {
+      type = types.float;
+      default = 1.0;
+      description = "Overall UI scale factor";
+    };
+  };
+
   config = mkIf cfg.enable {
     stylix = {
       enable = true;
@@ -24,18 +32,29 @@ in {
           package = pkgs.nerd-fonts.jetbrains-mono;
         };
         sizes = {
-          applications = 12;
-          desktop = 12;
-          terminal = 12;
+          # Scale font sizes to 80% of original
+          applications = 12 * scale;
+          desktop = 12 * scale;
+          terminal = 12 * scale;
         };
       };
-      # Add Bibata cursor
+      # Add Bibata cursor with scaled size
       cursor = {
         package = pkgs.bibata-cursors;
         name = "Bibata-Modern-Classic";
-        size = 24;
+        size = 20;
       };
       polarity = "dark"; # Explicitly set dark mode
+
+      # Add scaling for GTK and Qt applications
+      gtk.enable = true;
+      targets.gtk.enable = true;
+      targets.gtk.extraCss = ''
+        /* Scale widgets to approximately 80% */
+        window, dialog, messagedialog, assistant {
+          scale-factor: 0.8;
+        }
+      '';
     };
   };
 }

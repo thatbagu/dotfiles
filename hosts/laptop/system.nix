@@ -9,7 +9,10 @@
     modules = {
       sys-packages.enable = true;
       steam.enable = true;
-      stylix.enable = true;
+      stylix = {
+        enable = true;
+        scale = 0.8; # Set UI scale to 80%
+      };
       sops.enable = true;
       desktop.enable = true;
     };
