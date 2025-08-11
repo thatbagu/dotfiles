@@ -55,7 +55,7 @@ in {
     
     # Install GTK themes and related packages
     home.packages = with pkgs; [
-      gnome.adwaita-icon-theme
+      adwaita-icon-theme
       hicolor-icon-theme
       xdg-desktop-portal-gtk
       xdg-utils

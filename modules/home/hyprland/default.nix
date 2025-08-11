@@ -2,7 +2,14 @@
 with lib;
 let cfg = config.modules.hyprland;
 in {
-  options.modules.hyprland = { enable = mkEnableOption "hyprland"; };
+  options.modules.hyprland = {
+    enable = mkEnableOption "hyprland";
+    animations = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable animations in Hyprland";
+    };
+  };
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [ fuzzel wlsunset wl-clipboard ];
@@ -10,7 +17,10 @@ in {
     wayland.windowManager.hyprland = {
       enable = true;
       xwayland.enable = true;
-      extraConfig = builtins.readFile ./hyprland.conf;
+      extraConfig = if cfg.animations then
+        builtins.readFile ./configs/hyprland-with-animations.conf
+      else
+        builtins.readFile ./configs/hyprland-no-animations.conf;
     };
   };
 }
