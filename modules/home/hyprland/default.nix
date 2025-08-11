@@ -23,21 +23,31 @@ in {
       enable = true;
       xwayland.enable = true;
       extraConfig = let
-        baseConfig = if cfg.animations then
-          builtins.readFile ./configs/hyprland-with-animations.conf
-        else
-          builtins.readFile ./configs/hyprland-no-animations.conf;
-
-        # Configuration to disable the built-in keyboard
-        keyboardConfig = if cfg.disableBuiltinKeyboard then ''
-          # Disable built-in laptop keyboard
-          device {
-            name = at-translated-set-2-keyboard
-            enabled = false
-          }
-        '' else
-          "";
-      in baseConfig + "\n" + keyboardConfig;
+              baseConfig = builtins.readFile ./hyprland.conf;
+      
+              # Configuration for animations
+              animationsConfig = if cfg.animations then ''
+                # Enable animations
+                animations {
+                  enabled = true
+                }
+              '' else ''
+                # Disable animations
+                animations {
+                  enabled = false
+                }
+              '';
+      
+              # Configuration to disable the built-in keyboard
+              keyboardConfig = if cfg.disableBuiltinKeyboard then ''
+                # Disable built-in laptop keyboard
+                device {
+                  name = at-translated-set-2-keyboard
+                  enabled = false
+                }
+              '' else
+                "";
+            in baseConfig + "\n" + animationsConfig + "\n" + keyboardConfig;
     };
   };
 }

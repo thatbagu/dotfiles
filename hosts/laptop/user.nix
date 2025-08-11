@@ -8,7 +8,7 @@
     hyprland.enable = true;
     hyprland.animations = false;
     hyprland.disableBuiltinKeyboard = true;
-    papertoy.enable = true;
+    papertoy.enable = false;
     fuzzel.enable = true;
     waybar.enable = true;
     gtk.enable = true;
