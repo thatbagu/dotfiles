@@ -19,6 +19,12 @@ in {
       default = 0;
       description = "Output index to render to";
     };
+
+    startupDelay = mkOption {
+      type = types.int;
+      default = 5;
+      description = "Delay in seconds before starting papertoy after Hyprland";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -34,12 +40,13 @@ in {
       };
 
       Service = {
-        Type = "simple";
+        Type = "oneshot";
+        ExecStartPre =
+          "${pkgs.coreutils}/bin/sleep ${toString cfg.startupDelay}";
         ExecStart = "${papertoy}/bin/papertoy --output ${
             toString cfg.output
           } ${cfg.shader}";
-        Restart = "on-failure";
-        RestartSec = "5";
+        RemainAfterExit = true;
         Environment = [ "WAYLAND_DISPLAY=wayland-1" ];
       };
 
