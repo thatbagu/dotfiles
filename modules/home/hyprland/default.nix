@@ -9,6 +9,11 @@ in {
       default = true;
       description = "Enable animations in Hyprland";
     };
+    disableBuiltinKeyboard = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Disable the built-in laptop keyboard";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -17,10 +22,22 @@ in {
     wayland.windowManager.hyprland = {
       enable = true;
       xwayland.enable = true;
-      extraConfig = if cfg.animations then
-        builtins.readFile ./configs/hyprland-with-animations.conf
-      else
-        builtins.readFile ./configs/hyprland-no-animations.conf;
+      extraConfig = let
+        baseConfig = if cfg.animations then
+          builtins.readFile ./configs/hyprland-with-animations.conf
+        else
+          builtins.readFile ./configs/hyprland-no-animations.conf;
+
+        # Configuration to disable the built-in keyboard
+        keyboardConfig = if cfg.disableBuiltinKeyboard then ''
+          # Disable built-in laptop keyboard
+          device {
+            name = at-translated-set-2-keyboard
+            enabled = false
+          }
+        '' else
+          "";
+      in baseConfig + "\n" + keyboardConfig;
     };
   };
 }

@@ -7,6 +7,7 @@
     dunst.enable = true;
     hyprland.enable = true;
     hyprland.animations = false;
+    hyprland.disableBuiltinKeyboard = true;
     papertoy.enable = true;
     fuzzel.enable = true;
     waybar.enable = true;
