@@ -14,7 +14,7 @@
             repo = "venv-selector.nvim";
             rev = "regexp"; # Use latest main branch
             sha256 =
-              "sha256-cwU891MKBVPM3hv0KPtrDIDYwQR9Cy6xOBMs3Lu0hoE="; # Nix will tell us the correct hash
+              "sha256-9fVH/EBbssmsUnZNxhxJC6d3sDImIqKtq5nFl/T8L7o="; # Nix will tell us the correct hash
           };
           doCheck = false;
         })

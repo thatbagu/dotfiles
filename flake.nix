@@ -92,7 +92,6 @@
         };
       };
 
-      # Create system modules that can be used by both NixOS and Colmena
       mkSystemModules = system: hostname: username:
         let
           isDarwin = builtins.match ".*darwin" system != null;
@@ -100,6 +99,10 @@
             home-manager.darwinModules.home-manager
           else
             home-manager.nixosModules.home-manager;
+
+          # Load overlays
+          overlays = import ./overlays/default.nix;
+
           # Optional modules based on system type
           systemModules = if isDarwin then [
             (./. + "/hosts/${hostname}/system.nix")
@@ -115,6 +118,7 @@
         in [{
           networking.hostName = cleanHostname hostname;
           nixpkgs.config.allowUnfree = true;
+          nixpkgs.overlays = builtins.attrValues overlays;
         }] ++ systemModules ++ [
           hmModule
           {
@@ -132,7 +136,6 @@
             };
           }
         ];
-
       # Function to build NixOS configurations
       mkSystem = pkgs: system: hostname: username:
         let
