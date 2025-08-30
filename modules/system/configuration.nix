@@ -138,6 +138,7 @@
 
   # Security 
   security = {
+    pam.services.swaylock = { };
     sudo = {
       enable = true;
       extraRules = [{

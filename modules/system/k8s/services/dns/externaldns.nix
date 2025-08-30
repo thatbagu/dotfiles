@@ -36,7 +36,7 @@ let
     logLevel = "debug";
   };
 
-  # Pi-hole specific configuration
+  # Pi-hole specific configuration WITHOUT password authentication
   externalDnsPiholeConfig = overlayValues externalDnsBase {
     provider = "pihole";
     registry = "noop";
@@ -44,21 +44,12 @@ let
       name = "external-dns-pihole";
     };
     rbac = commonRbacConfig;
-    env = [
-      {
-        name = "EXTERNAL_DNS_PIHOLE_SERVER";
-        value = "http://${vars.piholeIp}";
-      }
-      {
-        name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
-        valueFrom = {
-          secretKeyRef = {
-            name = "pihole-password";
-            key = "password";
-          };
-        };
-      }
-    ];
+    env = [{
+      name = "EXTERNAL_DNS_PIHOLE_SERVER";
+      value = "http://${vars.piholeIp}";
+    }
+    # No EXTERNAL_DNS_PIHOLE_PASSWORD needed when Pi-hole has no auth
+      ];
     args = [
       "--source=service"
       "--source=ingress"
@@ -66,11 +57,17 @@ let
       "--registry=noop"
       "--policy=upsert-only"
       "--log-level=debug"
+      # Add Pi-hole API version for v5 compatibility
+      "--pihole-api-version=5"
     ];
-    extraArgs = [ "--pihole-tls-skip-verify" "--txt-owner-id=k8s" ];
+    extraArgs = [
+      "--pihole-tls-skip-verify"
+      "--txt-owner-id=k8s"
+      # Remove the conflicting --pihole-server argument that overrides the env var
+    ];
   };
 
-  # Cloudflare specific configuration
+  # Cloudflare specific configuration (unchanged)
   externalDnsCloudflareConfig = overlayValues externalDnsBase {
     provider = "cloudflare";
     registry = "txt";
@@ -91,8 +88,9 @@ let
       };
     }];
   };
+
 in {
-  # ExternalDNS for automatic DNS registration with Pi-hole
+  # ExternalDNS for automatic DNS registration with Pi-hole (no auth)
   externaldns-pihole = mkChart {
     name = "externaldns-pihole";
     chart = nixhelm.external-dns.external-dns;
@@ -100,7 +98,7 @@ in {
     values = externalDnsPiholeConfig;
   };
 
-  # External DNS for Cloudflare integration
+  # External DNS for Cloudflare integration (unchanged)
   externaldns-cloudflare = mkChart {
     name = "externaldns-cloudflare";
     chart = nixhelm.external-dns.external-dns;
@@ -108,12 +106,6 @@ in {
     values = externalDnsCloudflareConfig;
   };
 
-  # Create a pihole password secret in dns-system namespace for reference
-  pihole-password-dns = mkSecretRef {
-    name = "pihole-password-dns";
-    namespace = vars.namespaces.dns;
-    secretName = "pihole-password";
-    secretKey = "password";
-    sopsSecretName = "pihole_password";
-  };
+  # Remove the pihole-password-dns secret since it's no longer needed
+  # pihole-password-dns = mkSecretRef { ... };  # Comment out or remove this
 }

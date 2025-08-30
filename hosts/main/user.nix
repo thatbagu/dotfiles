@@ -10,6 +10,7 @@
     fuzzel.enable = true;
     waybar.enable = true;
     rtorrent.enable = true;
+    swaylock.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

@@ -12,6 +12,7 @@
     ./rtorrent
     ./gtk
     ./yazi
+    ./swaylock
 
     # Terminal & Shell
     ./nixvim

@@ -9,6 +9,7 @@
     # fuzzel.enable = true;
     # waybar.enable = true;
     # obsidian.enable = true;
+    # swaylock.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

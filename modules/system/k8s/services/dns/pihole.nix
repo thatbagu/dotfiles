@@ -18,7 +18,7 @@ let
     };
   };
 
-  # Custom values specific to this deployment - CORRECTED for mojo2600 chart
+  # Custom values specific to this deployment
   piholeValues = {
     ingress = {
       enabled = true;
@@ -35,11 +35,14 @@ let
       type = "LoadBalancer";
     };
 
-    # CORRECT way to configure password for mojo2600 chart
+    # COMPLETELY DISABLE authentication for both web UI and API
     admin = {
-      enabled = true;
-      existingSecret = "pihole-password";
-      passwordKey = "password";
+      enabled = false; # Disable admin authentication
+    };
+
+    extraEnvVars = {
+      FTLCONF_webserver_api_password =
+        ""; # This is the CORRECT way to disable auth
     };
 
     dnsmasq = {
@@ -57,13 +60,10 @@ let
 
   # Final values are the defaults merged with custom values
   finalValues = overlayValues piholeDefaults piholeValues;
+
 in {
-  pihole-secret = mkSecretRef {
-    name = "pihole-secret";
-    namespace = vars.namespaces.pihole;
-    secretName = "pihole-password";
-    sopsSecretName = "pihole_password";
-  };
+  # Remove the pihole-secret since we don't need password authentication
+  # pihole-secret = mkSecretRef { ... };  # Commented out
 
   # Pi-hole - Network-wide ad blocking
   pihole = mkChart {
