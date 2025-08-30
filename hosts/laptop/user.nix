@@ -6,7 +6,9 @@
     foot.enable = true;
     dunst.enable = true;
     hyprland.enable = true;
-    papertoy.enable = true;
+    hyprland.animations = false;
+    hyprland.disableBuiltinKeyboard = true;
+    papertoy.enable = false;
     fuzzel.enable = true;
     waybar.enable = true;
     gtk.enable = true;

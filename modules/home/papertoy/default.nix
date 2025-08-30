@@ -17,6 +17,12 @@ in {
       default = 0;
       description = "Output index to render to";
     };
+
+    startupDelay = mkOption {
+      type = types.int;
+      default = 5;
+      description = "Delay in seconds before starting papertoy after Hyprland";
+    };
   };
   config = mkIf cfg.enable {
     home.packages = [ papertoy ];
