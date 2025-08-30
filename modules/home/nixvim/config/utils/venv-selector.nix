@@ -2,7 +2,6 @@
   options = {
     venv-selector.enable = lib.mkEnableOption "Enable venv-selector module";
   };
-
   config = lib.mkIf config.venv-selector.enable {
     extraPlugins = with pkgs.vimUtils;
       [
@@ -12,14 +11,13 @@
           src = pkgs.fetchFromGitHub {
             owner = "linux-cultist";
             repo = "venv-selector.nvim";
-            rev = "regexp"; # Use latest main branch
+            rev = "main"; # Use main branch
             sha256 =
-              "sha256-9fVH/EBbssmsUnZNxhxJC6d3sDImIqKtq5nFl/T8L7o="; # Nix will tell us the correct hash
+              "sha256-k6clbF6p5J87D9KkrNI8CESqffpNvpukEyreMD7nJW4="; # Set to empty string to get the correct hash
           };
           doCheck = false;
         })
       ];
-
     extraConfigLua = ''
       require('venv-selector').setup({
         name = {"venv", ".venv"},
@@ -30,11 +28,9 @@
         notify_user_on_activate = true,
         dap_enabled = true
       })
-
       vim.keymap.set('n', '<leader>vs', '<cmd>VenvSelect<cr>')
       vim.keymap.set('n', '<leader>vc', '<cmd>VenvSelectCached<cr>')
     '';
-
     # Dependencies required by venv-selector
     extraPackages = with pkgs; [ fd ];
   };
