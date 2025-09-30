@@ -35,21 +35,21 @@
       local mappings = {
       	{
       		toggle_modes,
-      		"<A-h>",
+      		"<leader>th",
       		function()
       			terminal.toggle("horizontal")
       		end,
       	},
       	{
       		toggle_modes,
-      		"<A-v>",
+      		"<leader>tv",
       		function()
       			terminal.toggle("vertical")
       		end,
       	},
       	{
       		toggle_modes,
-      		"<A-i>",
+      		"<leader>ti",
       		function()
       			terminal.toggle("float")
       		end,
