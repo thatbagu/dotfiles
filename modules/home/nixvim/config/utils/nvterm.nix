@@ -25,7 +25,7 @@
       			enabled = false,
       			confirm = true,
       		},
-      		close_on_exit = true,
+      		close_on_exit = false,
       		auto_insert = true,
       	},
       })

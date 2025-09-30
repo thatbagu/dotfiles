@@ -428,7 +428,7 @@
       # Exit terminal mode with Escape key
       {
         mode = "t";
-        key = "<Esc>";
+        key = "<Esc><Esc>";
         action = "<C-\\><C-n>";
         options = { desc = "Exit terminal mode"; };
       }
