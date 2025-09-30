@@ -83,6 +83,7 @@
     users.${username} = {
       directories = [
         # User data
+        "Games"
         "Code"
         "Downloads"
         "Music"

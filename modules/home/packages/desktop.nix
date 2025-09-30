@@ -45,6 +45,9 @@ in {
       # Minecraft
       prismlauncher
 
+      # Emulators
+      dolphin-emu
+
       # System Utils
       brightnessctl
       antimicrox
