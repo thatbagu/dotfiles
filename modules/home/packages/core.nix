@@ -51,6 +51,7 @@ in {
 
       # JavaScript/TypeScript/Web
       nodePackages.prettier
+      nodePackages.eslint_d
 
       # Rust
       rustc

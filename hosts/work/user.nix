@@ -10,6 +10,7 @@
     # waybar.enable = true;
     # obsidian.enable = true;
     # swaylock.enable = true;
+    ghostty.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

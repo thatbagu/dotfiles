@@ -13,6 +13,7 @@
     ./gtk
     ./yazi
     ./swaylock
+    ./ghostty
 
     # Terminal & Shell
     ./nixvim
