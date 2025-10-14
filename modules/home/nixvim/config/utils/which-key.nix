@@ -12,12 +12,12 @@
           separator = ""; # ➜
         };
         spec = [
-          {
-            __unkeyed-1 = "<leader>T";
-            mode = "n";
-            group = "+training";
-          }
           # Harpoon Configs
+          {
+            __unkeyed-1 = "<leader>sr";
+            mode = "n";
+            desc = "Registers";
+          }
           {
             __unkeyed-1 = "<leader>h";
             mode = "n";
