@@ -23,6 +23,7 @@
     ./leap.nix
     ./venv-selector.nix
     ./firenvim.nix
+    ./nvim-training.nix
   ];
 
   options = { utils.enable = lib.mkEnableOption "Enable utils module"; };
@@ -50,5 +51,6 @@
     leap.enable = lib.mkDefault true;
     venv-selector.enable = lib.mkDefault true;
     firenvim.enable = lib.mkDefault true;
+    nvim-training.enable = lib.mkDefault true;
   };
 }
