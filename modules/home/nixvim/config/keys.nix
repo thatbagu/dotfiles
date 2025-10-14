@@ -6,6 +6,36 @@
     keymaps = [
       {
         mode = "n";
+        key = "<C-w>";
+        action = "<cmd>lua EnterWindowMode()<cr>";
+        options = {
+          silent = true;
+          desc = "Enter window mode";
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>wm";
+        action = "<cmd>lua ToggleMaximize()<cr>";
+        options = {
+          silent = true;
+          desc = "Toggle maximize window";
+        };
+      }
+
+      # Alternative quick access
+      {
+        mode = "n";
+        key = "<C-w>m";
+        action = "<cmd>lua ToggleMaximize()<cr>";
+        options = {
+          silent = true;
+          desc = "Toggle maximize window";
+        };
+      }
+
+      {
+        mode = "n";
         key = "<leader>l";
         action = "<cmd>lua require('lint').try_lint()<CR>";
         options = {

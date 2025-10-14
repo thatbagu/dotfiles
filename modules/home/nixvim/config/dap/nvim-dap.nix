@@ -41,32 +41,6 @@
             sourceLanguages = [ "rust" ];
           }
         ];
-        python = [
-          {
-            type = "python";
-            request = "launch";
-            name = "Launch file";
-            program = "#{file}";
-            pythonPath = lib.mkDefault ("#{env:PYTHONPATH}");
-          }
-          {
-            type = "python";
-            request = "launch";
-            name = "Launch with arguments";
-            program = "#{file}";
-            args = [ ];
-            pythonPath = lib.mkDefault ("#{env:PYTHONPATH}");
-          }
-          {
-            type = "python";
-            request = "attach";
-            name = "Attach remote";
-            connect = {
-              host = "127.0.0.1";
-              port = 5678;
-            };
-          }
-        ];
         go = [
           {
             type = "go";
