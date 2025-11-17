@@ -23,6 +23,7 @@
 
     # Development
     ./git
+    ./claude
 
     # System
     ./xdg

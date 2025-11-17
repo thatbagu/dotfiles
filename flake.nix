@@ -50,10 +50,11 @@
     colmena.url = "github:zhaofengli/colmena";
     nixhelm.url = "github:farcaller/nixhelm";
     nix-kube-generators.url = "github:farcaller/nix-kube-generators";
+    claude-code.url = "github:sadjow/claude-code-nix";
   };
 
   outputs = { self, home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin
-    , disko, impermanence, colmena, nixhelm, papertoy, ghostty, ... }@inputs:
+    , disko, impermanence, colmena, nixhelm, papertoy, ghostty, claude-code, ... }@inputs:
     let
       # Function to get clean hostname without path
       cleanHostname = hostname:
@@ -127,7 +128,7 @@
               useUserPackages = true;
               useGlobalPkgs = true;
               backupFileExtension = "-backup";
-              extraSpecialArgs = { inherit inputs; };
+              extraSpecialArgs = { inherit inputs; claude-code = claude-code.packages.x86_64-linux.default; };
               users.${username} = {
                 imports = [
                   (./. + "/hosts/${hostname}/user.nix")
