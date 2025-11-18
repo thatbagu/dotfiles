@@ -13,7 +13,7 @@
             repo = "venv-selector.nvim";
             rev = "main"; # Use main branch
             sha256 =
-              "sha256-k6clbF6p5J87D9KkrNI8CESqffpNvpukEyreMD7nJW4="; # Set to empty string to get the correct hash
+              "sha256-+0bpYcb+sHzcxHxBLzNzeSFqk+hfkPhfmp0yxjuhbg4="; # Updated hash for current main branch
           };
           doCheck = false;
         })
