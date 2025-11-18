@@ -2,12 +2,14 @@
   description = "Standalone nixvim build";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixvim.url = "github:nix-community/nixvim";
+    # Use the parent flake's inputs
+    parent.url = "path:../../..";
+    nixpkgs.follows = "parent/nixpkgs";
+    nixvim.follows = "parent/nixvim";
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = { nixpkgs, nixvim, flake-parts, ... }:
+  outputs = { nixpkgs, nixvim, flake-parts, ... }@inputs:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
 
