@@ -6,36 +6,6 @@
     keymaps = [
       {
         mode = "n";
-        key = "<C-w>";
-        action = "<cmd>lua EnterWindowMode()<cr>";
-        options = {
-          silent = true;
-          desc = "Enter window mode";
-        };
-      }
-      {
-        mode = "n";
-        key = "<leader>wm";
-        action = "<cmd>lua ToggleMaximize()<cr>";
-        options = {
-          silent = true;
-          desc = "Toggle maximize window";
-        };
-      }
-
-      # Alternative quick access
-      {
-        mode = "n";
-        key = "<C-w>m";
-        action = "<cmd>lua ToggleMaximize()<cr>";
-        options = {
-          silent = true;
-          desc = "Toggle maximize window";
-        };
-      }
-
-      {
-        mode = "n";
         key = "<leader>l";
         action = "<cmd>lua require('lint').try_lint()<CR>";
         options = {
@@ -138,72 +108,6 @@
           silent = true;
           desc = "Previous Tab";
         };
-      }
-
-      {
-        mode = "n";
-        key = "<leader>ww";
-        action = "<C-W>p";
-        options = {
-          silent = true;
-          desc = "Other window";
-        };
-      }
-
-      {
-        mode = "n";
-        key = "<leader>wd";
-        action = "<C-W>c";
-        options = {
-          silent = true;
-          desc = "Delete window";
-        };
-      }
-
-      {
-        mode = "n";
-        key = "<leader>w-";
-        action = "<C-W>s";
-        options = {
-          silent = true;
-          desc = "Split window below";
-        };
-      }
-
-      {
-        mode = "n";
-        key = "<leader>w|";
-        action = "<C-W>v";
-        options = {
-          silent = true;
-          desc = "Split window right";
-        };
-      }
-
-      # Window navigation - Use leader key instead of Alt
-      {
-        mode = "n";
-        key = "<leader>wh";
-        action = "<C-w>h";
-        options = { desc = "Go to left window"; };
-      }
-      {
-        mode = "n";
-        key = "<leader>wj";
-        action = "<C-w>j";
-        options = { desc = "Go to lower window"; };
-      }
-      {
-        mode = "n";
-        key = "<leader>wk";
-        action = "<C-w>k";
-        options = { desc = "Go to upper window"; };
-      }
-      {
-        mode = "n";
-        key = "<leader>wl";
-        action = "<C-w>l";
-        options = { desc = "Go to right window"; };
       }
 
       {

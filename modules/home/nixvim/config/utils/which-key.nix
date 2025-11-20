@@ -101,12 +101,6 @@
             mode = "n";
             group = "+ui";
           }
-
-          {
-            __unkeyed-1 = "<leader>w";
-            mode = "n";
-            group = "+windows";
-          }
         ];
         win = {
           border = "none";
