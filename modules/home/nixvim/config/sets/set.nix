@@ -137,6 +137,19 @@
         end
       })
 
+      -- Disable leader key timeout in terminal mode
+      vim.api.nvim_create_autocmd("TermEnter", {
+        callback = function()
+          vim.opt.timeoutlen = 10  -- Very short timeout in terminal mode
+        end
+      })
+
+      vim.api.nvim_create_autocmd("TermLeave", {
+        callback = function()
+          vim.opt.timeoutlen = 1000  -- Restore normal timeout
+        end
+      })
+
       -- Neovide
       if g.neovide then
         g.neovide_fullscreen = false
