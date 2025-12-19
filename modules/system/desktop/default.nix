@@ -43,11 +43,9 @@ in {
         ];
         # Configure XDG portal
         config = {
-          common = {
-            default = ["gtk" "hyprland"];
-          };
+          common = { default = [ "gtk" "hyprland" ]; };
           hyprland = {
-            default = ["hyprland" "gtk"];
+            default = [ "hyprland" "gtk" ];
             "org.freedesktop.impl.portal.FileChooser" = "gtk";
             "org.freedesktop.impl.portal.AppChooser" = "gtk";
             "org.freedesktop.impl.portal.Settings" = "gtk";
@@ -89,12 +87,9 @@ in {
     # Audio setup
     security.rtkit.enable = true;
 
-    # Add this to your configuration.nix file
     # Bluetooth audio configuration using Wireplumber instead of media-session
     services.pipewire = {
       enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
       pulse.enable = true;
       jack.enable = true;
       wireplumber.enable = true;

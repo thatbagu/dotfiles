@@ -20,5 +20,12 @@ final: prev: {
 
     # Remove cargoHash entirely to avoid validation
     cargoHash = null;
+
+    # Enable PulseAudio backend for PipeWire compatibility and add build inputs
+    cargoBuildFlags = ["--features" "pulseaudio-backend"];
+    buildInputs = (oldAttrs.buildInputs or []) ++ [
+      prev.libpulseaudio
+      prev.pkg-config
+    ];
   });
 }

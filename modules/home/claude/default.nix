@@ -52,7 +52,7 @@ let
   '';
 
   # Claude Code settings with hooks configured
-  claudeSettings = {
+  claudeSettings = if cfg.enableBrainrot then {
     hooks = {
       UserPromptSubmit = [{
         hooks = [{
@@ -81,6 +81,8 @@ let
         }];
       }];
     };
+  } else {
+    hooks = { };
   };
 
 in {
@@ -88,18 +90,25 @@ in {
     enable = mkOption {
       type = types.bool;
       default = true;
-      description = "Enable Claude Code media pause hooks";
+      description = "Enable Claude Code module";
+    };
+
+    enableBrainrot = mkOption {
+      type = types.bool;
+      default = false;
+      description =
+        "Enable Claude Code media pause/resume hooks (brainrot mode)";
     };
   };
 
   config = mkIf cfg.enable {
     # Add claude-code and hook scripts to PATH
-    home.packages = [
-      claude-code
+    home.packages = [ claude-code ] ++ (if cfg.enableBrainrot then [
       claude-resume-media
       claude-pause-media
       pkgs.playerctl
-    ];
+    ] else
+      [ ]);
 
     # Configure Claude Code settings in ~/.claude/settings.json
     home.file.".claude/settings.json" = {
