@@ -61,10 +61,9 @@ in {
       clippy
       gcc
 
-      # C/C++ & Arduino
-      clangd
-      arduino-cli
-      arduino-language-server
+      # C/C++ & PlatformIO
+      clang-tools
+      platformio-core
 
       # Cloud & Container Tools
       google-cloud-sdk

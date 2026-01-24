@@ -1,9 +1,9 @@
 { lib, config, ... }: {
   imports = [
-    ./arduino-nvim.nix
     ./cloak.nix
     ./harpoon.nix
     ./markdown-preview.nix
+    ./nvim-platformio.nix
     ./mini.nix
     ./neotest.nix
     ./nvim-autopairs.nix
@@ -27,10 +27,10 @@
 
   options = { utils.enable = lib.mkEnableOption "Enable utils module"; };
   config = lib.mkIf config.utils.enable {
-    arduino-nvim.enable = lib.mkDefault true;
     cloak.enable = lib.mkDefault true;
     harpoon.enable = lib.mkDefault true;
     markdown-preview.enable = lib.mkDefault true;
+    nvim-platformio.enable = lib.mkDefault true;
     mini.enable = lib.mkDefault true;
     neotest.enable = lib.mkDefault true;
     nvim-autopairs.enable = lib.mkDefault true;
