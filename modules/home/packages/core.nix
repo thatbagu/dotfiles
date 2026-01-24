@@ -63,7 +63,7 @@ in {
 
       # C/C++ & PlatformIO
       clang-tools
-      platformio-core
+      platformio
 
       # Cloud & Container Tools
       google-cloud-sdk

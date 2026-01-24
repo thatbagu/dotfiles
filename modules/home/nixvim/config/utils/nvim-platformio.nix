@@ -24,20 +24,34 @@
     };
 
     # Add nvim-platformio.lua plugin from GitHub
-    extraPlugins = with pkgs.vimPlugins; [
-      telescope-nvim
-      telescope-ui-select
-      plenary-nvim
-      which-key-nvim
-      nvim-treesitter
-      (pkgs.vimUtils.buildVimPlugin {
-        name = "nvim-platformio.lua";
+    # Dependencies (telescope, plenary, which-key, treesitter) are already configured elsewhere
+    extraPlugins = [
+      (pkgs.vimUtils.buildVimPlugin rec {
+        pname = "nvim-platformio-lua";
+        version = "2024-11-06";
         src = pkgs.fetchFromGitHub {
           owner = "anurag3301";
           repo = "nvim-platformio.lua";
           rev = "95fb921677b4a738428da7d0d009eeab7a44c3ef";
           sha256 = "sha256-9j3YRCV3AGo2Nl8CsKzPQ0LN8z9SFmKRjurc4YNE2ag=";
         };
+        # Skip neovim module checks - plugin requires platformio at runtime, not build time
+        nvimSkipModule = [
+          "platformio.boilerplate"
+          "platformio"
+          "platformio.piocmd"
+          "platformio.piodebug"
+          "platformio.pioinit"
+          "platformio.piolib"
+          "platformio.piolsp"
+          "platformio.piolsserial"
+          "platformio.piomenu"
+          "platformio.piomon"
+          "platformio.piorun"
+          "platformio.utils"
+          "minimal_config"
+        ];
+        meta.homepage = "https://github.com/anurag3301/nvim-platformio.lua";
       })
     ];
 
@@ -45,14 +59,32 @@
     extraConfigLua = ''
       -- PlatformIO configuration
       vim.g.pioConfig = {
-        lsp = 'clangd',           -- Use clangd for LSP
-        clangd_source = 'ccls',   -- Use ccls compilation database
-        menu_key = '<leader>\\',  -- Menu keybinding
-        debug = false             -- Disable debug messages
+        lsp = 'clangd',              -- Use clangd for LSP
+        clangd_source = 'compiledb', -- Use compile_commands.json from PlatformIO
+        menu_key = '<leader>\\',     -- Menu keybinding
+        debug = false                -- Disable debug messages
       }
 
-      -- Ensure the plugin is loaded
-      require("nvim-platformio")
+      -- Load the plugin with error handling
+      local pok, platformio = pcall(require, 'platformio')
+      if pok then
+        platformio.setup(vim.g.pioConfig)
+      end
+
+      -- Disable clangd diagnostics for Arduino/PlatformIO files
+      -- This prevents false errors while keeping autocomplete
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client and client.name == "clangd" then
+            -- Check if we're in a PlatformIO project
+            if vim.fn.filereadable(vim.fn.getcwd() .. "/platformio.ini") == 1 then
+              -- Disable diagnostics for this buffer
+              vim.diagnostic.disable(args.buf)
+            end
+          end
+        end,
+      })
     '';
 
     # PlatformIO keymaps

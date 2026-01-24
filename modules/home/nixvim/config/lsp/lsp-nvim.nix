@@ -10,7 +10,19 @@
         enable = true;
         capabilities = "offsetEncoding = 'utf-16'";
         servers = {
-          clangd = { enable = true; };
+          clangd = {
+            enable = true;
+            extraOptions = {
+              cmd = [
+                "clangd"
+                "--background-index"
+                "--clang-tidy"
+                "--completion-style=detailed"
+                "--header-insertion=never"
+                "--query-driver=**"
+              ];
+            };
+          };
           lua_ls = {
             enable = true;
             extraOptions = {
