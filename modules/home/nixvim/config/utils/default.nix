@@ -1,5 +1,6 @@
 { lib, config, ... }: {
   imports = [
+    ./arduino-nvim.nix
     ./cloak.nix
     ./harpoon.nix
     ./markdown-preview.nix
@@ -26,6 +27,7 @@
 
   options = { utils.enable = lib.mkEnableOption "Enable utils module"; };
   config = lib.mkIf config.utils.enable {
+    arduino-nvim.enable = lib.mkDefault true;
     cloak.enable = lib.mkDefault true;
     harpoon.enable = lib.mkDefault true;
     markdown-preview.enable = lib.mkDefault true;

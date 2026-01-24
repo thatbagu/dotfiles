@@ -61,6 +61,11 @@ in {
       clippy
       gcc
 
+      # C/C++ & Arduino
+      clangd
+      arduino-cli
+      arduino-language-server
+
       # Cloud & Container Tools
       google-cloud-sdk
       awscli
