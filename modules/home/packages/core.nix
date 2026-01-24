@@ -61,9 +61,12 @@ in {
       clippy
       gcc
 
-      # C/C++ & PlatformIO
-      clang-tools
-      platformio
+      # Embedded Development (ESP32 Rust)
+      espflash          # Flash ESP32 devices
+      espup             # Install ESP Rust toolchains
+      cargo-espflash    # Cargo integration for flashing
+      cargo-generate    # Generate projects from templates
+      probe-rs-tools    # Debugging and flashing for ARM/RISC-V
 
       # Cloud & Container Tools
       google-cloud-sdk
