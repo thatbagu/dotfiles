@@ -54,18 +54,15 @@ in {
       nodePackages.eslint_d
 
       # Rust
-      rustc
-      cargo
-      rustfmt
-      rust-analyzer
-      clippy
+      rustup            # Rust toolchain manager (includes cargo, rustc, rustfmt, clippy, rust-analyzer)
       gcc
 
       # Embedded Development (ESP32 Rust)
       espflash          # Flash ESP32 devices
       espup             # Install ESP Rust toolchains
+      esp-generate      # Modern ESP project generator
       cargo-espflash    # Cargo integration for flashing
-      cargo-generate    # Generate projects from templates
+      cargo-generate    # General Rust project templates
       probe-rs-tools    # Debugging and flashing for ARM/RISC-V
 
       # Cloud & Container Tools

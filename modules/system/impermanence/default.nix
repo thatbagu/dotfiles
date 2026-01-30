@@ -116,6 +116,9 @@
         ".config"
         ".local"
         ".dotfiles"
+        ".claude"
+        ".espup"
+        ".rustup"
 
         # Browser data
         ".mozilla"

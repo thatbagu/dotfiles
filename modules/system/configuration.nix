@@ -83,10 +83,19 @@
   # Enable fish shell
   programs.fish.enable = true;
 
+  # Enable nix-ld for running dynamically linked binaries (needed for espup/rustup ESP toolchains)
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    # Add common libraries that dynamically linked binaries might need
+    stdenv.cc.cc.lib
+    zlib
+    openssl
+  ];
+
   # Set up user and enable sudo
   users.users.${username} = {
     isNormalUser = true;
-    extraGroups = [ "input" "wheel" "gamemode" "video" ];
+    extraGroups = [ "input" "wheel" "gamemode" "video" "dialout" ];
     hashedPasswordFile = config.sops.secrets.user_password.path;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQRS6OzC9Ip5lUhIyFvG03KgyupxJE55gmY3Dis0u18 cluster"

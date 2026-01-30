@@ -21,6 +21,9 @@ in {
       playerctl
       # spotify-player
 
+      # Learning & Productivity
+      anki
+
       # Wayland Tools
       grim
       slurp

@@ -130,9 +130,16 @@
 
       -- Helper to install ESP toolchain
       vim.api.nvim_create_user_command("EspSetup", function()
-        vim.cmd("!espup install")
+        vim.cmd("!rustup default stable && rustup component add rust-analyzer && espup install")
       end, {
         desc = "Install ESP Rust toolchain with espup",
+      })
+
+      -- Helper to update ESP toolchain
+      vim.api.nvim_create_user_command("EspUpdate", function()
+        vim.cmd("!espup update")
+      end, {
+        desc = "Update ESP Rust toolchain",
       })
     '';
   };
