@@ -76,8 +76,32 @@
             };
           };
           eslint = { enable = true; };
-          pyright = { enable = true; };
-          ruff = { enable = true; };
+          pyright = {
+            enable = true;
+            extraOptions = {
+              root_dir.__raw = ''
+                function(fname)
+                  local util = require('lspconfig.util')
+                  return util.root_pattern('pyrightconfig.json', 'pyproject.toml', 'setup.py', 'setup.cfg', '.git')(fname)
+                    or util.find_git_ancestor(fname)
+                    or vim.fn.fnamemodify(fname, ':h')
+                end
+              '';
+            };
+          };
+          ruff = {
+            enable = true;
+            extraOptions = {
+              root_dir.__raw = ''
+                function(fname)
+                  local util = require('lspconfig.util')
+                  return util.root_pattern('pyproject.toml', 'setup.py', '.git')(fname)
+                    or util.find_git_ancestor(fname)
+                    or vim.fn.fnamemodify(fname, ':h')
+                end
+              '';
+            };
+          };
           gopls = {
             enable = true;
             extraOptions = {
@@ -102,6 +126,7 @@
               };
             };
           };
+          sqls = { enable = true; };
           terraformls = { enable = true; };
           tflint = { enable = true; };
 
@@ -200,24 +225,6 @@
       };
     };
     extraConfigLua = ''
-          local _border = "rounded"
-
-          require('lspconfig.ui.windows').default_options = {
-            border = _border
-          }
-
-          vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
-            vim.lsp.handlers.hover, {
-              border = _border
-            }
-          )
-
-          vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
-            vim.lsp.handlers.signature_help, {
-              border = _border
-            }
-          )
-
           vim.diagnostic.config({
       			float = { border = "rounded" },
       			virtual_text = {

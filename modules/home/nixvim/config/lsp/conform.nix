@@ -16,6 +16,14 @@
           timeoutMs = 500;
           lspFallback = true;
         };
+        formatters = {
+          sql_formatter = {
+            args = [
+              "--config"
+              ''{"keywordCase":"upper","dataTypeCase":"upper","functionCase":"upper","identifierCase":"lower","tabWidth":4}''
+            ];
+          };
+        };
         formatters_by_ft = {
           html = {
             __unkeyed-1 = "prettierd";
@@ -57,6 +65,7 @@
           };
           rust = [ "rustfmt" ];
           go = [ "gofmt" "goimports" ];
+          sql = [ "sql_formatter" ];
           tf = [ "terraform_fmt" ];
           terraform = [ "terraform_fmt" ];
           hcl = [ "terraform_fmt" ];

@@ -21,7 +21,20 @@
         typescriptreact = [ "eslint_d" ];
         json = [ "jsonlint" ];
         bash = [ "shellcheck" ];
+        sql = [ "sqlfluff" ];
       };
     };
+
+    extraConfigLua = ''
+      require('lint').linters.sqlfluff.args = {
+        'lint', '--format', 'json', '--dialect', 'ansi', '--exclude-rules', 'CP01,CP02,CP03,CP04,CP05,AM04,LT09'
+      }
+
+      vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
+        callback = function()
+          require("lint").try_lint()
+        end,
+      })
+    '';
   };
 }

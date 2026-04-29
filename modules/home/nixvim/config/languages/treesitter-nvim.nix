@@ -37,6 +37,7 @@
         typescript
         html
         css
+        sql
         dockerfile
         gitignore
         gitcommit

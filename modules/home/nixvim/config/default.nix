@@ -20,6 +20,17 @@
     ./utils
   ];
 
+  # Suppress deprecation warnings
+  extraConfigLua = ''
+    local original_notify = vim.notify
+    vim.notify = function(msg, level, opts)
+      if type(msg) == "string" and msg:match("buf_get_clients.*deprecated") then
+        return
+      end
+      original_notify(msg, level, opts)
+    end
+  '';
+
   bufferlines.enable = lib.mkDefault true;
   colorschemes.enable = lib.mkDefault true;
   completion.enable = lib.mkDefault true;
