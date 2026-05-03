@@ -21,6 +21,7 @@
     ./which-key.nix
     ./wilder.nix
     ./leap.nix
+    ./multicursors.nix
     ./venv-selector.nix
     ./firenvim.nix
   ];
@@ -48,6 +49,7 @@
     which-key.enable = lib.mkDefault true;
     wilder.enable = lib.mkDefault true;
     leap.enable = lib.mkDefault true;
+    multicursors.enable = lib.mkDefault true;
     venv-selector.enable = lib.mkDefault true;
     firenvim.enable = lib.mkDefault true;
   };
