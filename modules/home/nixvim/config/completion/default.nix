@@ -7,7 +7,7 @@
   config = lib.mkIf config.completion.enable {
     cmp.enable = lib.mkDefault true;
     avante = {
-      enable = lib.mkDefault true;
+      enable = lib.mkDefault false;
       position = "right";
       width = 30;
     };

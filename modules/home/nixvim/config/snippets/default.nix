@@ -6,6 +6,7 @@
 {
   imports = [
     ./luasnip.nix
+    ./friendly-snippets.nix
   ];
 
   options = {
@@ -13,5 +14,6 @@
   };
   config = lib.mkIf config.snippets.enable {
     luasnip.enable = lib.mkDefault true;
+    friendly-snippets.enable = lib.mkDefault true;
   };
 }

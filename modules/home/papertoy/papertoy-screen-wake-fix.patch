@@ -1,0 +1,26 @@
+diff --git a/src/main.zig b/src/main.zig
+index 2ecbaf4..5e8cc8a 100644
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -746,6 +746,11 @@ pub fn main() !u8 {
+             gl.viewport(0, 0, surface.width, surface.height);
+         }
+ 
++        // Request a frame callback at the start of each iteration to ensure we always
++        // have one pending, even after screen wake or other compositor state changes.
++        const callback = try surface.requestAnimationFrame();
++        callback.setListener(*bool, setRenderFrame, &render_frame);
++
+         // For the first frame, we want to render immediately.
+         if (frame > 0 and display.dispatch() != .SUCCESS) return error.DispatchFailed;
+ 
+@@ -753,9 +758,6 @@ pub fn main() !u8 {
+         render_frame = false;
+         frame += 1;
+ 
+-        const callback = try surface.requestAnimationFrame();
+-        callback.setListener(*bool, setRenderFrame, &render_frame);
+-
+         const now = try std.time.Instant.now();
+         const since_ns: f32 = @floatFromInt(now.since(first_frame_time));
+         const delta_ns: f32 = @floatFromInt(now.since(last_frame_time));

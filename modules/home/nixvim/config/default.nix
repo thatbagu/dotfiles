@@ -13,6 +13,7 @@
     ./none-ls
     ./pluginmanagers
     ./sets
+    ./skeletons
     ./snippets
     ./statusline
     ./telescope
@@ -32,6 +33,7 @@
   none-ls.enable = lib.mkDefault false;
   sets.enable = lib.mkDefault true;
   pluginmanagers.enable = lib.mkDefault true;
+  skeletons.enable = lib.mkDefault true;
   snippets.enable = lib.mkDefault true;
   statusline.enable = lib.mkDefault true;
   telescope.enable = lib.mkDefault true;
