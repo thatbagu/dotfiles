@@ -13,7 +13,6 @@
         nix = [ "statix" ];
         lua = [ "selene" ];
         python = [ "flake8" "ruff" ];
-        rust = [ "clippy" ];
         terraform = [ "tflint" ];
         javascript = [ "eslint_d" ];
         javascriptreact = [ "eslint_d" ];
