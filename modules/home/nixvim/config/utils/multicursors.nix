@@ -3,22 +3,18 @@
     multicursors.enable = lib.mkEnableOption "Enable multicursors module";
   };
   config = lib.mkIf config.multicursors.enable {
-    extraPlugins = with pkgs.vimPlugins; [ multicursors-nvim ];
+    extraPlugins = with pkgs.vimPlugins; [ hydra-nvim multicursors-nvim ];
     extraConfigLua = ''
-      require('multicursors').setup({
-        hint_config = { border = "rounded" },
-      })
+      require('multicursors').setup({})
     '';
-    keymaps = [
-      {
-        mode = [ "n" "v" ];
-        key = "<leader>mc";
-        action = "<cmd>MCstart<cr>";
-        options = {
-          silent = true;
-          desc = "Multicursor start";
-        };
-      }
-    ];
+    keymaps = [{
+      mode = [ "n" "v" ];
+      key = "<leader>mc";
+      action = "<cmd>MCstart<cr>";
+      options = {
+        silent = true;
+        desc = "Multicursor start";
+      };
+    }];
   };
 }
