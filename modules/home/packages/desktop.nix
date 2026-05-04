@@ -19,7 +19,7 @@ in {
       obs-studio
       pqiv
       playerctl
-      # spotify-player
+      spotify-player
 
       # Learning & Productivity
       anki
