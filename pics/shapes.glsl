@@ -186,7 +186,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     
     // Calculate current state and blend factor
     float timeInCycle = mod(iTime, duration);
-    uint currentSeed = uint(iTime / duration);
+    uint currentSeed = uint(iTime / duration) + uint(iRandom * 1000.0);
     float blendFactor = timeInCycle / duration;
     
     set(currentSeed, blendFactor);

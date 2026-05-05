@@ -1,5 +1,6 @@
 { lib, config, ... }: {
   imports = [
+    ./baleia.nix
     ./cloak.nix
     ./esp-rs.nix
     ./harpoon.nix
@@ -28,6 +29,7 @@
 
   options = { utils.enable = lib.mkEnableOption "Enable utils module"; };
   config = lib.mkIf config.utils.enable {
+    baleia.enable = lib.mkDefault true;
     cloak.enable = lib.mkDefault true;
     esp-rs.enable = lib.mkDefault true;
     harpoon.enable = lib.mkDefault true;

@@ -126,6 +126,10 @@
               };
             };
           };
+          bashls = {
+            enable = true;
+            filetypes = [ "bash" ];
+          };
           sqls = { enable = true; };
           terraformls = { enable = true; };
           tflint = { enable = true; };

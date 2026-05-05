@@ -41,7 +41,7 @@
     };
 
     papertoy = {
-      url = "github:sin-ack/papertoy";
+      url = "github:Jahysama/papertoy";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

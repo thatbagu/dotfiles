@@ -20,6 +20,7 @@
         typescriptreact = [ "eslint_d" ];
         json = [ "jsonlint" ];
         bash = [ "shellcheck" ];
+        fish = [ "fish" ];
         sql = [ "sqlfluff" ];
       };
     };

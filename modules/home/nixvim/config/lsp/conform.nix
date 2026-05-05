@@ -64,6 +64,8 @@
             stop_after_first = true;
           };
           rust = [ "rustfmt" ];
+          bash = [ "shfmt" ];
+          fish = [ "fish_indent" ];
           go = [ "gofmt" "goimports" ];
           sql = [ "sql_formatter" ];
           tf = [ "terraform_fmt" ];

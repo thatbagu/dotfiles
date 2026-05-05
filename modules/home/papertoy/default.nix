@@ -2,9 +2,7 @@
 with lib;
 let
   cfg = config.modules.papertoy;
-  papertoy = inputs.papertoy.packages.${pkgs.system}.default.overrideAttrs (old: {
-    patches = (old.patches or []) ++ [ ./papertoy-screen-wake-fix.patch ];
-  });
+  papertoy = inputs.papertoy.packages.${pkgs.system}.default;
 in {
   options.modules.papertoy = {
     enable = mkEnableOption "papertoy animated wallpapers";
