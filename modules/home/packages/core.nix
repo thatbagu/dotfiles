@@ -31,8 +31,8 @@ in {
       # Python
       python3
       ruff
-      python311Packages.flake8
-      python311Packages.black
+      python3Packages.flake8
+      python3Packages.black
 
       # Go
       go
@@ -50,8 +50,8 @@ in {
       stylua
 
       # JavaScript/TypeScript/Web
-      nodePackages.prettier
-      nodePackages.eslint_d
+      prettier
+      eslint
 
       # Rust
       rustc

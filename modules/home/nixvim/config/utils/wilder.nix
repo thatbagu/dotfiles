@@ -6,12 +6,12 @@
   config = lib.mkIf config.wilder.enable {
     plugins.wilder = {
       enable = true;
-      modes = [
+      settings.modes = [
         ":"
         "/"
         "?"
       ];
-      pipeline = [
+      options.pipeline = [
         ''
           wilder.branch(
             wilder.python_file_finder_pipeline({
@@ -46,7 +46,7 @@
                   start_at_boundary = 0,
                 }),
               })
-            )      
+            )
         ''
       ];
     };

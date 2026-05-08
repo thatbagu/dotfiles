@@ -4,7 +4,7 @@
     plugins.alpha = {
       enable = true;
       theme = null;
-      layout = let
+      settings.layout = let
         padding = val: {
           type = "padding";
           inherit val;

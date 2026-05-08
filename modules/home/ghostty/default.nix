@@ -64,7 +64,7 @@ in {
 
   config = mkIf cfg.enable {
     # Import the ghostty package from the flake input
-    home.packages = [ inputs.ghostty.packages.${pkgs.system}.default ];
+    home.packages = [ inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default ];
 
     # Configure ghostty based on platform
     xdg.configFile =

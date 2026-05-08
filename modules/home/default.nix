@@ -1,5 +1,6 @@
 { inputs, pkgs, config, ... }: {
   home.stateVersion = "24.05";
+  gtk.gtk4.theme = config.gtk.theme;
   imports = [
     # GUI Applications
     ./firefox

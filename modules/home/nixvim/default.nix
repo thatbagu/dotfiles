@@ -11,6 +11,7 @@ in {
     programs.nixvim = {
       enable = true;
       imports = [ nixvim_config ];
+      nixpkgs.config.allowUnfree = true;
 
       # # Disable other colorschemes first
       # colorschemes.catppuccin.enable = lib.mkForce false;

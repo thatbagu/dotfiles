@@ -27,6 +27,7 @@ in {
       
       # GTK4 settings
       gtk4 = {
+        theme = config.gtk.theme;
         extraConfig = {
           gtk-application-prefer-dark-theme = true;
           gtk-enable-animations = true;

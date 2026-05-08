@@ -132,7 +132,7 @@
               users.${username} = {
                 imports = [
                   (./. + "/hosts/${hostname}/user.nix")
-                  nixvim.homeManagerModules.nixvim
+                  nixvim.homeModules.nixvim
                 ];
               };
             };

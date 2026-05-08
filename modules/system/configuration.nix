@@ -167,7 +167,7 @@
   };
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = true;
-  hardware.firmware = with pkgs; [ linux-firmware firmwareLinuxNonfree ];
+  hardware.firmware = with pkgs; [ linux-firmware ];
 
   system.stateVersion = "24.05";
 }

@@ -2,7 +2,7 @@
 with lib;
 let
   cfg = config.modules.papertoy;
-  papertoy = inputs.papertoy.packages.${pkgs.system}.default;
+  papertoy = inputs.papertoy.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in {
   options.modules.papertoy = {
     enable = mkEnableOption "papertoy animated wallpapers";

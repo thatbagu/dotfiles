@@ -39,8 +39,10 @@ in {
 
     home.file.".mozilla/firefox/${config.home.username}/chrome/userscripts/content/custom-file-picker.js".source =
       ./custom-file-picker.js;
+    stylix.targets.firefox.profileNames = [ config.home.username ];
     programs.firefox = {
       enable = true;
+      configPath = ".mozilla/firefox";
       package = if isDarwin then
         browserPkg
       else
@@ -50,7 +52,7 @@ in {
       profiles.${config.home.username} = {
         isDefault = true;
         extensions.packages =
-          with inputs.firefox-addons.packages.${pkgs.system}; [
+          with inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}; [
             bitwarden
             ublock-origin
             sponsorblock

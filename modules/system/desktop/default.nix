@@ -78,9 +78,6 @@ in {
     # Remove unnecessary preinstalled packages
     services.xserver.desktopManager.xterm.enable = false;
 
-    # For backlight control
-    programs.light.enable = true;
-
     # Enable dconf
     programs.dconf.enable = true;
 
