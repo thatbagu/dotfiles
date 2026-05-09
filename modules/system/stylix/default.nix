@@ -44,6 +44,7 @@ in {
         size = builtins.floor (20 * cfg.scale);
       };
       polarity = "dark"; # Explicitly set dark mode
+      targets.qt.enable = false;
     };
 
     # For GTK3 applications (integer scaling only)

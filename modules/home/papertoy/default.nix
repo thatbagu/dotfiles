@@ -13,9 +13,9 @@ in {
       example = literalExpression "./shaders/seascape.glsl";
     };
     output = mkOption {
-      type = types.int;
-      default = 0;
-      description = "Output index to render to";
+      type = types.nullOr types.str;
+      default = null;
+      description = "Output name to render to (e.g. HDMI-A-1). Default: first available output.";
     };
 
     startupDelay = mkOption {
@@ -28,8 +28,8 @@ in {
     home.packages = [ papertoy ];
     wayland.windowManager.hyprland.settings.exec-once =
       mkIf (cfg.shader != null) (lib.mkAfter [
-        "sleep 3 && ${papertoy}/bin/papertoy --output ${
-          toString cfg.output
+        "sleep ${toString cfg.startupDelay} && ${papertoy}/bin/papertoy${
+          lib.optionalString (cfg.output != null) " --output ${cfg.output}"
         } ${cfg.shader}"
       ]);
   };

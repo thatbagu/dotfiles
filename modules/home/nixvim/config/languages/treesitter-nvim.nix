@@ -72,29 +72,9 @@
           };
         };
       };
-      nixvimInjections = true;
     };
 
     extraConfigLua = ''
-      -- Ensure treesitter doesn't try to install anything at runtime
-      local ts_install = require('nvim-treesitter.install')
-
-      -- Override installation functions
-      local original_install = ts_install.install
-      ts_install.install = function(...)
-        print("Treesitter parsers are managed by Nix. No runtime installation needed.")
-      end
-
-      local original_update = ts_install.update
-      ts_install.update = function(...)
-        print("Treesitter parsers are managed by Nix. Update through nixos-rebuild.")
-      end
-
-      -- Disable the installation prompt
-      ts_install.prefer_git = false
-      ts_install.compilers = {}
-
-      -- Fish shell support
       vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
         pattern = "*.fish",
         callback = function()

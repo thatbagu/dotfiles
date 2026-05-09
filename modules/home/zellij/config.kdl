@@ -205,6 +205,7 @@ plugins {
 //    - false (Default)
 //
 simplified_ui true
+theme "catppuccin"
 
 ui {
     pane_frames {

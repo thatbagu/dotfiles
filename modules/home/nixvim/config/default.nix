@@ -25,7 +25,11 @@
   extraConfigLua = ''
     local original_notify = vim.notify
     vim.notify = function(msg, level, opts)
-      if type(msg) == "string" and msg:match("buf_get_clients.*deprecated") then
+      if type(msg) == "string" and (
+        msg:match("buf_get_clients.*deprecated") or
+        msg:match("is_stopped.*deprecated") or
+        msg:match("deprecated.*is_stopped")
+      ) then
         return
       end
       original_notify(msg, level, opts)

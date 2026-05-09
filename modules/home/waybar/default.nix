@@ -10,7 +10,7 @@ in {
         mainBar = {
           layer = "top";
           position = "top";
-          height = 28;
+          height = 40;
           modules-left =
             [ "hyprland/workspaces" "hyprland/language" "custom/spotify" ];
           modules-center = [ "clock" ];
@@ -107,7 +107,7 @@ in {
             "tooltip" = false;
           };
           "custom/spotify" = {
-            "format" = "{icon} {}";
+            "format" = "{icon} {text}";
             "format-icons" = { "default" = "󰓇"; };
             "escape" = true;
             "return-type" = "json";
@@ -117,10 +117,10 @@ in {
             "exec" = ''
               PLAYBACK=$(spotify_player get key playback)
               if [ $? -eq 0 ]; then
-                ARTIST=$(echo $PLAYBACK | jq -r '.item.artists[0].name')
-                TITLE=$(echo $PLAYBACK | jq -r '.item.name')
-                ALBUM=$(echo $PLAYBACK | jq -r '.item.album.name')
-                IS_PLAYING=$(echo $PLAYBACK | jq -r '.is_playing')
+                ARTIST=$(echo "$PLAYBACK" | jq -r '.item.artists[0].name')
+                TITLE=$(echo "$PLAYBACK" | jq -r '.item.name')
+                ALBUM=$(echo "$PLAYBACK" | jq -r '.item.album.name')
+                IS_PLAYING=$(echo "$PLAYBACK" | jq -r '.is_playing')
                 echo "{\"text\": \"$ARTIST - $TITLE\", \"tooltip\": \"$TITLE by $ARTIST from $ALBUM\", \"alt\": \"$IS_PLAYING\", \"class\": \"$IS_PLAYING\"}"
               else
                 echo "{\"text\": \"No music playing\", \"tooltip\": \"Spotify not running\", \"alt\": \"stopped\", \"class\": \"stopped\"}"

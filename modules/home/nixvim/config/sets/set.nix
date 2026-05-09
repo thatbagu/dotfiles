@@ -178,8 +178,6 @@
       vim.api.nvim_set_hl(0, "NonText", { bg = "NONE" })
       vim.api.nvim_set_hl(0, "SpecialKey", { bg = "NONE" })
       vim.api.nvim_set_hl(0, "VertSplit", { bg = "NONE" })
-      vim.api.nvim_set_hl(0, "StatusLine", { bg = "NONE" })
-      vim.api.nvim_set_hl(0, "StatusLineNC", { bg = "NONE" })
       vim.api.nvim_set_hl(0, "WinBar", { bg = "NONE" })
       vim.api.nvim_set_hl(0, "WinBarNC", { bg = "NONE" })
     '';

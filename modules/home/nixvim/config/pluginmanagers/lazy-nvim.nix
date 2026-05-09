@@ -9,7 +9,7 @@
   };
   config = lib.mkIf config.lazy-nvim.enable {
     plugins.lazy = {
-      enable = true;
+      enable = false;
     };
   };
 }

@@ -39,7 +39,6 @@ in {
       golangci-lint
       gopls
       go-tools
-      gotools
 
       # Nix
       statix

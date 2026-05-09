@@ -1,13 +1,24 @@
-{ lib, config, ... }: {
+{ lib, config, pkgs, ... }: {
   options = { cmp.enable = lib.mkEnableOption "Enable cmp module"; };
   config = lib.mkIf config.cmp.enable {
     plugins = {
-      cmp-nvim-lsp = { enable = true; }; # lsp
+      cmp-nvim-lsp = {
+        enable = true;
+        package = pkgs.vimPlugins.cmp-nvim-lsp;
+      };
       cmp-buffer = { enable = true; };
       cmp-path = { enable = true; }; # file system paths
       cmp-cmdline = { enable = true; }; # autocomplete for cmdline
       cmp_luasnip = { enable = true; }; # snippets
-      copilot-cmp = { enable = true; }; # copilot suggestions
+      copilot-cmp = {
+        enable = true;
+        package = pkgs.vimPlugins.copilot-cmp.overrideAttrs (old: {
+          postPatch = (old.postPatch or "") + ''
+            substituteInPlace lua/copilot_cmp/source.lua \
+              --replace-warn 'self.client.is_stopped()' 'self.client:is_stopped()'
+          '';
+        });
+      };
       cmp = {
         enable = true;
         autoEnableSources = false;

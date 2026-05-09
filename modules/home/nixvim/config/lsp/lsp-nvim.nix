@@ -81,9 +81,7 @@
             extraOptions = {
               root_dir.__raw = ''
                 function(fname)
-                  local util = require('lspconfig.util')
-                  return util.root_pattern('pyrightconfig.json', 'pyproject.toml', 'setup.py', 'setup.cfg', '.git')(fname)
-                    or util.find_git_ancestor(fname)
+                  return vim.fs.root(fname, {'pyrightconfig.json', 'pyproject.toml', 'setup.py', 'setup.cfg', '.git'})
                     or vim.fn.fnamemodify(fname, ':h')
                 end
               '';
@@ -94,9 +92,7 @@
             extraOptions = {
               root_dir.__raw = ''
                 function(fname)
-                  local util = require('lspconfig.util')
-                  return util.root_pattern('pyproject.toml', 'setup.py', '.git')(fname)
-                    or util.find_git_ancestor(fname)
+                  return vim.fs.root(fname, {'pyproject.toml', 'setup.py', '.git'})
                     or vim.fn.fnamemodify(fname, ':h')
                 end
               '';

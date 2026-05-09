@@ -1,7 +1,14 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 with lib;
-let cfg = config.modules.packages.desktop;
-in {
+let
+  cfg = config.modules.packages.desktop;
+in
+{
   options.modules.packages.desktop = {
     enable = mkEnableOption "desktop packages";
   };
@@ -57,4 +64,3 @@ in {
     ];
   };
 }
-

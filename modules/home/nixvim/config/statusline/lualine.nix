@@ -8,7 +8,7 @@
         globalstatus = true;
         ignoreFocus = [ "neo-tree" ];
         extensions = [ "fzf" ];
-        theme = "auto";
+        theme = "catppuccin-mocha";
         componentSeparators = {
           left = "|";
           right = "|";

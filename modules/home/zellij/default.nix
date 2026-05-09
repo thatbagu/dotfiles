@@ -13,6 +13,9 @@ in {
     home.shellAliases = shellAliases;
     programs.fish.shellAliases = shellAliases;
 
+    stylix.targets.zellij.enable = false;
     xdg.configFile."zellij/config.kdl".source = ./config.kdl;
+    xdg.configFile."zellij/themes/stylix.kdl".source = ./theme.kdl;
+    xdg.configFile."zellij/layouts/transparent.kdl".source = ./layouts/transparent.kdl;
   };
 }
