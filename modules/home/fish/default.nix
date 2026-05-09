@@ -6,6 +6,11 @@ in {
   config = mkIf cfg.enable {
     programs.fish = {
       enable = true;
+      loginShellInit = ''
+        if test -z "$WAYLAND_DISPLAY" && test "$XDG_VTNR" = "1"
+          exec uwsm start hyprland-uwsm.desktop
+        end
+      '';
       interactiveShellInit = ''
                 # Generic function to load secrets from files
                 function load_secret_from_file --argument-names var_name env_var_path

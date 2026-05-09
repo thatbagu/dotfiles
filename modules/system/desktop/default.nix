@@ -6,6 +6,11 @@ in {
   options.modules.desktop = { enable = mkEnableOption "desktop"; };
 
   config = mkIf cfg.enable {
+    programs.hyprland = {
+      enable = true;
+      withUWSM = true;
+    };
+
     # Install fonts
     fonts = {
       packages = with pkgs; [
