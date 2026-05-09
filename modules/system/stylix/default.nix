@@ -21,7 +21,7 @@ in {
       base16Scheme =
         "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
       opacity = {
-        terminal = 0.9;
+        terminal = 1.0;
         applications = 0.9;
         desktop = 0.9;
       };
