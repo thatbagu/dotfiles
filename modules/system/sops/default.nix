@@ -12,6 +12,7 @@ in {
       defaultSopsFormat = "yaml";
       secrets = {
         antropic_key = { owner = "${username}"; };
+        spotify_client_id = { owner = "${username}"; };
         github_token = { owner = "${username}"; };
         git_email = { owner = "${username}"; };
         cloudflare_email = { owner = "${username}"; };
