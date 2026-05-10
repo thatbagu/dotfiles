@@ -808,11 +808,11 @@
         "zig2nix": "zig2nix"
       },
       "locked": {
-        "lastModified": 1778353271,
-        "narHash": "sha256-k63rJIzLT0aEk+on2ZZFMmrMDqZAhl6shZttiZ0F8Ic=",
+        "lastModified": 1778446861,
+        "narHash": "sha256-lguJ1xYB5vvuD0atXWs3zn7pmUdiDMFQwqxGjBn/P00=",
         "owner": "Jahysama",
         "repo": "papertoy",
-        "rev": "d25481859b7c9e56d0c613d4ee9cd16b5dc2811d",
+        "rev": "918e4ef8252f0674da1ca62379fe7b2969d92ad7",
         "type": "github"
       },
       "original": {
