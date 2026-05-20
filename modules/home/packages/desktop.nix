@@ -58,6 +58,9 @@ in
       # Emulators
       dolphin-emu
 
+      # Games
+      crawlTiles
+
       # System Utils
       brightnessctl
       antimicrox

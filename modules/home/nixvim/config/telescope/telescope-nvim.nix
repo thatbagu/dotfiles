@@ -23,6 +23,17 @@
       # If you'd prefer Telescope not to enter a normal-like mode when hitting escape (and instead exiting), you can map <Esc> to do so via:
       settings = {
         defaults = {
+          vimgrep_arguments = [
+            "rg"
+            "--color=never"
+            "--no-heading"
+            "--with-filename"
+            "--line-number"
+            "--column"
+            "--smart-case"
+            "--hidden"
+            "--glob=!.git"
+          ];
           mappings = {
             i = {
               "<esc>" = {
@@ -36,6 +47,9 @@
         };
         pickers = {
           colorscheme = { enable_preview = true; };
+          find_files = {
+            find_command = [ "fd" "--type" "f" "--hidden" "--exclude" ".git" ];
+          };
           # find_files = {
           #   theme = "ivy";
           # };

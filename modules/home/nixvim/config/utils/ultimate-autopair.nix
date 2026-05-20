@@ -16,6 +16,13 @@
             rev = "25c13e0ce167db0255456cac10158b27d2be30c0";
             sha256 = "0bsxfj6g8fii9nn92vl15hdhafx3fikgiz4srr7y10pxz01c5s4c";
           };
+          # vim.treesitter.get_parser now returns nil instead of throwing when
+          # no parser exists; guard the nil case so parser:parse() doesn't crash
+          postPatch = ''
+            substituteInPlace lua/ultimate-autopair/utils.lua \
+              --replace 'if not s then cache.no_parser=true return vim.o.filetype end' \
+                        'if not s or not parser then cache.no_parser=true return vim.o.filetype end'
+          '';
         })
       ];
     extraConfigLua = ''

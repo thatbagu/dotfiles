@@ -7,6 +7,7 @@
     dunst.enable = true;
     hyprland.enable = true;
     papertoy.enable = true;
+    papertoy.shader = ../../pics/shapes.glsl;
     fuzzel.enable = true;
     waybar.enable = true;
     rtorrent.enable = true;
