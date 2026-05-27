@@ -8,7 +8,18 @@
       settings = {
         provider_selector.__raw = ''
           function(bufnr, filetype, buftype)
-            return {'lsp', 'treesitter'}
+            local function handleFallback(bufnr2, err, providerName)
+              if type(err) == 'string' and err:match('UfoFallbackException') then
+                return require('ufo').getFolds(bufnr2, providerName)
+              else
+                return require('promise').reject(err)
+              end
+            end
+            return function(bufnr2)
+              return require('ufo').getFolds(bufnr2, 'lsp')
+                :catch(function(err) return handleFallback(bufnr2, err, 'treesitter') end)
+                :catch(function(err) return handleFallback(bufnr2, err, 'indent') end)
+            end
           end
         '';
         fold_virt_text_handler.__raw = ''

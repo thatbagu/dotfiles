@@ -45,7 +45,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    ghostty = { url = "github:ghostty-org/ghostty"; };
+    ghostty = {
+      url = "github:ghostty-org/ghostty";
+    };
     impermanence.url = "github:nix-community/impermanence";
     colmena.url = "github:zhaofengli/colmena";
     nixhelm.url = "github:farcaller/nixhelm";
@@ -53,15 +55,33 @@
     claude-code.url = "github:sadjow/claude-code-nix";
   };
 
-  outputs = { self, home-manager, nixpkgs, stylix, sops-nix, nixvim, nix-darwin
-    , disko, impermanence, colmena, nixhelm, papertoy, ghostty, claude-code, ... }@inputs:
+  outputs =
+    {
+      self,
+      home-manager,
+      nixpkgs,
+      stylix,
+      sops-nix,
+      nixvim,
+      nix-darwin,
+      disko,
+      impermanence,
+      colmena,
+      nixhelm,
+      papertoy,
+      ghostty,
+      claude-code,
+      ...
+    }@inputs:
     let
       # Function to get clean hostname without path
-      cleanHostname = hostname:
+      cleanHostname =
+        hostname:
         let
           parts = builtins.split "/" hostname;
           lastPart = builtins.elemAt parts (builtins.length parts - 1);
-        in lastPart;
+        in
+        lastPart;
 
       # Define all Linux machines configuration
       nixosMachines = {
@@ -69,66 +89,98 @@
         meowth = {
           hostname = "homelab/meowth";
           username = "egor";
-          tags = [ "homelab" "master" "meowth" ];
+          tags = [
+            "homelab"
+            "master"
+            "meowth"
+          ];
         };
         psyduck = {
           hostname = "homelab/psyduck";
           username = "egor";
-          tags = [ "homelab" "worker" "psyduck" ];
+          tags = [
+            "homelab"
+            "worker"
+            "psyduck"
+          ];
         };
         bulbasaur = {
           hostname = "homelab/bulbasaur";
           username = "egor";
-          tags = [ "homelab" "worker" "bulbasaur" ];
+          tags = [
+            "homelab"
+            "worker"
+            "bulbasaur"
+          ];
         };
         # Other Linux machines
         laptop = {
           hostname = "laptop";
           username = "egor";
-          tags = [ "personal" "laptop" ];
+          tags = [
+            "personal"
+            "laptop"
+          ];
         };
         main = {
           hostname = "main";
           username = "egor";
-          tags = [ "personal" "main" ];
+          tags = [
+            "personal"
+            "main"
+          ];
         };
       };
 
-      mkSystemModules = system: hostname: username:
+      mkSystemModules =
+        system: hostname: username:
         let
           isDarwin = builtins.match ".*darwin" system != null;
-          hmModule = if isDarwin then
-            home-manager.darwinModules.home-manager
-          else
-            home-manager.nixosModules.home-manager;
+          hmModule =
+            if isDarwin then
+              home-manager.darwinModules.home-manager
+            else
+              home-manager.nixosModules.home-manager;
 
           # Load overlays
           overlays = import ./overlays/default.nix;
 
           # Optional modules based on system type
-          systemModules = if isDarwin then [
-            (./. + "/hosts/${hostname}/system.nix")
-            sops-nix.darwinModules.sops
-          ] else [
-            (./. + "/hosts/${hostname}/system.nix")
-            (./. + "/hosts/${hostname}/hardware-configuration.nix")
-            stylix.nixosModules.stylix
-            sops-nix.nixosModules.sops
-            disko.nixosModules.disko
-            impermanence.nixosModules.impermanence
-          ];
-        in [{
-          networking.hostName = cleanHostname hostname;
-          nixpkgs.config.allowUnfree = true;
-          nixpkgs.overlays = builtins.attrValues overlays;
-        }] ++ systemModules ++ [
+          systemModules =
+            if isDarwin then
+              [
+                (./. + "/hosts/${hostname}/system.nix")
+                sops-nix.darwinModules.sops
+              ]
+            else
+              [
+                (./. + "/hosts/${hostname}/system.nix")
+                (./. + "/hosts/${hostname}/hardware-configuration.nix")
+                stylix.nixosModules.stylix
+                sops-nix.nixosModules.sops
+                disko.nixosModules.disko
+                impermanence.nixosModules.impermanence
+              ];
+        in
+        [
+          {
+            networking.hostName = cleanHostname hostname;
+            nixpkgs.config.allowUnfree = true;
+            nixpkgs.overlays = builtins.attrValues overlays;
+          }
+        ]
+        ++ systemModules
+        ++ [
           hmModule
           {
             home-manager = {
               useUserPackages = true;
               useGlobalPkgs = true;
               backupFileExtension = "-backup";
-              extraSpecialArgs = { inherit inputs; claude-code = claude-code.packages.x86_64-linux.default; };
+              extraSpecialArgs = {
+                inherit inputs;
+                claude-code = claude-code.packages.x86_64-linux.default;
+              };
               users.${username} = {
                 imports = [
                   (./. + "/hosts/${hostname}/user.nix")
@@ -139,15 +191,14 @@
           }
         ];
       # Function to build NixOS configurations
-      mkSystem = pkgs: system: hostname: username:
+      mkSystem =
+        pkgs: system: hostname: username:
         let
           isDarwin = builtins.match ".*darwin" system != null;
-          systemFunc = if isDarwin then
-            nix-darwin.lib.darwinSystem
-          else
-            pkgs.lib.nixosSystem;
+          systemFunc = if isDarwin then nix-darwin.lib.darwinSystem else pkgs.lib.nixosSystem;
           modules = mkSystemModules system hostname username;
-        in systemFunc {
+        in
+        systemFunc {
           inherit system;
           specialArgs = {
             inherit inputs username;
@@ -156,15 +207,17 @@
           inherit modules;
         };
 
-    in {
+    in
+    {
       inherit nixosMachines;
 
       nixosConfigurations = {
         # installer iso
         iso = mkSystem inputs.nixpkgs "x86_64-linux" "iso" "nixos";
-      } // (builtins.mapAttrs (name: machine:
-        mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname
-        machine.username) nixosMachines);
+      }
+      // (builtins.mapAttrs (
+        name: machine: mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname machine.username
+      ) nixosMachines);
 
       darwinConfigurations = {
         work = mkSystem inputs.nix-darwin "aarch64-darwin" "work" "egor";
@@ -178,7 +231,8 @@
 
           };
         };
-      } // (builtins.mapAttrs (name: machine: {
+      }
+      // (builtins.mapAttrs (name: machine: {
         # Explicitly add the hostname module parameter
         _module.args = {
           hostname = cleanHostname machine.hostname;
@@ -190,7 +244,10 @@
         deployment = {
           targetHost = cleanHostname machine.hostname;
           targetUser = machine.username;
-          privilegeEscalationCommand = [ "sudo" "-S" ];
+          privilegeEscalationCommand = [
+            "sudo"
+            "-S"
+          ];
           tags = machine.tags;
         };
       }) nixosMachines);
