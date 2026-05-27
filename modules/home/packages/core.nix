@@ -51,6 +51,7 @@ in {
       # JavaScript/TypeScript/Web
       prettier
       eslint
+      jq
 
       # Rust
       rustc

@@ -18,7 +18,7 @@
         javascriptreact = [ "eslint_d" ];
         typescript = [ "eslint_d" ];
         typescriptreact = [ "eslint_d" ];
-        json = [ "jsonlint" ];
+        json = [ "jq" ];
         bash = [ "shellcheck" ];
         fish = [ "fish" ];
         sql = [ "sqlfluff" ];

@@ -59,15 +59,11 @@
       # Enable cursor line highlight
       cursorline = false; # Highlight the line where the cursor is located
 
-      # Set fold settings
-      # These options were recommended by nvim-ufo
-      # See: https://github.com/kevinhwang91/nvim-ufo#minimal-configuration
+      # Required by nvim-ufo; ufo manages foldmethod/foldexpr itself
       foldcolumn = "0";
       foldlevel = 99;
       foldlevelstart = 99;
       foldenable = true;
-      foldmethod = "expr";
-      foldexpr = "v:lua.vim.treesitter.foldexpr()";
 
       # Always keep 8 lines above/below cursor unless at start/end of file
       scrolloff = 8;
