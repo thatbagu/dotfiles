@@ -57,12 +57,11 @@ let
       "--registry=noop"
       "--policy=upsert-only"
       "--log-level=debug"
-      "--pihole-api-version=6"
     ];
     extraArgs = [
       "--pihole-tls-skip-verify"
       "--txt-owner-id=k8s"
-      # Remove the conflicting --pihole-server argument that overrides the env var
+      "--pihole-api-version=6"
     ];
   };
 
