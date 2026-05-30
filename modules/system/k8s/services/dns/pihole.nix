@@ -35,14 +35,8 @@ let
       type = "LoadBalancer";
     };
 
-    # COMPLETELY DISABLE authentication for both web UI and API
     admin = {
-      enabled = false; # Disable admin authentication
-    };
-
-    extraEnvVars = {
-      FTLCONF_webserver_api_password =
-        ""; # This is the CORRECT way to disable auth
+      enabled = false;
     };
 
     dnsmasq = {
