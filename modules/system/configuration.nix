@@ -100,7 +100,6 @@
     publish = {
       enable = true;
       addresses = true;
-      hostnames = true;
     };
   };
 
