@@ -42,6 +42,9 @@
       }
       "/var/lib/alsa"
 
+      # k3s node identity
+      "/etc/rancher"
+
       # System configuration
       "/var/lib/chrony"
       "/var/lib/sysctl"
