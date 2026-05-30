@@ -94,15 +94,6 @@
     shell = pkgs.fish;
   };
 
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    publish = {
-      enable = true;
-      addresses = true;
-    };
-  };
-
   services.openssh = {
     hostKeys = [
       { path = "/persist/etc/ssh/ssh_host_ed25519_key"; type = "ed25519"; }
