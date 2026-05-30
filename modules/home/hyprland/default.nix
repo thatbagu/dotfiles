@@ -17,6 +17,12 @@ in {
   };
 
   config = mkIf cfg.enable {
+    programs.fish.loginShellInit = ''
+      if test -z "$WAYLAND_DISPLAY" && test "$XDG_VTNR" = "1"
+        exec uwsm start hyprland-uwsm.desktop
+      end
+    '';
+
     home.packages = with pkgs; [ fuzzel wlsunset wl-clipboard ];
 
     wayland.windowManager.hyprland = {

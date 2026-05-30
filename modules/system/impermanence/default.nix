@@ -9,9 +9,6 @@
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
 
-      # SSH host identity
-      "/etc/ssh"
-
       # Network configuration
       "/etc/NetworkManager/system-connections"
       "/var/lib/NetworkManager"
@@ -68,6 +65,12 @@
 
       # System configuration
       "/etc/adjtime"
+
+      # SSH host keys
+      "/etc/ssh/ssh_host_ed25519_key"
+      "/etc/ssh/ssh_host_ed25519_key.pub"
+      "/etc/ssh/ssh_host_rsa_key"
+      "/etc/ssh/ssh_host_rsa_key.pub"
 
 
       # # Security and access control
