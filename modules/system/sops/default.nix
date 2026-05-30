@@ -70,11 +70,11 @@ in
           mode = "0600";
         };
 
-        secrets.dsh_wg_public_key = {
+        dsh_wg_public_key = {
           owner = "root";
           mode = "0644";
         };
-        secrets.dsh_wg_private_key = {
+        dsh_wg_private_key = {
           owner = "${username}";
           mode = "0600";
         };
