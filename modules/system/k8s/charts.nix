@@ -60,6 +60,7 @@ let
       import ./services/dns/externaldns.nix { inherit pkgs inputs lib vars; };
     certManager =
       import ./services/dns/cert-manager.nix { inherit pkgs inputs lib vars; };
+    ddns = import ./services/dns/ddns.nix { inherit pkgs inputs lib vars; };
   };
 
   ingressResources = {

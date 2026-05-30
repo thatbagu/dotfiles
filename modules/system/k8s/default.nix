@@ -80,7 +80,7 @@ let
     }
     {
       name = "external-dns";
-      charts = [ "externaldns-cloudflare" "cert-manager-issuers" ];
+      charts = [ "externaldns-cloudflare" "cert-manager-issuers" "cloudflare-ddns" ];
       dependsOn = [ "external-access" ];
       waitFor = {
         externaldns = {
