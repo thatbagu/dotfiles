@@ -238,7 +238,8 @@
           username = machine.username;
         };
         # Reuse the same modules that we use for NixOS configurations
-        imports = mkSystemModules "x86_64-linux" machine.hostname "egor";
+        imports = mkSystemModules "x86_64-linux" machine.hostname "egor"
+          ++ [{ nixpkgs.hostPlatform = "x86_64-linux"; }];
 
         deployment = {
           targetHost = cleanHostname machine.hostname;
