@@ -6,7 +6,6 @@
       ip = "10.0.100.2";
       group = "admin";
       publicKeySecret = "egor_main_wg_public_key";
-      privateKeySecret = "egor_main_wg_private_key";
       allowedIPs = "0.0.0.0/0";
       description = "Egor's main machine - full admin access";
       enabled = true;
