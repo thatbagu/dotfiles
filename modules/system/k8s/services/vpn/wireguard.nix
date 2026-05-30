@@ -129,6 +129,11 @@ let
                 fi
               done
 
+              # Inject client private keys
+              ${concatStringsSep "\n" (mapAttrsToList (name: user: ''
+                sed -i "s|__PASTE_${toUpper name}_PRIVATE_KEY_HERE__|$(cat /secrets/${user.privateKeySecret})|g" "/config/${name}"
+              '') enabledUsers)}
+
               # Set proper permissions
               chmod 600 /config/wg_confs/wg0.conf
 
@@ -276,17 +281,30 @@ let
     };
   };
 
-  # Generate user secret references dynamically
-  userSecrets = listToAttrs (mapAttrsToList (name: user: {
-    name = "wireguard-user-${name}";
-    value = lib.mkSecretRef {
+  # Generate user secret references dynamically (public + private keys)
+  userSecrets = listToAttrs (
+    (mapAttrsToList (name: user: {
       name = "wireguard-user-${name}";
-      namespace = vars.namespaces.wireguard;
-      secretName = "wireguard-secrets";
-      secretKey = user.publicKeySecret;
-      sopsSecretName = user.publicKeySecret;
-    };
-  }) enabledUsers);
+      value = lib.mkSecretRef {
+        name = "wireguard-user-${name}";
+        namespace = vars.namespaces.wireguard;
+        secretName = "wireguard-secrets";
+        secretKey = user.publicKeySecret;
+        sopsSecretName = user.publicKeySecret;
+      };
+    }) enabledUsers)
+    ++
+    (mapAttrsToList (name: user: {
+      name = "wireguard-private-${name}";
+      value = lib.mkSecretRef {
+        name = "wireguard-private-${name}";
+        namespace = vars.namespaces.wireguard;
+        secretName = "wireguard-secrets";
+        secretKey = user.privateKeySecret;
+        sopsSecretName = user.privateKeySecret;
+      };
+    }) enabledUsers)
+  );
 
 in {
   # Server public key and endpoint secrets

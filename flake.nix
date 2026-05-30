@@ -242,7 +242,9 @@
           ++ [{ nixpkgs.hostPlatform = "x86_64-linux"; }];
 
         deployment = {
-          targetHost = cleanHostname machine.hostname;
+          targetHost = if builtins.elem "homelab" machine.tags
+            then "${cleanHostname machine.hostname}.local"
+            else cleanHostname machine.hostname;
           targetUser = machine.username;
           privilegeEscalationCommand = [
             "sudo"

@@ -80,6 +80,16 @@
     keyMap = "us";
   };
 
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    publish = {
+      enable = true;
+      addresses = true;
+      workstation = true;
+    };
+  };
+
   # Enable fish shell
   programs.fish.enable = true;
 
