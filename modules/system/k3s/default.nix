@@ -21,6 +21,7 @@ in {
       [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
     virtualisation.docker.logDriver = "json-file";
     networking.firewall.enable = mkForce false;
+    systemd.services.sshd.stopIfChanged = mkForce false;
     services = {
       openssh.enable = mkForce true;
       openiscsi = {
