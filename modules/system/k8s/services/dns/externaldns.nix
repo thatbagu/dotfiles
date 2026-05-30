@@ -57,8 +57,7 @@ let
       "--registry=noop"
       "--policy=upsert-only"
       "--log-level=debug"
-      # Add Pi-hole API version for v5 compatibility
-      "--pihole-api-version=5"
+      "--pihole-api-version=6"
     ];
     extraArgs = [
       "--pihole-tls-skip-verify"

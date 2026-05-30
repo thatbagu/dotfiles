@@ -31,7 +31,7 @@ let
     piholeIp = ipPools.pihole;
 
     # Version control for images
-    versions = { pihole = "2024.07.0"; };
+    versions = { pihole = "2025.11.1"; };
 
     # Common configuration 
     defaultReplicas = 1;
