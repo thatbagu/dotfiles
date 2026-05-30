@@ -9,6 +9,9 @@
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
 
+      # SSH host identity
+      "/etc/ssh"
+
       # Network configuration
       "/etc/NetworkManager/system-connections"
       "/var/lib/NetworkManager"
@@ -65,6 +68,7 @@
 
       # System configuration
       "/etc/adjtime"
+
 
       # # Security and access control
       # "/etc/shadow"
