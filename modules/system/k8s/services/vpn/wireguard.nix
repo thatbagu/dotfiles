@@ -259,8 +259,6 @@ let
       namespace = vars.namespaces.wireguard;
       annotations = {
         "metallb.universe.tf/allow-shared-ip" = "wireguard-svc";
-        "external-dns.alpha.kubernetes.io/hostname" = "vpn.${vars.domain}";
-        "external-dns.alpha.kubernetes.io/ttl" = "120";
       };
     };
     spec = {
