@@ -14,6 +14,14 @@ in {
     };
   };
   config = mkIf cfg.enable {
+    home-manager.sharedModules = [{
+      stylix.targets = {
+        zellij.enable = false;
+        swaylock.enable = true;
+        firefox.profileNames = [ "egor" ];
+      };
+    }];
+
     stylix = {
       enable = true;
       image = wallpaper;

@@ -39,7 +39,6 @@ in {
 
     home.file.".mozilla/firefox/${config.home.username}/chrome/userscripts/content/custom-file-picker.js".source =
       ./custom-file-picker.js;
-    stylix.targets.firefox.profileNames = [ config.home.username ];
     programs.firefox = {
       enable = true;
       configPath = ".mozilla/firefox";
