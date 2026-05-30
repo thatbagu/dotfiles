@@ -199,12 +199,11 @@
           modules = mkSystemModules system hostname username;
         in
         systemFunc {
-          inherit system;
           specialArgs = {
             inherit inputs username;
             hostname = cleanHostname hostname;
           };
-          inherit modules;
+          modules = modules ++ [{ nixpkgs.hostPlatform = system; }];
         };
 
     in
