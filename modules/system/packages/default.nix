@@ -19,6 +19,7 @@ in {
       jq
       colmena
       devenv
+      wireguard-tools
     ];
   };
 }

@@ -1,4 +1,5 @@
-{ config, lib, ... }: {
+{ config, lib, ... }:
+{
   # WireGuard user definitions
   wireguardUsers = {
     # === ADMIN USERS (Full Access) ===
@@ -20,14 +21,14 @@
     #   enabled = true;
     # };
     # # === FRIEND USERS (Limited Access) ===
-    # "friend-m" = {
-    #   ip = "10.0.100.20";
-    #   group = "friends";
-    #   publicKeySecret = "alex_wg_public_key"; # SOPS secret name
-    #   allowedIPs = "192.168.1.100/28";
-    #   description = "Alex - friend access to limited services";
-    #   enabled = true;
-    # };
+    "friend-test" = {
+      ip = "10.0.100.20";
+      group = "friends";
+      publicKeySecret = "dsh_wg_public_key"; # SOPS secret name
+      allowedIPs = "192.168.1.100/28";
+      description = "friend access to limited services";
+      enabled = true;
+    };
     # # === GUEST USERS (Temporary Access) ===
     # "guest-1" = {
     #   ip = "10.0.100.30";
@@ -56,7 +57,13 @@
         "10.42.0.0/16" # K3s pod network
         "10.43.0.0/16" # K3s service network
       ];
-      allowedPorts = [ "22" "80" "443" "3000-3010" "8080-8090" ];
+      allowedPorts = [
+        "22"
+        "80"
+        "443"
+        "3000-3010"
+        "8080-8090"
+      ];
       dns = "192.168.1.1"; # Router DNS
     };
     friends = {
@@ -71,7 +78,11 @@
         "10.0.100.0/24" # Other WireGuard users
         "192.168.1.0/28" # Core infrastructure
       ];
-      allowedPorts = [ "80" "443" "3000-3005" ]; # Web services + limited apps
+      allowedPorts = [
+        "80"
+        "443"
+        "3000-3005"
+      ]; # Web services + limited apps
       dns = "192.168.1.1"; # Router DNS only
     };
     guests = {
@@ -83,7 +94,10 @@
         "10.43.0.0/16"
         "10.0.100.0/24" # Other WireGuard users
       ];
-      allowedPorts = [ "80" "443" ]; # Web only
+      allowedPorts = [
+        "80"
+        "443"
+      ]; # Web only
       dns = "1.1.1.1"; # External DNS only
     };
   };
