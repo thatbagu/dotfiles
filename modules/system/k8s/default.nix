@@ -117,7 +117,7 @@ let
     {
       name = "apps";
       charts = [ "signal-proxy" ];
-      dependsOn = [ "networking-services" ];
+      dependsOn = [ "networking-services" "external-access" ];
       waitFor = {
         signal-proxy = {
           kind = "deployment";
