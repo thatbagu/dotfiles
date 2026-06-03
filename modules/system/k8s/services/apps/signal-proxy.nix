@@ -1,23 +1,6 @@
 { pkgs, inputs, lib, vars }:
 
 let
-  certificateResource = {
-    apiVersion = "cert-manager.io/v1";
-    kind = "Certificate";
-    metadata = {
-      name = "signal-proxy-tls";
-      namespace = vars.namespaces.signalProxy;
-    };
-    spec = {
-      secretName = "signal-proxy-tls";
-      issuerRef = {
-        name = "letsencrypt-prod";
-        kind = "ClusterIssuer";
-      };
-      dnsNames = [ "signal.${vars.domain}" ];
-    };
-  };
-
   configMapResource = {
     apiVersion = "v1";
     kind = "ConfigMap";
@@ -26,31 +9,18 @@ let
       namespace = vars.namespaces.signalProxy;
     };
     data."nginx.conf" = ''
-      events { worker_connections 1024; }
+      events {}
 
-      http {
-        resolver 1.1.1.1 valid=300s;
-        resolver_timeout 5s;
+      stream {
+        upstream textsecure {
+          server textsecure-service.whispersystems.org:443;
+        }
 
         server {
-          listen 443 ssl;
-
-          ssl_certificate     /etc/nginx/ssl/tls.crt;
-          ssl_certificate_key /etc/nginx/ssl/tls.key;
-          ssl_protocols       TLSv1.2 TLSv1.3;
-          ssl_ciphers         HIGH:!aNULL:!MD5;
-
-          location / {
-            set $upstream textsecure-service.whispersystems.org;
-            proxy_pass https://$upstream;
-            proxy_ssl_server_name on;
-            proxy_set_header Host textsecure-service.whispersystems.org;
-            proxy_http_version 1.1;
-            proxy_set_header Connection "";
-            proxy_read_timeout 3600;
-            proxy_send_timeout 3600;
-            proxy_buffering off;
-          }
+          listen 443;
+          proxy_pass textsecure;
+          proxy_connect_timeout 10s;
+          proxy_timeout 600s;
         }
       }
     '';
@@ -73,37 +43,24 @@ let
             name = "signal-proxy";
             image = "nginx:stable-alpine";
             ports = [{
-              name = "https";
+              name = "tcp";
               containerPort = 443;
               protocol = "TCP";
             }];
-            volumeMounts = [
-              {
-                name = "config";
-                mountPath = "/etc/nginx/nginx.conf";
-                subPath = "nginx.conf";
-              }
-              {
-                name = "tls";
-                mountPath = "/etc/nginx/ssl";
-                readOnly = true;
-              }
-            ];
+            volumeMounts = [{
+              name = "config";
+              mountPath = "/etc/nginx/nginx.conf";
+              subPath = "nginx.conf";
+            }];
             resources = {
-              requests = { cpu = "50m"; memory = "64Mi"; };
-              limits = { cpu = "200m"; memory = "128Mi"; };
+              requests = { cpu = "10m"; memory = "16Mi"; };
+              limits = { cpu = "100m"; memory = "64Mi"; };
             };
           }];
-          volumes = [
-            {
-              name = "config";
-              configMap.name = "signal-proxy-config";
-            }
-            {
-              name = "tls";
-              secret.secretName = "signal-proxy-tls";
-            }
-          ];
+          volumes = [{
+            name = "config";
+            configMap.name = "signal-proxy-config";
+          }];
         };
       };
     };
@@ -115,40 +72,19 @@ let
     metadata = {
       name = "signal-proxy";
       namespace = vars.namespaces.signalProxy;
-    };
-    spec = {
-      selector.app = "signal-proxy";
-      ports = [{
-        name = "https";
-        port = 443;
-        targetPort = 443;
-        protocol = "TCP";
-      }];
-    };
-  };
-
-  ingressResource = {
-    apiVersion = "networking.k8s.io/v1";
-    kind = "Ingress";
-    metadata = {
-      name = "signal-proxy";
-      namespace = vars.namespaces.signalProxy;
       annotations = {
-        "nginx.ingress.kubernetes.io/ssl-passthrough" = "true";
+        "metallb.universe.tf/allow-shared-ip" = "signal-proxy-svc";
       };
     };
     spec = {
-      ingressClassName = "nginx";
-      rules = [{
-        host = "signal.${vars.domain}";
-        http.paths = [{
-          path = "/";
-          pathType = "Prefix";
-          backend.service = {
-            name = "signal-proxy";
-            port.number = 443;
-          };
-        }];
+      type = "LoadBalancer";
+      loadBalancerIP = vars.ipPools.signalProxy;
+      selector.app = "signal-proxy";
+      ports = [{
+        name = "tcp";
+        port = 443;
+        targetPort = 443;
+        protocol = "TCP";
       }];
     };
   };
@@ -157,11 +93,9 @@ in {
     name = "signal-proxy";
     namespace = vars.namespaces.signalProxy;
     resources = [
-      certificateResource
       configMapResource
       deploymentResource
       serviceResource
-      ingressResource
     ];
   };
 }
