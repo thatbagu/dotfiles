@@ -8,20 +8,33 @@ let
       name = "signal-proxy-config";
       namespace = vars.namespaces.signalProxy;
     };
-    data."nginx.conf" = ''
-      events {}
+    data."haproxy.cfg" = ''
+      global
+        log stdout format raw local0 info
+        maxconn 10000
 
-      stream {
-        resolver 1.1.1.1 8.8.8.8 valid=300s;
-        resolver_timeout 10s;
+      defaults
+        mode tcp
+        log global
+        option tcplog
+        timeout connect 10s
+        timeout client 1m
+        timeout server 1m
 
-        server {
-          listen 443;
-          proxy_pass textsecure-service.whispersystems.org:443;
-          proxy_connect_timeout 30s;
-          proxy_timeout 600s;
-        }
-      }
+      resolvers dns
+        nameserver cloudflare 1.1.1.1:53
+        nameserver google 8.8.8.8:53
+        resolve_retries 3
+        timeout resolve 1s
+        timeout retry 1s
+        accepted_payload_size 8192
+
+      frontend signal_in
+        bind :443
+        default_backend textsecure
+
+      backend textsecure
+        server textsecure textsecure-service.whispersystems.org:443 resolvers dns resolve-prefer ipv4 check inter 30s
     '';
   };
 
@@ -40,7 +53,7 @@ let
         spec = {
           containers = [{
             name = "signal-proxy";
-            image = "nginx:stable-alpine";
+            image = "haproxy:2.8-alpine";
             ports = [{
               name = "tcp";
               containerPort = 443;
@@ -48,8 +61,8 @@ let
             }];
             volumeMounts = [{
               name = "config";
-              mountPath = "/etc/nginx/nginx.conf";
-              subPath = "nginx.conf";
+              mountPath = "/usr/local/etc/haproxy/haproxy.cfg";
+              subPath = "haproxy.cfg";
             }];
             resources = {
               requests = { cpu = "10m"; memory = "16Mi"; };
