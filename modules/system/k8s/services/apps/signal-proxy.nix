@@ -135,9 +135,6 @@ let
       namespace = vars.namespaces.signalProxy;
       annotations = {
         "nginx.ingress.kubernetes.io/ssl-passthrough" = "true";
-        "external-dns.alpha.kubernetes.io/hostname" = "signal.${vars.domain}";
-        "external-dns.alpha.kubernetes.io/cloudflare-proxied" = "false";
-        "external-dns.alpha.kubernetes.io/ttl" = "120";
       };
     };
     spec = {
