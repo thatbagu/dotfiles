@@ -29,6 +29,9 @@ let
       events { worker_connections 1024; }
 
       http {
+        resolver 1.1.1.1 valid=300s;
+        resolver_timeout 5s;
+
         server {
           listen 443 ssl;
 
@@ -38,7 +41,8 @@ let
           ssl_ciphers         HIGH:!aNULL:!MD5;
 
           location / {
-            proxy_pass https://textsecure-service.whispersystems.org;
+            set $upstream textsecure-service.whispersystems.org;
+            proxy_pass https://$upstream;
             proxy_ssl_server_name on;
             proxy_set_header Host textsecure-service.whispersystems.org;
             proxy_http_version 1.1;
