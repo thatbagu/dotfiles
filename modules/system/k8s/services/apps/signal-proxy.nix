@@ -9,9 +9,16 @@ let
       namespace = vars.namespaces.signalProxy;
     };
     data."nginx.conf" = ''
+      error_log /dev/stderr info;
+
       events {}
 
       stream {
+        log_format proxy '$remote_addr [$time_local] $protocol $status '
+                         '$bytes_sent $bytes_received $session_time '
+                         '"$ssl_preread_server_name"';
+        access_log /dev/stdout proxy;
+
         resolver 1.1.1.1 8.8.8.8 valid=300s;
         resolver_timeout 10s;
 
