@@ -26,6 +26,7 @@ let
       nginxExternal = "192.168.1.193";
       pihole = "192.168.1.250";
       wireguard = "192.168.1.194";
+      signalProxy = "192.168.1.195";
     };
 
     # References to make code cleaner

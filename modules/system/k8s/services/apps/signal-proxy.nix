@@ -80,17 +80,16 @@ let
       name = "signal-proxy";
       namespace = vars.namespaces.signalProxy;
       annotations = {
-        # Share the nginx IP — same key, different port (8443 vs 443/80)
-        "metallb.universe.tf/allow-shared-ip" = "nginx-svc";
+        "metallb.io/address-pool" = "signal-proxy-pool";
       };
     };
     spec = {
       type = "LoadBalancer";
-      loadBalancerIP = vars.ipPools.nginxExternal;
+      loadBalancerIP = vars.ipPools.signalProxy;
       selector.app = "signal-proxy";
       ports = [{
         name = "tcp";
-        port = 8443;
+        port = 443;
         targetPort = 443;
         protocol = "TCP";
       }];
