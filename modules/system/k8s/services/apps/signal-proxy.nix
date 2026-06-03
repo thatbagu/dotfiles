@@ -34,7 +34,7 @@ let
         default_backend textsecure
 
       backend textsecure
-        server textsecure textsecure-service.whispersystems.org:443 resolvers dns resolve-prefer ipv4 check inter 30s
+        server textsecure chat.signal.org:443 resolvers dns resolve-prefer ipv4 check inter 30s
     '';
   };
 
