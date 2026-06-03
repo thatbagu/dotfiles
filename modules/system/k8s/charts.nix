@@ -17,6 +17,7 @@ let
       longhorn = "longhorn-system";
       monitoring = "monitoring-system";
       wireguard = "wireguard-system";
+      signalProxy = "signal-proxy";
     };
 
     # IP address pools
@@ -74,12 +75,17 @@ let
     };
   };
 
+  appServices = {
+    signalProxy = import ./services/apps/signal-proxy.nix { inherit pkgs inputs lib vars; };
+  };
+
   # Create a list of all service attribute sets
   services = builtins.concatLists (map builtins.attrValues [
     coreServices
     dnsServices
     ingressResources
     vpnServices
+    appServices
   ]);
 
   # Combine them all with a single fold operation

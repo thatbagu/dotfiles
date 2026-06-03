@@ -114,6 +114,19 @@ let
         };
       };
     }
+    {
+      name = "apps";
+      charts = [ "signal-proxy" ];
+      dependsOn = [ "networking-services" ];
+      waitFor = {
+        signal-proxy = {
+          kind = "deployment";
+          name = "signal-proxy";
+          namespace = "signal-proxy";
+          timeout = 120;
+        };
+      };
+    }
   ];
 
   requiredNamespaces =

@@ -54,6 +54,10 @@ let
 
       ingressClass = "nginx";
 
+      extraArgs = {
+        "enable-ssl-passthrough" = "";
+      };
+
       # Disable metrics to reduce overhead
       metrics = {
         enabled = false;
