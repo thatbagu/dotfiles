@@ -8,6 +8,10 @@ let
       name = "signal-proxy-config";
       namespace = vars.namespaces.signalProxy;
     };
+    # ssl_preread reads SNI without terminating TLS, then maps any SNI to
+    # chat.signal.org:443. Signal app does cert pinning (not hostname
+    # verification), so the TLS session with Signal's servers succeeds even
+    # though the ClientHello carries our proxy hostname as SNI.
     data."nginx.conf" = ''
       error_log /dev/stderr info;
 
@@ -24,10 +28,14 @@ let
         resolver 1.1.1.1 8.8.8.8 valid=300s;
         resolver_timeout 10s;
 
+        map $ssl_preread_server_name $upstream {
+          default "chat.signal.org:443";
+        }
+
         server {
           listen 443;
           ssl_preread on;
-          proxy_pass $ssl_preread_server_name:443;
+          proxy_pass $upstream;
           proxy_connect_timeout 30s;
           proxy_timeout 600s;
         }
@@ -75,25 +83,50 @@ let
     };
   };
 
+  # ClusterIP — external access goes through nginx ingress ssl-passthrough
   serviceResource = {
     apiVersion = "v1";
     kind = "Service";
     metadata = {
       name = "signal-proxy";
       namespace = vars.namespaces.signalProxy;
-      annotations = {
-        "metallb.io/address-pool" = "signal-proxy-pool";
-      };
     };
     spec = {
-      type = "LoadBalancer";
-      loadBalancerIP = vars.ipPools.signalProxy;
+      type = "ClusterIP";
       selector.app = "signal-proxy";
       ports = [{
         name = "tcp";
         port = 443;
         targetPort = 443;
         protocol = "TCP";
+      }];
+    };
+  };
+
+  # nginx ingress passes raw TLS stream to signal-proxy based on SNI.
+  # No TLS termination here — signal-proxy handles the forwarding.
+  ingressResource = {
+    apiVersion = "networking.k8s.io/v1";
+    kind = "Ingress";
+    metadata = {
+      name = "signal-proxy";
+      namespace = vars.namespaces.signalProxy;
+      annotations = {
+        "nginx.ingress.kubernetes.io/ssl-passthrough" = "true";
+      };
+    };
+    spec = {
+      ingressClassName = "nginx";
+      rules = [{
+        host = "signal.${vars.domain}";
+        http.paths = [{
+          path = "/";
+          pathType = "Prefix";
+          backend.service = {
+            name = "signal-proxy";
+            port.number = 443;
+          };
+        }];
       }];
     };
   };
@@ -105,6 +138,7 @@ in {
       configMapResource
       deploymentResource
       serviceResource
+      ingressResource
     ];
   };
 }
