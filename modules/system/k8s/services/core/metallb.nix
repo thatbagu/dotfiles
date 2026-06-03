@@ -20,7 +20,7 @@ let
     };
   };
 
-  # Main pool covering the full /26
+  # Main pool — full /26 minus the signal-proxy IP which has its own pool
   poolConfig = {
     apiVersion = "metallb.io/v1beta1";
     kind = "IPAddressPool";
@@ -28,7 +28,7 @@ let
       name = "pool";
       namespace = vars.namespaces.metallb;
     };
-    spec = { addresses = [ vars.ipPools.metallb ]; };
+    spec = { addresses = vars.ipPools.metallbMain; };
   };
 
   # Dedicated pool for signal-proxy so it gets its own L2Advertisement

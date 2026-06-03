@@ -23,6 +23,11 @@ let
     # IP address pools
     ipPools = {
       metallb = "192.168.1.192/26";
+      # Main pool ranges exclude signalProxy which has its own pool
+      metallbMain = [
+        "192.168.1.192-192.168.1.194"
+        "192.168.1.196-192.168.1.255"
+      ];
       nginxExternal = "192.168.1.193";
       pihole = "192.168.1.250";
       wireguard = "192.168.1.194";
