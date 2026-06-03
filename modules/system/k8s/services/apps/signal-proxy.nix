@@ -11,7 +11,9 @@ let
     data."nginx.conf" = ''
       error_log /dev/stderr info;
 
-      events {}
+      events {
+        worker_connections 4096;
+      }
 
       stream {
         log_format proxy '$remote_addr [$time_local] $protocol $status '
