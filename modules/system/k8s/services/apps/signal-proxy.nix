@@ -12,14 +12,13 @@ let
       events {}
 
       stream {
-        upstream textsecure {
-          server textsecure-service.whispersystems.org:443;
-        }
+        resolver 1.1.1.1 8.8.8.8 valid=300s;
+        resolver_timeout 10s;
 
         server {
           listen 443;
-          proxy_pass textsecure;
-          proxy_connect_timeout 10s;
+          proxy_pass textsecure-service.whispersystems.org:443;
+          proxy_connect_timeout 30s;
           proxy_timeout 600s;
         }
       }
