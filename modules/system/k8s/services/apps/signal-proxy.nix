@@ -113,10 +113,6 @@ let
       namespace = vars.namespaces.signalProxy;
       annotations = {
         "nginx.ingress.kubernetes.io/ssl-passthrough" = "true";
-        # DDNS already manages signal.egor.house → public IP in Cloudflare.
-        # Excluding here prevents ExternalDNS-cloudflare from overwriting it
-        # with the internal nginx LAN IP (192.168.1.193).
-        "external-dns.alpha.kubernetes.io/exclude" = "true";
       };
     };
     spec = {
