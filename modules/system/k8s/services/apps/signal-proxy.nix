@@ -1,6 +1,26 @@
 { pkgs, inputs, lib, vars }:
 
 let
+  # cert-manager issues a Let's Encrypt cert for signal.egor.house via DNS-01.
+  # Signal app verifies this cert normally (CA chain), not via pinning —
+  # pinning only applies to Signal's own servers, not user-configured proxies.
+  certificateResource = {
+    apiVersion = "cert-manager.io/v1";
+    kind = "Certificate";
+    metadata = {
+      name = "signal-proxy-tls";
+      namespace = vars.namespaces.signalProxy;
+    };
+    spec = {
+      dnsNames = [ "signal.${vars.domain}" ];
+      secretName = "signal-proxy-tls";
+      issuerRef = {
+        kind = "ClusterIssuer";
+        name = vars.tls.defaultIssuer;
+      };
+    };
+  };
+
   configMapResource = {
     apiVersion = "v1";
     kind = "ConfigMap";
@@ -8,10 +28,9 @@ let
       name = "signal-proxy-config";
       namespace = vars.namespaces.signalProxy;
     };
-    # ssl_preread reads SNI without terminating TLS, then maps any SNI to
-    # chat.signal.org:443. Signal app does cert pinning (not hostname
-    # verification), so the TLS session with Signal's servers succeeds even
-    # though the ClientHello carries our proxy hostname as SNI.
+    # Terminates TLS from Signal app (presents signal.egor.house cert).
+    # Re-encrypts upstream with SNI=chat.signal.org so Signal's server
+    # returns the correct pinned certificate for its own domain.
     data."nginx.conf" = ''
       error_log /dev/stderr info;
 
@@ -21,21 +40,25 @@ let
 
       stream {
         log_format proxy '$remote_addr [$time_local] $protocol $status '
-                         '$bytes_sent $bytes_received $session_time '
-                         '"$ssl_preread_server_name"';
+                         '$bytes_sent $bytes_received $session_time';
         access_log /dev/stdout proxy;
 
         resolver 1.1.1.1 8.8.8.8 valid=300s;
         resolver_timeout 10s;
 
-        map $ssl_preread_server_name $upstream {
-          default "chat.signal.org:443";
-        }
-
         server {
-          listen 443;
-          ssl_preread on;
+          listen 443 ssl;
+          ssl_certificate /etc/ssl/signal/tls.crt;
+          ssl_certificate_key /etc/ssl/signal/tls.key;
+          ssl_protocols TLSv1.2 TLSv1.3;
+
+          set $upstream "chat.signal.org:443";
           proxy_pass $upstream;
+          proxy_ssl on;
+          proxy_ssl_server_name on;
+          proxy_ssl_name "chat.signal.org";
+          proxy_ssl_verify off;
+
           proxy_connect_timeout 30s;
           proxy_timeout 600s;
         }
@@ -64,20 +87,27 @@ let
               containerPort = 443;
               protocol = "TCP";
             }];
-            volumeMounts = [{
-              name = "config";
-              mountPath = "/etc/nginx/nginx.conf";
-              subPath = "nginx.conf";
-            }];
+            volumeMounts = [
+              {
+                name = "config";
+                mountPath = "/etc/nginx/nginx.conf";
+                subPath = "nginx.conf";
+              }
+              {
+                name = "tls";
+                mountPath = "/etc/ssl/signal";
+                readOnly = true;
+              }
+            ];
             resources = {
               requests = { cpu = "10m"; memory = "16Mi"; };
               limits = { cpu = "100m"; memory = "64Mi"; };
             };
           }];
-          volumes = [{
-            name = "config";
-            configMap.name = "signal-proxy-config";
-          }];
+          volumes = [
+            { name = "config"; configMap.name = "signal-proxy-config"; }
+            { name = "tls"; secret.secretName = "signal-proxy-tls"; }
+          ];
         };
       };
     };
@@ -135,6 +165,7 @@ in {
     name = "signal-proxy";
     namespace = vars.namespaces.signalProxy;
     resources = [
+      certificateResource
       configMapResource
       deploymentResource
       serviceResource
