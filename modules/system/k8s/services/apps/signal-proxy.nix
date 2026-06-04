@@ -54,10 +54,6 @@ let
 
           set $upstream "chat.signal.org:443";
           proxy_pass $upstream;
-          proxy_ssl on;
-          proxy_ssl_server_name on;
-          proxy_ssl_name "chat.signal.org";
-          proxy_ssl_verify off;
 
           proxy_connect_timeout 30s;
           proxy_timeout 600s;
