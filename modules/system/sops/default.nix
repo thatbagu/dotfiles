@@ -79,6 +79,20 @@ in
           mode = "0600";
         };
 
+        # Nextcloud secrets
+        nextcloud_admin_password = {
+          owner = "root";
+          mode = "0644";
+        };
+        nextcloud_db_password = {
+          owner = "root";
+          mode = "0644";
+        };
+        nextcloud_redis_password = {
+          owner = "root";
+          mode = "0644";
+        };
+
         user_password = {
           neededForUsers = true;
         };

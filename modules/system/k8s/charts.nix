@@ -18,6 +18,7 @@ let
       monitoring = "monitoring-system";
       wireguard = "wireguard-system";
       signalProxy = "signal-proxy";
+      nextcloud = "nextcloud";
     };
 
     # IP address pools
@@ -34,7 +35,7 @@ let
     # Version control for images
     versions = { pihole = "2025.11.1"; };
 
-    # Common configuration 
+    # Common configuration
     defaultReplicas = 1;
 
     # TLS configuration
@@ -77,6 +78,7 @@ let
 
   appServices = {
     signalProxy = import ./services/apps/signal-proxy.nix { inherit pkgs inputs lib vars; };
+    nextcloud = import ./services/apps/nextcloud.nix { inherit pkgs inputs lib vars; };
   };
 
   # Create a list of all service attribute sets

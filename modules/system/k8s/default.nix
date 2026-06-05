@@ -116,14 +116,20 @@ let
     }
     {
       name = "apps";
-      charts = [ "signal-proxy" ];
-      dependsOn = [ "networking-services" "external-access" ];
+      charts = [ "signal-proxy" "nextcloud" ];
+      dependsOn = [ "core-config" "networking-services" "external-access" ];
       waitFor = {
         signal-proxy = {
           kind = "deployment";
           name = "signal-proxy";
           namespace = "signal-proxy";
           timeout = 120;
+        };
+        nextcloud = {
+          kind = "deployment";
+          name = "nextcloud";
+          namespace = "nextcloud";
+          timeout = 300;
         };
       };
     }
