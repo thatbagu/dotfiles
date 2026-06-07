@@ -42,9 +42,8 @@ let
         "hsts" = "true";
         "hsts-include-subdomains" = "true";
         "hsts-max-age" = "31536000";
+        "annotations-risk-level" = "Critical";
       };
-
-      allowSnippetAnnotations = true;
 
       ingressClassResource = {
         name = "nginx";
