@@ -1,5 +1,17 @@
 { pkgs, inputs, lib, vars }:
 
+let
+  usersConfig = import ../vpn/users.nix { config = {}; inherit lib; };
+  ncUsers = lib.filterAttrs (_: u: u.enabled && u ? nextcloudUser) usersConfig.wireguardUsers;
+
+  ncConfigSnippet = ''
+    set $nc_user "";
+    ${lib.concatStringsSep "\n    " (lib.mapAttrsToList (_: u:
+      ''if ($remote_addr = "${u.ip}") { set $nc_user "${u.nextcloudUser}"; }''
+    ) ncUsers)}
+    proxy_set_header X-Remote-User $nc_user;
+  '';
+in
 {
   nextcloud = lib.mkChart {
     name = "nextcloud";
@@ -79,6 +91,7 @@
           "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600";
           "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600";
           "cert-manager.io/cluster-issuer" = vars.tls.defaultIssuer;
+          "nginx.ingress.kubernetes.io/configuration-snippet" = ncConfigSnippet;
         };
         hosts = [{
           host = "nextcloud.${vars.domain}";

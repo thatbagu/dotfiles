@@ -5,6 +5,8 @@ let
   cfg = config.modules.k8s;
   charts = import ./charts.nix { inherit pkgs inputs config; };
 
+  nextcloudSsoScript = import ./scripts/nextcloud-sso.nix { inherit pkgs; };
+
   # Filter charts to get only secret references
   secretRefs = filterAttrs (_: chart: chart.isSecret) charts;
 
@@ -326,6 +328,8 @@ in {
 
           # Deploy each group in sequence
           ${concatMapStringsSep "\n\n" generateDeployScript deploymentGroups}
+
+          ${nextcloudSsoScript}/bin/nextcloud-sso
 
           echo "All deployments completed successfully!"
         ''}";

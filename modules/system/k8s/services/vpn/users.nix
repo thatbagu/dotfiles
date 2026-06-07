@@ -5,6 +5,7 @@
     # === ADMIN USERS (Full Access) ===
     "egor-main" = {
       ip = "10.0.100.2";
+      nextcloudUser = "admin";
       group = "admin";
       publicKeySecret = "egor_main_wg_public_key";
       allowedIPs = "0.0.0.0/0";
