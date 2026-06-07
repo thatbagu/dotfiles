@@ -42,6 +42,7 @@ let
         "hsts" = "true";
         "hsts-include-subdomains" = "true";
         "hsts-max-age" = "31536000";
+        "allow-snippet-annotations" = "true";
       };
 
       ingressClassResource = {
