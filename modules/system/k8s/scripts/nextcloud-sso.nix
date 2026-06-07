@@ -23,13 +23,15 @@ pkgs.writeShellApplication {
 
     echo "Enabling user_saml for VPN header auth..."
     kubectl exec -n nextcloud deployment/nextcloud -- php /var/www/html/occ app:enable user_saml
-    kubectl exec -n nextcloud deployment/nextcloud -- php /var/www/html/occ saml:config:create
+
+    # user_saml v8+ stores type as an app config key, not a per-provider SAML config.
+    # HTTP_X_REMOTE_USER is how PHP exposes the X-Remote-User HTTP header.
     kubectl exec -n nextcloud deployment/nextcloud -- \
-      php /var/www/html/occ saml:config:set 1 --type=environment-variable
+      php /var/www/html/occ config:app:set user_saml type --value=environment-variable
     kubectl exec -n nextcloud deployment/nextcloud -- \
-      php /var/www/html/occ saml:config:set 1 --general-uid_mapping=HTTP_X_REMOTE_USER
+      php /var/www/html/occ config:app:set user_saml general-uid_mapping --value=HTTP_X_REMOTE_USER
     kubectl exec -n nextcloud deployment/nextcloud -- \
-      php /var/www/html/occ saml:config:set 1 --general-require_provisioned_account=1
+      php /var/www/html/occ config:app:set user_saml general-require_provisioned_account --value=1
 
     echo "Nextcloud VPN SSO configured"
   '';
