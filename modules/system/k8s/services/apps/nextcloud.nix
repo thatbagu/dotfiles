@@ -68,7 +68,7 @@
       persistence = {
         enabled = true;
         storageClass = "longhorn";
-        size = "500Gi";
+        size = "100Gi";
       };
 
       ingress = {
