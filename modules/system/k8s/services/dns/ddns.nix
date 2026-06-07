@@ -67,7 +67,6 @@ let
 
             update_record "vpn.${vars.domain}" false
             update_record "signal.${vars.domain}" false
-            update_record "nextcloud.${vars.domain}" true
           ''];
           volumeMounts = [{
             name = "cf-token";
