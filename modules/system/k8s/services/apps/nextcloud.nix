@@ -1,12 +1,13 @@
 { pkgs, inputs, lib, vars }:
 
 let
-  usersConfig = import ../vpn/users.nix { config = {}; inherit lib; };
-  ncUsers = lib.filterAttrs (_: u: u.enabled && u ? nextcloudUser) usersConfig.wireguardUsers;
+  plib = pkgs.lib;
+  usersConfig = import ../vpn/users.nix { config = {}; lib = plib; };
+  ncUsers = plib.filterAttrs (_: u: u.enabled && u ? nextcloudUser) usersConfig.wireguardUsers;
 
   ncConfigSnippet = ''
     set $nc_user "";
-    ${lib.concatStringsSep "\n    " (lib.mapAttrsToList (_: u:
+    ${plib.concatStringsSep "\n    " (plib.mapAttrsToList (_: u:
       ''if ($remote_addr = "${u.ip}") { set $nc_user "${u.nextcloudUser}"; }''
     ) ncUsers)}
     proxy_set_header X-Remote-User $nc_user;
