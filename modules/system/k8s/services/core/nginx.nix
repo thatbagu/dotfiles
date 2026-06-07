@@ -42,6 +42,7 @@ let
         "hsts" = "true";
         "hsts-include-subdomains" = "true";
         "hsts-max-age" = "31536000";
+        "allow-snippet-annotations" = "true";
         "annotations-risk-level" = "Critical";
       };
 
@@ -57,7 +58,6 @@ let
 
       extraArgs = {
         "enable-ssl-passthrough" = "";
-        "allow-snippet-annotations" = "true";
       };
 
       # Disable metrics to reduce overhead
