@@ -78,11 +78,15 @@
           "nginx.ingress.kubernetes.io/proxy-body-size" = "0";
           "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600";
           "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600";
-          "external-dns.alpha.kubernetes.io/hostname" = "nextcloud.${vars.domain}";
+          "cert-manager.io/cluster-issuer" = vars.tls.defaultIssuer;
         };
         hosts = [{
           host = "nextcloud.${vars.domain}";
           paths = [{ path = "/"; pathType = "Prefix"; }];
+        }];
+        tls = [{
+          secretName = "nextcloud-tls";
+          hosts = [ "nextcloud.${vars.domain}" ];
         }];
       };
     };

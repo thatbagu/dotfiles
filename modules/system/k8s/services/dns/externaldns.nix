@@ -85,10 +85,13 @@ let
         };
       };
     }];
-    # signal.egor.house is managed by the DDNS CronJob (points to public IP).
-    # Excluding it here prevents ExternalDNS from overwriting with the nginx
+    # These domains are managed by the DDNS CronJob (point to public IP).
+    # Excluding them prevents ExternalDNS from overwriting with the nginx
     # LAN IP (192.168.1.193), which is unreachable from the internet.
-    extraArgs = [ "--exclude-domains=signal.${vars.domain}" ];
+    extraArgs = [
+      "--exclude-domains=signal.${vars.domain}"
+      "--exclude-domains=nextcloud.${vars.domain}"
+    ];
   };
 
 in {
