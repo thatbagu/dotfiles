@@ -57,6 +57,7 @@ let
 
       extraArgs = {
         "enable-ssl-passthrough" = "";
+        "allow-snippet-annotations" = "true";
       };
 
       # Disable metrics to reduce overhead
