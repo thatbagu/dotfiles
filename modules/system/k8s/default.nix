@@ -184,13 +184,21 @@ let
       (resourceName: resource: ''
         echo "Waiting for ${resource.kind} ${resource.name} in namespace ${resource.namespace} to be ready..."
 
-        kubectl wait --for=condition=Available --timeout=${
-          toString (resource.timeout or 120)
-        }s ${resource.kind}/${resource.name} -n ${resource.namespace} || {
-          echo "Timed out waiting for ${resource.kind}/${resource.name} to be ready"
-          # Continue anyway but warn
-          echo "WARNING: Resource not ready, but continuing..."
-        }
+        ${if (resource.kind == "deployment" || resource.kind == "Deployment") then ''
+          kubectl rollout status deployment/${resource.name} -n ${resource.namespace} --timeout=${
+            toString (resource.timeout or 120)
+          }s || {
+            echo "Rollout of deployment/${resource.name} did not complete in time"
+            echo "WARNING: Resource not ready, but continuing..."
+          }
+        '' else ''
+          kubectl wait --for=condition=Available --timeout=${
+            toString (resource.timeout or 120)
+          }s ${resource.kind}/${resource.name} -n ${resource.namespace} || {
+            echo "Timed out waiting for ${resource.kind}/${resource.name} to be ready"
+            echo "WARNING: Resource not ready, but continuing..."
+          }
+        ''}
       '') group.waitFor))}
 
     # Mark this group as done
