@@ -102,11 +102,12 @@ let
       name = "vpn-services";
       charts = [
         "wireguard-config"
+        "wireguard-caddy-cert"
         "wireguard-storage"
         "wireguard-deployment"
         "wireguard-service"
       ];
-      dependsOn = [ "core-config" ];
+      dependsOn = [ "core-config" "external-access" ];
       waitFor = {
         wireguard = {
           kind = "deployment";

@@ -94,6 +94,24 @@ let
     } // (mapAttrs (name: user: generateClientConfig name user) enabledUsers);
   };
 
+  # cert-manager Certificate for the caddy sidecar (can't cross-namespace mount)
+  caddyCertResource = {
+    apiVersion = "cert-manager.io/v1";
+    kind = "Certificate";
+    metadata = {
+      name = "nextcloud-tls";
+      namespace = vars.namespaces.wireguard;
+    };
+    spec = {
+      secretName = "nextcloud-tls";
+      issuerRef = {
+        name = vars.tls.defaultIssuer;
+        kind = "ClusterIssuer";
+      };
+      dnsNames = [ "nextcloud.${vars.domain}" ];
+    };
+  };
+
   pvcResource = {
     apiVersion = "v1";
     kind = "PersistentVolumeClaim";
@@ -391,6 +409,13 @@ in {
     name = "wireguard-config";
     namespace = vars.namespaces.wireguard;
     resources = [ configMapResource ];
+  };
+
+  # cert-manager Certificate for caddy TLS in wireguard namespace
+  wireguard-caddy-cert = lib.mkRawManifest {
+    name = "wireguard-caddy-cert";
+    namespace = vars.namespaces.wireguard;
+    resources = [ caddyCertResource ];
   };
 
   # WireGuard storage
