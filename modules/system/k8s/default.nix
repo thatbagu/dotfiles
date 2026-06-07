@@ -312,9 +312,13 @@ in {
               config.sops.secrets.${secretRef.sopsSecretName}.path
             })
 
-            # Create a JSON representation of the secret and apply it directly
-            # This prevents double base64 encoding of the password
-            echo -n "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"${secretRef.secretName}\",\"namespace\":\"${secretRef.namespace}\"},\"type\":\"Opaque\",\"stringData\":{\"${secretRef.secretKey}\":\"$SECRET_VALUE\"}}" | kubectl apply -f -
+            # Ensure the secret exists, then patch-merge the key in.
+            # Using patch --type=merge lets multiple mkSecretRef entries targeting
+            # the same secret each contribute their own key without clobbering others.
+            kubectl get secret "${secretRef.secretName}" -n "${secretRef.namespace}" &>/dev/null \
+              || kubectl create secret generic "${secretRef.secretName}" -n "${secretRef.namespace}"
+            kubectl patch secret "${secretRef.secretName}" -n "${secretRef.namespace}" \
+              --type=merge -p "{\"stringData\":{\"${secretRef.secretKey}\":\"$SECRET_VALUE\"}}"
           '') secretRefs)}
 
           # Give a moment for the secrets to be fully stored

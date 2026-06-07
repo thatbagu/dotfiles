@@ -88,6 +88,10 @@ in
           owner = "root";
           mode = "0644";
         };
+        nextcloud_db_username = {
+          owner = "root";
+          mode = "0644";
+        };
         nextcloud_redis_password = {
           owner = "root";
           mode = "0644";

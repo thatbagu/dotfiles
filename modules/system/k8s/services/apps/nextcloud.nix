@@ -108,6 +108,14 @@
     sopsSecretName = "nextcloud_db_password";
   };
 
+  nextcloud-db-username-secret = lib.mkSecretRef {
+    name = "nextcloud-db-username-secret";
+    namespace = vars.namespaces.nextcloud;
+    secretName = "nextcloud-db";
+    secretKey = "db-username";
+    sopsSecretName = "nextcloud_db_username";
+  };
+
   nextcloud-redis-secret = lib.mkSecretRef {
     name = "nextcloud-redis-secret";
     namespace = vars.namespaces.nextcloud;
