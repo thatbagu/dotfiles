@@ -27,9 +27,9 @@ let
     ${concatStringsSep "\n\n" (mapAttrsToList (name: user: ''
       @${builtins.replaceStrings ["-"] ["_"] name} remote_ip ${user.ip}
       handle @${builtins.replaceStrings ["-"] ["_"] name} {
-        request_header X-Remote-User "${user.nextcloudUser}"
         reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
           header_up Host nextcloud.${vars.domain}
+          header_up X-Remote-User "${user.nextcloudUser}"
         }
       }
     '') ncUsers)}
