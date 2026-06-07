@@ -11,6 +11,35 @@ let
   # Filter enabled users only
   enabledUsers = filterAttrs (_: user: user.enabled) usersConfig.wireguardUsers;
 
+  # Filter users that have a nextcloud account mapping
+  ncUsers = filterAttrs (_: u: u.enabled && u ? nextcloudUser) usersConfig.wireguardUsers;
+
+  # Caddyfile: terminates TLS on wg0 (10.0.100.1:443), injects X-Remote-User based on real VPN client IP
+  generateCaddyfile = ''
+    {
+      admin off
+      auto_https off
+    }
+
+    :443 {
+      tls /certs/tls.crt /certs/tls.key
+
+    ${concatStringsSep "\n\n" (mapAttrsToList (name: user: ''
+      @${builtins.replaceStrings ["-"] ["_"] name} remote_ip ${user.ip}
+      handle @${builtins.replaceStrings ["-"] ["_"] name} {
+        request_header X-Remote-User "${user.nextcloudUser}"
+        reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
+          header_up Host nextcloud.${vars.domain}
+        }
+      }
+    '') ncUsers)}
+
+      handle {
+        respond "VPN user not recognized" 403
+      }
+    }
+  '';
+
   # Generate WireGuard server configuration
   generateServerConfig = ''
     [Interface]
@@ -61,6 +90,7 @@ let
     };
     data = {
       "wg0.conf.template" = generateServerConfig;
+      "Caddyfile" = generateCaddyfile;
     } // (mapAttrs (name: user: generateClientConfig name user) enabledUsers);
   };
 
@@ -223,6 +253,35 @@ let
               capabilities = { add = [ "NET_ADMIN" "SYS_MODULE" ]; };
               privileged = true;
             };
+          }
+          {
+            name = "caddy";
+            image = "caddy:2-alpine";
+            args = [ "caddy" "run" "--config" "/etc/caddy/Caddyfile" "--adapter" "caddyfile" ];
+            ports = [{
+              name = "https";
+              containerPort = 443;
+              protocol = "TCP";
+            }];
+            resources = {
+              requests = { cpu = "50m"; memory = "64Mi"; };
+              limits = { cpu = "200m"; memory = "128Mi"; };
+            };
+            volumeMounts = [
+              {
+                name = "caddy-config";
+                mountPath = "/etc/caddy";
+              }
+              {
+                name = "nextcloud-tls";
+                mountPath = "/certs";
+                readOnly = true;
+              }
+              {
+                name = "caddy-data";
+                mountPath = "/data";
+              }
+            ];
           }];
           volumes = [
             {
@@ -243,6 +302,21 @@ let
                 path = "/lib/modules";
                 type = "Directory";
               };
+            }
+            {
+              name = "caddy-config";
+              configMap = {
+                name = "wireguard-config";
+                items = [{ key = "Caddyfile"; path = "Caddyfile"; }];
+              };
+            }
+            {
+              name = "nextcloud-tls";
+              secret = { secretName = "nextcloud-tls"; };
+            }
+            {
+              name = "caddy-data";
+              emptyDir = {};
             }
           ];
         };

@@ -43,6 +43,8 @@ let
       customDnsEntries = [
         # Point local domain to Pi-hole IP
         "address=/pihole.home/${vars.ipPools.pihole}"
+        # VPN-only: nextcloud resolves to WireGuard caddy proxy for header-based auto-login
+        "address=/nextcloud.${vars.domain}/10.0.100.1"
       ];
       additionalHostsEntries = [
         "${vars.ipPools.pihole} pihole.home"
