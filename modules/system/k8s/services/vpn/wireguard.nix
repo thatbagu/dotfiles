@@ -42,7 +42,7 @@ let
     [Interface]
     PrivateKey = __PASTE_${toUpper name}_PRIVATE_KEY_HERE__
     Address = ${user.ip}/32
-    DNS = 192.168.1.1
+    DNS = 192.168.1.250
 
     [Peer]
     PublicKey = __SERVER_PUBLIC_KEY__
@@ -177,7 +177,7 @@ let
               }
               {
                 name = "PEERDNS";
-                value = "192.168.1.1";
+                value = "192.168.1.250";
               }
               {
                 name = "INTERNAL_SUBNET";
