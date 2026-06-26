@@ -31,7 +31,7 @@ pkgs.writeShellApplication {
     kubectl exec -n nextcloud deployment/nextcloud -- \
       php /var/www/html/occ config:app:set user_saml general-uid_mapping --value=HTTP_X_REMOTE_USER
     kubectl exec -n nextcloud deployment/nextcloud -- \
-      php /var/www/html/occ config:app:set user_saml general-require_provisioned_account --value=1
+      php /var/www/html/occ config:app:set user_saml general-require_provisioned_account --value=0
 
     echo "Nextcloud VPN SSO configured"
   '';

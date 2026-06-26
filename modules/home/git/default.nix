@@ -9,13 +9,13 @@ in {
     programs.git = {
       enable = true;
       settings = {
-        user.name = "Jahysama";
+        user.name = "thatbagu";
         init = { defaultBranch = "main"; };
         core = { excludesfile = "$NIXOS_CONFIG_DIR/scripts/gitignore"; };
         safe = { directory = "'*'"; };
         credential = {
           helper = ''
-            !f() { echo "username=Jahysama
+            !f() { echo "username=thatbagu
             password=$(cat $GITHUB_TOKEN_PATH)
             "; }; f'';
         };

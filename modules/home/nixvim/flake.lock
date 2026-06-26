@@ -859,13 +859,13 @@
       "locked": {
         "lastModified": 1777964125,
         "narHash": "sha256-2agNlvzljTLBlmtq3SshOkbUZHs5PKMseoQR3FwpGBE=",
-        "owner": "Jahysama",
+        "owner": "thatbagu",
         "repo": "papertoy",
         "rev": "03cad9e266277d837251b3a4fa9c40b57970cb30",
         "type": "github"
       },
       "original": {
-        "owner": "Jahysama",
+        "owner": "thatbagu",
         "repo": "papertoy",
         "type": "github"
       }

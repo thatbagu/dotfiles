@@ -1,6 +1,6 @@
 { pkgs, lib, inputs, username, ... }:
 
-let gitRepoUrl = "https://github.com/Jahysama/dotfiles.git";
+let gitRepoUrl = "https://github.com/thatbagu/dotfiles.git";
 in {
   imports = [
     "${inputs.nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
