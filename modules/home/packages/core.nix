@@ -81,6 +81,7 @@ in {
       tealdeer
       age
       tree
+      vhs
     ];
   };
 }

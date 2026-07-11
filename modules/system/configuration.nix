@@ -37,15 +37,19 @@
 
   boot = {
     kernelModules = [ "btusb" "btintel" "v4l2loopback" ];
+    extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
     kernelParams = [ "usbcore.autosuspend=-1" "btusb.enable_autosuspend=0" ];
     extraModprobeConfig = ''
       # Options for Bluetooth modules
-      options btusb reset=1 
+      options btusb reset=1
       options btintel debug=1
       options btusb enable_autosuspend=0
 
       # Options for Wi-Fi to prevent interference with Bluetooth
       options iwlwifi bt_coex_active=0 swcrypto=1
+
+      # Virtual camera for sharing webcam between multiple apps
+      options v4l2loopback devices=1 video_nr=10 card_label="VCam" exclusive_caps=0
     '';
     tmp.cleanOnBoot = true;
     loader = {
@@ -75,6 +79,7 @@
   # Set up locales (timezone and keyboard layout)
   time.timeZone = "Asia/Almaty";
   i18n.defaultLocale = "en_US.UTF-8";
+  i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" "ja_JP.UTF-8/UTF-8" ];
   console = {
     font = "Lat2-Terminus16";
     keyMap = "us";
@@ -131,7 +136,7 @@
     firewall = {
       enable = true;
       allowedTCPPorts = [ 443 80 27036 27037 ];
-      allowedUDPPorts = [ 443 80 44857 27031 27036 ];
+      allowedUDPPorts = [ 443 80 44857 27031 27036 8001 ];
       allowPing = false;
     };
   };
