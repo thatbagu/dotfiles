@@ -32,6 +32,7 @@
       user = "egor";
       group = "users";
       extraPackages = with pkgs; [ docker kubectl ];
+      serviceOverrides.Environment = [ "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" ];
     };
   };
 }
