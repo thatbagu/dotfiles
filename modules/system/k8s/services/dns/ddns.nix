@@ -28,9 +28,14 @@ let
             echo "Current public IP: $CURRENT_IP"
 
             get_zone_id() {
-              curl -sf \
+              ZONE_ID=$(curl -sf \
                 "https://api.cloudflare.com/client/v4/zones?name=$1" \
-                -H "Authorization: Bearer $CF_TOKEN" | jq -r '.result[0].id'
+                -H "Authorization: Bearer $CF_TOKEN" | jq -r '.result[0].id')
+              if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "null" ]; then
+                echo "ERROR: Could not find Cloudflare zone for $1 (token may lack Zone.Read permission)" >&2
+                return 1
+              fi
+              echo "$ZONE_ID"
             }
 
             update_record() {
@@ -55,23 +60,25 @@ let
                   "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
                   -H "Authorization: Bearer $CF_TOKEN" \
                   -H "Content-Type: application/json" \
-                  -d "{\"type\":\"A\",\"name\":\"$DOMAIN\",\"content\":\"$CURRENT_IP\",\"ttl\":60,\"proxied\":$PROXIED}"
+                  -d "{\"type\":\"A\",\"name\":\"$DOMAIN\",\"content\":\"$CURRENT_IP\",\"ttl\":60,\"proxied\":$PROXIED}" \
+                  | jq -e '.success' > /dev/null || { echo "ERROR: Failed to create A record for $DOMAIN" >&2; return 1; }
               else
                 curl -sf -X PATCH \
                   "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
                   -H "Authorization: Bearer $CF_TOKEN" \
                   -H "Content-Type: application/json" \
-                  -d "{\"content\":\"$CURRENT_IP\",\"proxied\":$PROXIED,\"ttl\":60}"
+                  -d "{\"content\":\"$CURRENT_IP\",\"proxied\":$PROXIED,\"ttl\":60}" \
+                  | jq -e '.success' > /dev/null || { echo "ERROR: Failed to update A record for $DOMAIN" >&2; return 1; }
               fi
 
               echo "Updated $DOMAIN to $CURRENT_IP"
             }
 
-            ZONE_ID_EGOR=$(get_zone_id "${vars.domain}")
+            ZONE_ID_EGOR=$(get_zone_id "${vars.domain}") || exit 1
             update_record "$ZONE_ID_EGOR" "vpn.${vars.domain}" false
             update_record "$ZONE_ID_EGOR" "signal.${vars.domain}" false
 
-            ZONE_ID_MLSHIP=$(get_zone_id "mlship.dev")
+            ZONE_ID_MLSHIP=$(get_zone_id "mlship.dev") || exit 1
             update_record "$ZONE_ID_MLSHIP" "mlship.dev" true
           ''];
           volumeMounts = [{
