@@ -13,7 +13,10 @@ final: prev: {
       sourceRoot = ".";
 
       nativeBuildInputs = [ prev.autoPatchelfHook ];
-      buildInputs = [ prev.stdenv.cc.cc.lib ];
+      buildInputs = [ prev.stdenv.cc.cc.lib prev.zlib ];
+      # musl libc is only for alpine node externals (unused on glibc);
+      # lttng-ust is optional dotnet tracing support
+      autoPatchelfIgnoreMissingDeps = [ "libc.musl-x86_64.so.1" "liblttng-ust.so.0" ];
 
       dontBuild = true;
 
