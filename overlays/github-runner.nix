@@ -19,6 +19,7 @@ final: prev: {
       autoPatchelfIgnoreMissingDeps = [ "libc.musl-x86_64.so.1" "liblttng-ust.so.0" ];
 
       dontBuild = true;
+      dontStrip = true; # strip corrupts R2R native code sections in .dll files
 
       installPhase = ''
         mkdir -p $out/bin $out/externals
