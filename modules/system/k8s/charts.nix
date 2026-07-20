@@ -19,6 +19,7 @@ let
       wireguard = "wireguard-system";
       signalProxy = "signal-proxy";
       nextcloud = "nextcloud";
+      cv = "cv";
     };
 
     # IP address pools
@@ -79,6 +80,7 @@ let
   appServices = {
     signalProxy = import ./services/apps/signal-proxy.nix { inherit pkgs inputs lib vars; };
     nextcloud = import ./services/apps/nextcloud.nix { inherit pkgs inputs lib vars; };
+    cv = import ./services/apps/cv.nix { inherit pkgs inputs lib vars; };
   };
 
   # Create a list of all service attribute sets

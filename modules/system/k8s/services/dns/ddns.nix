@@ -23,18 +23,20 @@ let
           command = [ "/bin/sh" "-c" ];
           args = [ ''
             CF_TOKEN=$(cat /secrets/api-token)
-            ZONE="${vars.domain}"
 
             CURRENT_IP=$(curl -sf https://api.ipify.org)
             echo "Current public IP: $CURRENT_IP"
 
-            ZONE_ID=$(curl -sf \
-              "https://api.cloudflare.com/client/v4/zones?name=$ZONE" \
-              -H "Authorization: Bearer $CF_TOKEN" | jq -r '.result[0].id')
+            get_zone_id() {
+              curl -sf \
+                "https://api.cloudflare.com/client/v4/zones?name=$1" \
+                -H "Authorization: Bearer $CF_TOKEN" | jq -r '.result[0].id'
+            }
 
             update_record() {
-              DOMAIN="$1"
-              PROXIED="$2"
+              ZONE_ID="$1"
+              DOMAIN="$2"
+              PROXIED="$3"
 
               RECORD=$(curl -sf \
                 "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=A&name=$DOMAIN" \
@@ -65,8 +67,12 @@ let
               echo "Updated $DOMAIN to $CURRENT_IP"
             }
 
-            update_record "vpn.${vars.domain}" false
-            update_record "signal.${vars.domain}" false
+            ZONE_ID_EGOR=$(get_zone_id "${vars.domain}")
+            update_record "$ZONE_ID_EGOR" "vpn.${vars.domain}" false
+            update_record "$ZONE_ID_EGOR" "signal.${vars.domain}" false
+
+            ZONE_ID_MLSHIP=$(get_zone_id "mlship.dev")
+            update_record "$ZONE_ID_MLSHIP" "mlship.dev" true
           ''];
           volumeMounts = [{
             name = "cf-token";
