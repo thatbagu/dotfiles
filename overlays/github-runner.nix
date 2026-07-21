@@ -26,10 +26,26 @@ final: prev: {
         cp -r bin/. $out/bin/
         cp config.sh env.sh run.sh safe_sleep.sh $out/bin/
         cp -r externals/. $out/externals/
+
+        # Runner computes root as parent of bin/ and needs to write various files there,
+        # but the nix store is read-only. Symlink everything to writable locations.
         ln -s /var/log/github-runner/cv $out/_diag
         ln -s /var/lib/github-runner/cv/.runner $out/.runner
         ln -s /var/lib/github-runner/cv/.credentials $out/.credentials
         ln -s /var/lib/github-runner/cv/.credentials_rsaparams $out/.credentials_rsaparams
+        # .path is read by the runner to set PATH for step execution.
+        # The wrapper below writes the service PATH there before starting the real binary.
+        ln -s /run/github-runner/cv/.path $out/.path
+
+        # Wrap the runner binary so it captures the service PATH into .path on startup.
+        # Without this, steps get a default OS PATH that lacks nix-provided tools.
+        mv $out/bin/Runner.Listener $out/bin/Runner.Listener.real
+        cat > $out/bin/Runner.Listener << 'WRAPPER'
+        #!/bin/sh
+        printf '%s' "$PATH" > /run/github-runner/cv/.path
+        exec "$(dirname "$0")/Runner.Listener.real" "$@"
+        WRAPPER
+        chmod +x $out/bin/Runner.Listener
       '';
 
       meta.mainProgram = "Runner.Listener";
