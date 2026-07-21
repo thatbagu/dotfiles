@@ -34,7 +34,7 @@
       extraPackages = with pkgs; [
         docker
         kubectl
-        (python311.withPackages (ps: with ps; [ pillow cairosvg pyyaml markdown ]))
+        (python3.withPackages (ps: with ps; [ pillow cairosvg pyyaml markdown ]))
       ];
       serviceOverrides.Environment = [
         "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1"
