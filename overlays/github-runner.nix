@@ -26,6 +26,10 @@ final: prev: {
         cp -r bin/. $out/bin/
         cp config.sh env.sh run.sh safe_sleep.sh $out/bin/
         cp -r externals/. $out/externals/
+        ln -s /var/log/github-runner/cv $out/_diag
+        ln -s /var/lib/github-runner/cv/.runner $out/.runner
+        ln -s /var/lib/github-runner/cv/.credentials $out/.credentials
+        ln -s /var/lib/github-runner/cv/.credentials_rsaparams $out/.credentials_rsaparams
       '';
 
       meta.mainProgram = "Runner.Listener";

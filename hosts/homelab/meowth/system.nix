@@ -32,7 +32,10 @@
       user = "egor";
       group = "users";
       extraPackages = with pkgs; [ docker kubectl ];
-      serviceOverrides.Environment = [ "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" ];
+      serviceOverrides.Environment = [
+        "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1"
+        "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
+      ];
     };
   };
 }
