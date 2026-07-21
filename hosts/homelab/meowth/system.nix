@@ -31,7 +31,11 @@
       extraLabels = [ "homelab" "meowth" ];
       user = "egor";
       group = "users";
-      extraPackages = with pkgs; [ docker kubectl ];
+      extraPackages = with pkgs; [
+        docker
+        kubectl
+        (python311.withPackages (ps: with ps; [ pillow cairosvg pyyaml markdown ]))
+      ];
       serviceOverrides.Environment = [
         "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1"
         "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
