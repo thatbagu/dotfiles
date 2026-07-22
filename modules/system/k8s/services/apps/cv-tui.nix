@@ -1,12 +1,5 @@
 { pkgs, inputs, lib, vars }:
 
-# SSH TUI for mlship.dev — connect with: ssh mlship.dev (port 22 via nginx TCP proxy)
-#
-# One-time setup before first deploy:
-#   ssh-keygen -t ed25519 -f cv_ssh_host_key -N ""
-#   sops modules/system/sops/secrets.yaml   # add cv_tui_ssh_host_key: | <private key>
-#   colmena apply
-
 let
   namespace = vars.namespaces.cv;
 
@@ -23,6 +16,7 @@ let
       template = {
         metadata.labels.app = "cv-tui";
         spec = {
+          nodeName = "meowth";
           containers = [{
             name = "cv-tui";
             image = "docker.io/thatbagu/cv-tui:latest";
@@ -34,7 +28,8 @@ let
             }];
             volumeMounts = [{
               name = "ssh-host-key";
-              mountPath = "/app/.ssh";
+              mountPath = "/app/.ssh/cv_ssh_host_key";
+              subPath = "cv_ssh_host_key";
               readOnly = true;
             }];
             resources = {
@@ -44,13 +39,9 @@ let
           }];
           volumes = [{
             name = "ssh-host-key";
-            secret = {
-              secretName  = "cv-tui-ssh-host-key";
-              defaultMode = 384; # 0600
-              items = [{
-                key  = "host-key";
-                path = "cv_ssh_host_key";
-              }];
+            hostPath = {
+              path = "/run/secrets/cv_ssh_host_key";
+              type = "File";
             };
           }];
         };
@@ -81,13 +72,5 @@ in {
     name      = "cv-tui";
     inherit namespace;
     resources = [ deploymentResource serviceResource ];
-  };
-
-  cv-tui-ssh-host-key = lib.mkSecretRef {
-    name           = "cv-tui-ssh-host-key";
-    inherit namespace;
-    secretName     = "cv-tui-ssh-host-key";
-    secretKey      = "host-key";
-    sopsSecretName = "cv_tui_ssh_host_key";
   };
 }

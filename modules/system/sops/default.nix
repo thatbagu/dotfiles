@@ -111,8 +111,8 @@ in
           owner = "${username}";
         };
 
-        # SSH TUI wish server host key — generate with: ssh-keygen -t ed25519 -f cv_ssh_host_key -N ""
         cv_tui_ssh_host_key = {
+          path  = "/run/secrets/cv_ssh_host_key";
           owner = "root";
           mode  = "0600";
         };

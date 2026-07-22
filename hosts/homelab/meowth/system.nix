@@ -34,6 +34,7 @@
       extraPackages = with pkgs; [
         docker
         kubectl
+        go
         (python3.withPackages (ps: with ps; [ pillow cairosvg pyyaml markdown ]))
       ];
       serviceOverrides.Environment = [
