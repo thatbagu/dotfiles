@@ -4,6 +4,10 @@ with lib;
 
 let
   nginxValues = {
+    # Top-level TCP stream proxy — nginx-ingress watches this ConfigMap and forwards
+    # raw TCP on port 22 to cv-tui:2222, making `ssh mlship.dev` work.
+    tcp = { "22" = "cv/cv-tui:2222"; };
+
     controller = {
       service = {
         type = "LoadBalancer";
@@ -71,15 +75,7 @@ let
     };
   };
 
-  # Top-level TCP stream proxy — nginx-ingress watches this and opens port 22
-  # on the controller pod, forwarding raw TCP to cv-tui:2222 in the cv namespace.
-  # This is what makes `ssh mlship.dev` work without specifying a port.
-  tcp = {
-    "22" = "cv/cv-tui:2222";
-  };
-
 in {
-  # Single consolidated NGINX Ingress Controller
   ingress-nginx = mkChart {
     name = "ingress-nginx";
     chart = nixhelm.kubernetes-ingress-nginx.ingress-nginx;
