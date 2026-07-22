@@ -28,6 +28,7 @@ let
       nginxExternal = "192.168.1.193";
       pihole = "192.168.1.250";
       wireguard = "192.168.1.194";
+      sslh = "192.168.1.195";
     };
 
     # References to make code cleaner
@@ -82,6 +83,7 @@ let
     nextcloud   = import ./services/apps/nextcloud.nix    { inherit pkgs inputs lib vars; };
     cv          = import ./services/apps/cv.nix           { inherit pkgs inputs lib vars; };
     cvTui       = import ./services/apps/cv-tui.nix       { inherit pkgs inputs lib vars; };
+    sslh        = import ./services/apps/sslh.nix         { inherit pkgs inputs lib vars; };
   };
 
   # Create a list of all service attribute sets
