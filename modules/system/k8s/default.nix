@@ -340,8 +340,9 @@ in {
             # the same secret each contribute their own key without clobbering others.
             kubectl get secret "${secretRef.secretName}" -n "${secretRef.namespace}" &>/dev/null \
               || kubectl create secret generic "${secretRef.secretName}" -n "${secretRef.namespace}"
+            SECRET_B64=$(printf '%s' "$SECRET_VALUE" | base64 -w0)
             kubectl patch secret "${secretRef.secretName}" -n "${secretRef.namespace}" \
-              --type=merge -p "{\"stringData\":{\"${secretRef.secretKey}\":\"$SECRET_VALUE\"}}"
+              --type=merge -p "{\"data\":{\"${secretRef.secretKey}\":\"$SECRET_B64\"}}"
           '') secretRefs)}
 
           # Give a moment for the secrets to be fully stored
