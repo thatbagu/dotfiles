@@ -10,6 +10,9 @@ let
         loadBalancerIP = vars.ipPools.nginxExternal;
         externalTrafficPolicy = "Local";
         annotations = { "metallb.universe.tf/allow-shared-ip" = "nginx-svc"; };
+        # Port 22 exposes the SSH TUI — also forward port 22 on your router to this IP.
+        ports       = { http = 80; https = 443; "ssh-tui" = 22; };
+        targetPorts = { http = "http"; https = "https"; "ssh-tui" = 22; };
       };
 
       # Increase resources slightly since we're handling both internal and external
@@ -66,6 +69,13 @@ let
         serviceMonitor = { enabled = false; };
       };
     };
+  };
+
+  # Top-level TCP stream proxy — nginx-ingress watches this and opens port 22
+  # on the controller pod, forwarding raw TCP to cv-tui:2222 in the cv namespace.
+  # This is what makes `ssh mlship.dev` work without specifying a port.
+  tcp = {
+    "22" = "cv/cv-tui:2222";
   };
 
 in {
