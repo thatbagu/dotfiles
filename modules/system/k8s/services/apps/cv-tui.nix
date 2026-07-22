@@ -29,7 +29,6 @@ let
             volumeMounts = [{
               name = "ssh-host-key";
               mountPath = "/app/.ssh/cv_ssh_host_key";
-              subPath = "cv_ssh_host_key";
               readOnly = true;
             }];
             resources = {
