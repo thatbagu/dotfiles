@@ -14,7 +14,7 @@ let
         metadata.labels.app = "sslh";
         spec.containers = [{
           name = "sslh";
-          image = "docker.io/sslhproxy/sslh:latest";
+          image = "ghcr.io/yrutschle/sslh:latest";
           args = [
             "--foreground"
             "--listen=0.0.0.0:443"
