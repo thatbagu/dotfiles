@@ -20,6 +20,7 @@ let
             "--listen=0.0.0.0:443"
             "--ssh=cv-tui.cv.svc.cluster.local:2222"
             "--tls=ingress-nginx-controller.nginx-system.svc.cluster.local:443"
+            "--on-timeout=ssh"
           ];
           ports = [{ containerPort = 443; protocol = "TCP"; }];
           resources = {
@@ -42,7 +43,7 @@ let
     spec = {
       type = "LoadBalancer";
       loadBalancerIP = vars.ipPools.sslh;
-      externalTrafficPolicy = "Local";
+      externalTrafficPolicy = "Cluster";
       selector.app = "sslh";
       ports = [{ name = "https"; port = 443; targetPort = 443; protocol = "TCP"; }];
     };
