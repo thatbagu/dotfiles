@@ -21,6 +21,7 @@
 
     # Development
     git.enable = true;
+    git.gpgSigningKey = "0xA9B2618B04CED76F";
 
     # System
     xdg.enable = true;

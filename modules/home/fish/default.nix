@@ -8,6 +8,9 @@ in {
       enable = true;
 
       interactiveShellInit = ''
+                # Required for GPG signing in terminal
+                set -gx GPG_TTY (tty)
+
                 # Generic function to load secrets from files
                 function load_secret_from_file --argument-names var_name env_var_path
                     if test -n "$$env_var_path" -a -r "$$env_var_path"

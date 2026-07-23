@@ -111,6 +111,11 @@ in
           owner = "${username}";
         };
 
+        gpg_private_key = {
+          mode = "0400";
+          owner = "${username}";
+        };
+
         cv_tui_ssh_host_key = {
           path  = "/run/secrets/cv_ssh_host_key";
           owner = "root";
