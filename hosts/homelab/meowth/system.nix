@@ -29,6 +29,7 @@
       url = "https://github.com/thatbagu/cv";
       tokenFile = config.sops.secrets.github_token.path;
       extraLabels = [ "homelab" "meowth" ];
+      replace = true;
       user = "egor";
       group = "users";
       extraPackages = with pkgs; [

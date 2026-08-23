@@ -48,10 +48,13 @@ final: prev: {
         # reads them via LoadObject, gets FileNotFoundException → unhandled → SIGABRT.
         # Write minimal valid JSON stubs so the reads succeed; configure overwrites them.
         STATE=/var/lib/github-runner/cv
-        # Stub only the files LoadDefaultUserAgents reads via IOUtil.LoadObject
-        # (required:true), NOT .runner — that's checked by IsConfigured() which
-        # would falsely return true and abort configure with "already configured".
-        for f in .credentials .credentials_rsaparams; do
+        # LoadDefaultUserAgents reads .credentials, .credentials_rsaparams, and .runner
+        # via IOUtil.LoadObject (required:true). After unconfigure, the store symlinks
+        # dangle → File.Exists returns true (lstat) but ReadAllText throws → SIGABRT.
+        # Stub all three with valid JSON so the reads succeed. IsConfigured() returns
+        # true when .runner exists, but the NixOS replace=true option adds --replace
+        # to configure args so it reconfigures even then.
+        for f in .credentials .credentials_rsaparams .runner; do
           [ -e "$STATE/$f" ] || printf '{}' > "$STATE/$f" 2>/dev/null || true
         done
         exec "$(dirname "$0")/Runner.Listener.real" "$@"
