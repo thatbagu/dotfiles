@@ -37,6 +37,13 @@ let
                   key  = "secret";
                 };
               }
+              {
+                name = "MTP_TAG";
+                valueFrom.secretKeyRef = {
+                  name = "telegram-proxy-secrets";
+                  key  = "tag";
+                };
+              }
             ];
             resources = {
               requests = { cpu = "10m";  memory = "32Mi";  };
@@ -107,5 +114,13 @@ in {
     secretName     = "telegram-proxy-secrets";
     secretKey      = "secret";
     sopsSecretName = "telegram_proxy_secret";
+  };
+
+  telegram-proxy-tag = lib.mkSecretRef {
+    name           = "telegram-proxy-tag";
+    inherit namespace;
+    secretName     = "telegram-proxy-secrets";
+    secretKey      = "tag";
+    sopsSecretName = "telegram_proxy_tag";
   };
 }

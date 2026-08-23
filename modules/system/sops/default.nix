@@ -131,6 +131,11 @@ in
           owner = "root";
           mode  = "0644";
         };
+
+        telegram_proxy_tag = {
+          owner = "root";
+          mode  = "0644";
+        };
       };
     };
   };
