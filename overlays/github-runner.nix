@@ -43,12 +43,14 @@ final: prev: {
         cat > $out/bin/Runner.Listener << 'WRAPPER'
         #!/bin/sh
         printf '%s' "$PATH" > /run/github-runner/cv/.path 2>/dev/null || true
-        # .NET 8 File.Exists() returns true for dangling symlinks (uses lstat).
-        # After unconfigure removes .credentials, the store symlink dangles and
-        # ReadAllText throws FileNotFoundException → unhandled → SIGABRT.
-        # Touching the target ensures a valid (empty) file exists before the
-        # real binary starts; configure will overwrite it with real credentials.
-        touch /var/lib/github-runner/cv/.credentials 2>/dev/null || true
+        # .NET 8 File.Exists() returns true for dangling symlinks (lstat vs stat).
+        # After unconfigure deletes config files, store symlinks dangle → the runner
+        # reads them via LoadObject, gets FileNotFoundException → unhandled → SIGABRT.
+        # Write minimal valid JSON stubs so the reads succeed; configure overwrites them.
+        STATE=/var/lib/github-runner/cv
+        for f in .credentials .runner .credentials_rsaparams; do
+          [ -e "$STATE/$f" ] || printf '{}' > "$STATE/$f" 2>/dev/null || true
+        done
         exec "$(dirname "$0")/Runner.Listener.real" "$@"
         WRAPPER
         chmod +x $out/bin/Runner.Listener
