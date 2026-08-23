@@ -26,6 +26,7 @@ in {
             protontricks
             azahar
             wineWowPackages.staging
+            umu-launcher
         ];
 
         programs.steam = {
