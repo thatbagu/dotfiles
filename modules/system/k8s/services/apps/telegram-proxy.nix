@@ -18,18 +18,18 @@ let
         spec = {
           containers = [{
             name = "telegram-proxy";
-            # Erlang-based MTProto proxy — handles thousands of concurrent connections.
-            # Fake-TLS mode (MTP_TLS_ONLY=1) makes traffic look like a TLS ClientHello,
-            # which lets it go through nginx ssl-passthrough (same path as signal-proxy).
-            image = "seriyps/mtproto-proxy:latest";
+            # mtg (Go) doesn't do a startup DC handshake probe like seriyps does,
+            # so it works cleanly behind k8s NAT. Fake-TLS via ee-prefixed secret.
+            image = "ghcr.io/9seconds/mtg:2";
+            # mtg takes the secret as a positional arg, so we use a shell wrapper.
+            command = [ "/bin/sh" "-c" ];
+            args = [ "exec /mtg simple-run --bind 0.0.0.0:443 --tag $MTP_TAG ee$MTP_SECRET" ];
             ports = [{
               name = "mtproto";
               containerPort = 443;
               protocol = "TCP";
             }];
             env = [
-              { name = "MTP_PORT";     value = "443"; }
-              { name = "MTP_TLS_ONLY"; value = "1"; }
               {
                 name = "MTP_SECRET";
                 valueFrom.secretKeyRef = {
@@ -46,8 +46,8 @@ let
               }
             ];
             resources = {
-              requests = { cpu = "10m";  memory = "32Mi";  };
-              limits   = { cpu = "200m"; memory = "128Mi"; };
+              requests = { cpu = "10m";  memory = "16Mi";  };
+              limits   = { cpu = "200m"; memory = "64Mi"; };
             };
           }];
         };
