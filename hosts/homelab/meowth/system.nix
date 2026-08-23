@@ -48,6 +48,7 @@
         "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1"
         "LD_LIBRARY_PATH=${pkgs.openssl.out}/lib"
       ];
+      serviceOverrides.ReadWritePaths = [ "/var/lib/github-runner/cv-runner" ];
     };
   };
 }
