@@ -40,6 +40,22 @@ let
     # Common configuration
     defaultReplicas = 1;
 
+    # Prefer scheduling app pods on worker nodes so meowth stays free for
+    # control-plane work. Using preferred (not required) so pods still
+    # schedule on meowth if workers are unavailable.
+    workerAffinity = {
+      nodeAffinity = {
+        preferredDuringSchedulingIgnoredDuringExecution = [{
+          weight = 100;
+          preference.matchExpressions = [{
+            key      = "node-role";
+            operator = "In";
+            values   = [ "worker" ];
+          }];
+        }];
+      };
+    };
+
     # TLS configuration
     tls = {
       defaultIssuer = "letsencrypt-prod";

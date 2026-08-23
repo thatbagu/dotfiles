@@ -14,6 +14,11 @@ in {
       default = "${hostname}";
       description = "Hostname of the master node to connect to";
     };
+    seedNodePassword = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Pre-seed /etc/rancher/node/password from k3s_token so the worker presents a deterministic password after reinstalls.";
+    };
   };
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [ k3s cifs-utils nfs-utils ];
@@ -22,6 +27,21 @@ in {
     virtualisation.docker.logDriver = "json-file";
     networking.firewall.enable = mkForce false;
     systemd.services.sshd.stopIfChanged = mkForce false;
+
+    # Pre-seed the node password from k3s_token before k3s starts so the worker
+    # always presents the same password after a reinstall.
+    systemd.services.k3s-node-password = mkIf cfg.seedNodePassword {
+      description = "Pre-seed k3s node password from k3s_token";
+      before = [ "k3s.service" ];
+      wantedBy = [ "k3s.service" ];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        mkdir -p /etc/rancher/node
+        cp ${config.sops.secrets.k3s_token.path} /etc/rancher/node/password
+        chmod 0600 /etc/rancher/node/password
+      '';
+    };
+
     services = {
       openssh.enable = mkForce true;
       openiscsi = {
@@ -32,26 +52,21 @@ in {
         enable = true;
         role = if cfg.master then "server" else "agent";
         tokenFile = config.sops.secrets.k3s_token.path;
-        # Common node label configuration for both server and agent
         extraFlags = toString ((if cfg.master then [
-          # Server (master) specific configuration
           "--cluster-init"
           "--write-kubeconfig-mode=0644"
           "--disable=servicelb"
           "--disable=traefik"
           "--disable=local-storage"
-        ] else
-          [
-            # Agent (worker) specific configuration
-          ]) ++ [
-            # Common flags for both server and agent
-            "--node-label=node.longhorn.io/create-default-disk=true"
-          ]);
+          "--node-label=node-role=master"
+        ] else [
+          "--node-label=node-role=worker"
+        ]) ++ [
+          "--node-label=node.longhorn.io/create-default-disk=true"
+        ]);
       } // (if !cfg.master then {
-        # Agent-only configuration
         serverAddr = "https://${cfg.masterHostname}:6443";
-      } else
-        { });
+      } else { });
     };
   };
 }

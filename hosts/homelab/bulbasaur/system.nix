@@ -12,6 +12,7 @@
         enable = true;
         master = false;
         masterHostname = "meowth";
+        seedNodePassword = true;
       };
       sops.enable = true;
     };
