@@ -22,30 +22,25 @@ let
             # so it works cleanly behind k8s NAT. Fake-TLS via ee-prefixed secret.
             image = "ghcr.io/9seconds/mtg:2";
             # mtg is a scratch image (no shell). Use k8s $(VAR) substitution
-            # in args so the env vars expand before container start — no shell needed.
+            # in args so env vars expand before container start — no shell needed.
+            # mtg v2 syntax: simple-run <bind-to> <secret> [flags]
             command = [ "/mtg" ];
-            args = [ "simple-run" "--bind" "0.0.0.0:443" "--tag" "$(MTP_TAG)" "ee$(MTP_SECRET)" ];
+            # fake-TLS secret = ee + raw-secret + hex("www.google.com")
+            # mtg v2 simple-run only accepts ee-prefixed (fake-TLS) secrets and
+            # requires a SNI hostname appended as hex bytes.
+            args = [ "simple-run" "0.0.0.0:443" "ee$(MTP_SECRET)7777772e676f6f676c652e636f6d" ];
             ports = [{
               name = "mtproto";
               containerPort = 443;
               protocol = "TCP";
             }];
-            env = [
-              {
-                name = "MTP_SECRET";
-                valueFrom.secretKeyRef = {
-                  name = "telegram-proxy-secrets";
-                  key  = "secret";
-                };
-              }
-              {
-                name = "MTP_TAG";
-                valueFrom.secretKeyRef = {
-                  name = "telegram-proxy-secrets";
-                  key  = "tag";
-                };
-              }
-            ];
+            env = [{
+              name = "MTP_SECRET";
+              valueFrom.secretKeyRef = {
+                name = "telegram-proxy-secrets";
+                key  = "secret";
+              };
+            }];
             resources = {
               requests = { cpu = "10m";  memory = "16Mi";  };
               limits   = { cpu = "200m"; memory = "64Mi"; };
