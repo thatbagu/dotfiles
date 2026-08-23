@@ -27,38 +27,69 @@ final: prev: {
         cp config.sh env.sh run.sh safe_sleep.sh $out/bin/
         cp -r externals/. $out/externals/
 
-        # Runner computes root as parent of bin/ and needs to write various files there,
-        # but the nix store is read-only. Symlink everything to writable locations.
-        ln -s /var/log/github-runner/cv $out/_diag
-        ln -s /var/lib/github-runner/cv/.runner $out/.runner
-        ln -s /var/lib/github-runner/cv/.credentials $out/.credentials
-        ln -s /var/lib/github-runner/cv/.credentials_rsaparams $out/.credentials_rsaparams
-        # .path is read by the runner to set PATH for step execution.
-        # The wrapper below writes the service PATH there before starting the real binary.
-        ln -s /run/github-runner/cv/.path $out/.path
-
-        # Wrap the runner binary so it captures the service PATH into .path on startup.
-        # Without this, steps get a default OS PATH that lacks nix-provided tools.
+        # The runner binary (Runner.Listener.real) computes its root as
+        # dirname(dirname(Assembly.Location)). Assembly.Location resolves
+        # through symlinks to wherever the DLLs physically live. Placing
+        # the DLLs in the read-only nix store and symlinking config files
+        # from $out/.runner → /var/lib/github-runner/cv/.runner causes a
+        # catch-22: after unconfigure wipes the state dir those symlinks
+        # dangle, File.Exists() returns True (lstat sees symlink), but
+        # ReadAllText fails → SIGABRT. Stubbing files fixes the crash but
+        # makes IsConfigured() return True → configure blocked.
+        #
+        # Fix: a wrapper copies all DLLs + the apphost to a writable home
+        # (/var/lib/github-runner/cv-runner/) on every start. When that
+        # copy is the binary that executes, Assembly.Location points to the
+        # writable home — so the runner's root is that writable directory,
+        # not the nix store. After unconfigure wipes cv/ (not cv-runner/),
+        # the runner root has no dangling symlinks; absent config files are
+        # silently skipped (required=false). IsConfigured() returns False,
+        # and configure proceeds cleanly.
+        #
+        # No nix-store symlinks for config files are created here — the
+        # wrapper manages everything at runtime in cv-runner/.
         mv $out/bin/Runner.Listener $out/bin/Runner.Listener.real
         cat > $out/bin/Runner.Listener << 'WRAPPER'
-        #!/bin/sh
-        printf '%s' "$PATH" > /run/github-runner/cv/.path 2>/dev/null || true
-        # .NET 8 File.Exists() returns true for dangling symlinks (lstat vs stat).
-        # After unconfigure deletes config files, store symlinks dangle → the runner
-        # reads them via LoadObject, gets FileNotFoundException → unhandled → SIGABRT.
-        # Write minimal valid JSON stubs so the reads succeed; configure overwrites them.
-        STATE=/var/lib/github-runner/cv
-        # LoadDefaultUserAgents reads .credentials, .credentials_rsaparams, and .runner
-        # via IOUtil.LoadObject (required:true). After unconfigure, the store symlinks
-        # dangle → File.Exists returns true (lstat) but ReadAllText throws → SIGABRT.
-        # Stub all three with valid JSON so the reads succeed. IsConfigured() returns
-        # true when .runner exists, but the NixOS replace=true option adds --replace
-        # to configure args so it reconfigures even then.
-        for f in .credentials .credentials_rsaparams .runner; do
-          [ -e "$STATE/$f" ] || printf '{}' > "$STATE/$f" 2>/dev/null || true
-        done
-        exec "$(dirname "$0")/Runner.Listener.real" "$@"
-        WRAPPER
+#!/bin/sh
+
+CVRUN=/var/lib/github-runner/cv-runner
+NXBIN="$(cd "$(dirname "$0")" && pwd -P)"
+NXROOT="$(dirname "$NXBIN")"
+
+# Copy runner DLLs + apphost to the writable home so the runner's
+# Assembly.Location points there (not the read-only nix store).
+# cmp -s skips unchanged files to keep restarts fast.
+setup_runner_home() {
+  mkdir -p "$CVRUN/bin" 2>/dev/null || true
+  for f in "$NXBIN"/*; do
+    [ -f "$f" ] || continue
+    fname="$(basename "$f")"
+    [ "$fname" = "Runner.Listener" ] && continue
+    dest="$CVRUN/bin/$fname"
+    cmp -s "$f" "$dest" 2>/dev/null || cp "$f" "$dest" 2>/dev/null || true
+  done
+  chmod +x "$CVRUN/bin/Runner.Listener.real" 2>/dev/null || true
+  ln -sfn "$NXROOT/externals" "$CVRUN/externals" 2>/dev/null || true
+  ln -sfn /var/log/github-runner/cv "$CVRUN/_diag" 2>/dev/null || true
+  printf '%s' "$PATH" > "$CVRUN/.path" 2>/dev/null || true
+}
+
+case "${1-}" in
+configure)
+  setup_runner_home
+  # Remove config files so IsConfigured() returns False (absent files are
+  # loaded with required=false and don't crash LoadDefaultUserAgents).
+  # Stubs must NOT be used: {} in .credentials causes "Member 'd' was not
+  # found" because configure reads credentials data during registration.
+  rm -f "$CVRUN/.runner" "$CVRUN/.credentials" "$CVRUN/.credentials_rsaparams" 2>/dev/null || true
+  exec "$CVRUN/bin/Runner.Listener.real" "$@"
+  ;;
+*)
+  setup_runner_home
+  exec "$CVRUN/bin/Runner.Listener.real" "$@"
+  ;;
+esac
+WRAPPER
         chmod +x $out/bin/Runner.Listener
       '';
 

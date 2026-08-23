@@ -24,6 +24,12 @@
 
     users.users.egor.extraGroups = [ "docker" ];
 
+    # Pre-create the persistent runner home that the wrapper uses as runner root.
+    # The NixOS state dir (cv/) is wiped by unconfigure; cv-runner/ survives.
+    systemd.tmpfiles.rules = [
+      "d /var/lib/github-runner/cv-runner 0750 egor users -"
+    ];
+
     services.github-runners.cv = {
       enable = true;
       url = "https://github.com/thatbagu/cv";
