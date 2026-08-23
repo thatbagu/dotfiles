@@ -48,7 +48,10 @@ final: prev: {
         # reads them via LoadObject, gets FileNotFoundException → unhandled → SIGABRT.
         # Write minimal valid JSON stubs so the reads succeed; configure overwrites them.
         STATE=/var/lib/github-runner/cv
-        for f in .credentials .runner .credentials_rsaparams; do
+        # Stub only the files LoadDefaultUserAgents reads via IOUtil.LoadObject
+        # (required:true), NOT .runner — that's checked by IsConfigured() which
+        # would falsely return true and abort configure with "already configured".
+        for f in .credentials .credentials_rsaparams; do
           [ -e "$STATE/$f" ] || printf '{}' > "$STATE/$f" 2>/dev/null || true
         done
         exec "$(dirname "$0")/Runner.Listener.real" "$@"
