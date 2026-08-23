@@ -21,9 +21,10 @@ let
             # mtg (Go) doesn't do a startup DC handshake probe like seriyps does,
             # so it works cleanly behind k8s NAT. Fake-TLS via ee-prefixed secret.
             image = "ghcr.io/9seconds/mtg:2";
-            # mtg takes the secret as a positional arg, so we use a shell wrapper.
-            command = [ "/bin/sh" "-c" ];
-            args = [ "exec /mtg simple-run --bind 0.0.0.0:443 --tag $MTP_TAG ee$MTP_SECRET" ];
+            # mtg is a scratch image (no shell). Use k8s $(VAR) substitution
+            # in args so the env vars expand before container start — no shell needed.
+            command = [ "/mtg" ];
+            args = [ "simple-run" "--bind" "0.0.0.0:443" "--tag" "$(MTP_TAG)" "ee$(MTP_SECRET)" ];
             ports = [{
               name = "mtproto";
               containerPort = 443;
