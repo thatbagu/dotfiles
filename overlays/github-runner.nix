@@ -74,7 +74,7 @@ setup_runner_home() {
   printf '%s' "$PATH" > "$CVRUN/.path" 2>/dev/null || true
 }
 
-case "${1-}" in
+case "''${1-}" in
 configure)
   setup_runner_home
   # Remove config files so IsConfigured() returns False (absent files are
