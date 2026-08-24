@@ -71,7 +71,8 @@ let
       import ./services/core/longhorn.nix { inherit pkgs inputs lib vars; };
     metallb =
       import ./services/core/metallb.nix { inherit pkgs inputs lib vars; };
-    nginx = import ./services/core/nginx.nix { inherit pkgs inputs lib vars; };
+    nginx   = import ./services/core/nginx.nix   { inherit pkgs inputs lib vars; };
+    haproxy = import ./services/core/haproxy.nix { inherit pkgs inputs lib vars; };
   };
 
   dnsServices = {

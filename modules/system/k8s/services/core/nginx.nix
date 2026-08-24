@@ -4,19 +4,13 @@ with lib;
 
 let
   nginxValues = {
-    # Top-level TCP stream proxy — nginx-ingress watches this ConfigMap and forwards
-    # raw TCP on port 22 to cv-tui:2222, making `ssh mlship.dev` work.
-    tcp = { "22" = "cv/cv-tui:2222"; };
-
     controller = {
       service = {
-        type = "LoadBalancer";
-        loadBalancerIP = vars.ipPools.nginxExternal;
-        externalTrafficPolicy = "Local";
-        annotations = { "metallb.universe.tf/allow-shared-ip" = "nginx-svc"; };
-        # Port 22 exposes the SSH TUI — also forward port 22 on your router to this IP.
-        ports       = { http = 80; https = 443; "ssh-tui" = 22; };
-        targetPorts = { http = "http"; https = "https"; "ssh-tui" = 22; };
+        # ClusterIP: haproxy (192.168.1.193) is now the external entrypoint and
+        # proxies to nginx internally, so nginx does not need a LoadBalancer IP.
+        type = "ClusterIP";
+        ports       = { http = 80; https = 443; };
+        targetPorts = { http = "http"; https = "https"; };
       };
 
       # Increase resources slightly since we're handling both internal and external

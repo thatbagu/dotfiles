@@ -70,38 +70,11 @@ let
     };
   };
 
-  # nginx reads the SNI from the fake-TLS ClientHello and routes to this pod.
-  # The proxy handles the full fake-TLS handshake itself — no cert needed here.
-  ingressResource = {
-    apiVersion = "networking.k8s.io/v1";
-    kind = "Ingress";
-    metadata = {
-      name = "telegram-proxy";
-      inherit namespace;
-      annotations = {
-        "nginx.ingress.kubernetes.io/ssl-passthrough" = "true";
-      };
-    };
-    spec = {
-      ingressClassName = "nginx";
-      rules = [{
-        host = "telegram.${vars.domain}";
-        http.paths = [{
-          path     = "/";
-          pathType = "Prefix";
-          backend.service = {
-            name = "telegram-proxy";
-            port.number = 443;
-          };
-        }];
-      }];
-    };
-  };
 in {
   telegram-proxy = lib.mkRawManifest {
     name      = "telegram-proxy";
     inherit namespace;
-    resources = [ deploymentResource serviceResource ingressResource ];
+    resources = [ deploymentResource serviceResource ];
   };
 
   telegram-proxy-secret = lib.mkSecretRef {

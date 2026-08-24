@@ -42,14 +42,20 @@ let
     }
     {
       name = "networking-services";
-      charts = [ "ingress-nginx" "pihole" ];
+      charts = [ "ingress-nginx" "pihole" "haproxy" ];
       dependsOn = [ "core-config" ];
       waitFor = {
         nginx = {
           kind = "deployment";
-          name = "ingress-nginx-controller"; # Updated name
+          name = "ingress-nginx-controller";
           namespace = "nginx-system";
           timeout = 180;
+        };
+        haproxy = {
+          kind = "deployment";
+          name = "haproxy";
+          namespace = "nginx-system";
+          timeout = 60;
         };
       };
     }
