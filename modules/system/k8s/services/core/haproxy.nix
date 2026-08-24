@@ -29,14 +29,18 @@ let
         default_backend b_nginx_http
 
       # TLS — inspect SNI to demux fake-TLS MTProto from real HTTPS.
-      # HAProxy reads the ClientHello before forwarding, so the record-length
-      # violation in subsequent fake-TLS data frames never reaches nginx.
+      # Route by domain: real HTTPS (SNI ends in .egor.house) goes to nginx;
+      # everything else — including fake-TLS MTProto whose SNI HAProxy may not
+      # parse correctly, or connections with SNI www.google.com — goes to telegram.
+      # Keeping the accept rule so normal TLS is routed without the 5s delay;
+      # non-TLS (or unparseable fake-TLS) falls through after the delay to telegram.
       frontend f_https
         bind :443
         tcp-request inspect-delay 5s
         tcp-request content accept if { req.ssl_hello_type 1 }
-        use_backend b_telegram if { req.ssl_sni -m str www.google.com }
-        default_backend b_nginx_https
+        use_backend b_nginx_https if { req.ssl_sni -m end .egor.house }
+        use_backend b_nginx_https if { req.ssl_sni -m str egor.house }
+        default_backend b_telegram
 
       # Raw TCP passthrough for the SSH TUI (replaces nginx TCP configmap).
       frontend f_ssh
