@@ -12,19 +12,20 @@ let
       inherit namespace;
     };
     spec = {
-      replicas = 1;
+      replicas = 2;
       selector.matchLabels.app = "cv";
       template = {
         metadata.labels.app = "cv";
         spec = {
+          affinity = vars.workerAffinity;
           containers = [{
             name = "cv";
             image = "docker.io/thatbagu/website:latest";
             imagePullPolicy = "Always";
             ports = [{ containerPort = 80; }];
             resources = {
-              requests = { cpu = "50m"; memory = "64Mi"; };
-              limits = { cpu = "200m"; memory = "256Mi"; };
+              requests = { cpu = "50m";  memory = "64Mi";  };
+              limits   = { cpu = "500m"; memory = "512Mi"; };
             };
           }];
         };
@@ -56,6 +57,11 @@ let
         "cert-manager.io/cluster-issuer" = vars.tls.defaultIssuer;
         "nginx.ingress.kubernetes.io/ssl-redirect" = "true";
         "nginx.ingress.kubernetes.io/proxy-body-size" = "10m";
+        # Let Cloudflare cache pages for 1 hour (s-maxage) and browsers for 5 min.
+        # Cloudflare respects s-maxage when the domain is set to Proxied (orange cloud).
+        "nginx.ingress.kubernetes.io/configuration-snippet" = ''
+          add_header Cache-Control "public, max-age=300, s-maxage=3600" always;
+        '';
       };
     };
     spec = {
