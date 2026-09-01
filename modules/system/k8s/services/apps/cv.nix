@@ -59,8 +59,12 @@ let
         "nginx.ingress.kubernetes.io/proxy-body-size" = "10m";
         # Let Cloudflare cache pages for 1 hour (s-maxage) and browsers for 5 min.
         # Cloudflare respects s-maxage when the domain is set to Proxied (orange cloud).
+        # Override the upstream CSP to add 'unsafe-eval' — needed for Vue/React runtime
+        # template compilation on page refresh.
         "nginx.ingress.kubernetes.io/configuration-snippet" = ''
           add_header Cache-Control "public, max-age=300, s-maxage=3600" always;
+          proxy_hide_header Content-Security-Policy;
+          add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';" always;
         '';
       };
     };
