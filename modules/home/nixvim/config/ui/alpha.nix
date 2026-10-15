@@ -295,7 +295,8 @@
             local timer = vim.uv.new_timer()
             timer:start(0, 60, vim.schedule_wrap(function()
               if not vim.api.nvim_buf_is_valid(buf) then
-                timer:stop(); timer:close(); return
+                if not timer:is_closing() then timer:stop(); timer:close() end
+                return
               end
               frame = frame + 1
 
@@ -341,7 +342,9 @@
 
             vim.api.nvim_create_autocmd("BufLeave", {
               buffer = buf, once = true,
-              callback = function() timer:stop(); timer:close() end,
+              callback = function()
+                if not timer:is_closing() then timer:stop(); timer:close() end
+              end,
             })
           end,
         })
