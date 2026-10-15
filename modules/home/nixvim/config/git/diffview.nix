@@ -46,7 +46,8 @@
         action.__raw = ''
           function()
             local base = pr_base()
-            if base then vim.cmd("DiffviewOpen " .. base .. "...HEAD") end
+            -- --imply-local: the right side is the working tree, so it can be edited
+            if base then vim.cmd("DiffviewOpen " .. base .. "...HEAD --imply-local") end
           end
         '';
         options = { desc = "PR diff (diffview)"; };
