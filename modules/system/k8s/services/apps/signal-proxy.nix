@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, vars }:
+{ vars, ... }:
 
 let
   # cert-manager issues a Let's Encrypt cert for signal.egor.house via DNS-01.
@@ -219,10 +219,10 @@ let
     };
   };
 in {
-  signal-proxy = lib.mkRawManifest {
-    name = "signal-proxy";
+  applications.signal-proxy = {
     namespace = vars.namespaces.proxies;
-    resources = [
+    syncWave = 4;
+    yamls = map builtins.toJSON [
       certificateResource
       configMapResource
       deploymentResource

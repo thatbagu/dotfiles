@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, vars }:
+{ vars, ... }:
 
 let
   namespace = vars.namespaces.proxies;
@@ -71,25 +71,9 @@ let
   };
 
 in {
-  telegram-proxy = lib.mkRawManifest {
-    name      = "telegram-proxy";
+  applications.telegram-proxy = {
     inherit namespace;
-    resources = [ deploymentResource serviceResource ];
-  };
-
-  telegram-proxy-secret = lib.mkSecretRef {
-    name           = "telegram-proxy-secret";
-    inherit namespace;
-    secretName     = "telegram-proxy-secrets";
-    secretKey      = "secret";
-    sopsSecretName = "telegram_proxy_secret";
-  };
-
-  telegram-proxy-tag = lib.mkSecretRef {
-    name           = "telegram-proxy-tag";
-    inherit namespace;
-    secretName     = "telegram-proxy-secrets";
-    secretKey      = "tag";
-    sopsSecretName = "telegram_proxy_tag";
+    syncWave = 4;
+    yamls = map builtins.toJSON [ deploymentResource serviceResource ];
   };
 }

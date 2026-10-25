@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, vars }:
+{ vars, ... }:
 
 let
   namespace = vars.namespaces.nginx;
@@ -125,9 +125,9 @@ let
   };
 
 in {
-  haproxy = lib.mkRawManifest {
-    name      = "haproxy";
+  applications.haproxy = {
     inherit namespace;
-    resources = [ configMap deployment service ];
+    syncWave = 2;
+    yamls = map builtins.toJSON [ configMap deployment service ];
   };
 }

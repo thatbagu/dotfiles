@@ -1,7 +1,4 @@
-# Updated modules/system/k8s/services/ingress/ingress.nix
-{ pkgs, inputs, lib, vars }:
-
-with lib;
+{ vars, ... }:
 
 let
   # Function to create a standard TLS ingress with modern spec
@@ -61,9 +58,9 @@ let
   };
 in {
   # Pi-hole external ingress with TLS
-  pihole-external-ingress = mkRawManifest {
-    name = "pihole-external-ingress";
+  applications.pihole-external-ingress = {
     namespace = vars.namespaces.pihole;
-    resources = [ piholeIngressConfig ];
+    syncWave = 3;
+    yamls = map builtins.toJSON [ piholeIngressConfig ];
   };
 }

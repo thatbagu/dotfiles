@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, vars }:
+{ vars, ... }:
 
 let
   namespace = vars.namespaces.cv;
@@ -77,9 +77,9 @@ let
     };
   };
 in {
-  cv-tui = lib.mkRawManifest {
-    name      = "cv-tui";
-    inherit namespace;
-    resources = [ deploymentResource serviceResource ];
+  applications.cv-tui = {
+    namespace = vars.namespaces.cv;
+    syncWave = 4;
+    yamls = map builtins.toJSON [ deploymentResource serviceResource ];
   };
 }

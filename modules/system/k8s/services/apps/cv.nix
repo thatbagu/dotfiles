@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, vars }:
+{ vars, ... }:
 
 let
   domain = "mlship.dev";
@@ -91,9 +91,9 @@ let
     };
   };
 in {
-  cv = lib.mkRawManifest {
-    name = "cv";
+  applications.cv = {
     namespace = vars.namespaces.cv;
-    resources = [ deploymentResource serviceResource ingressResource ];
+    syncWave = 4;
+    yamls = map builtins.toJSON [ deploymentResource serviceResource ingressResource ];
   };
 }

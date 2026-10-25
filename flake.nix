@@ -243,10 +243,7 @@
         pkgs = nixpkgs.legacyPackages.x86_64-linux;
         charts = inputs.nixhelm.chartsDerivations.x86_64-linux;
         extraSpecialArgs = { inherit inputs; };
-        envs.homelab.modules = [
-          ./modules/system/k8s/nixidy.nix
-          ./modules/system/k8s/argocd.nix
-        ];
+        envs.homelab.modules = [ ./modules/system/k8s/nixidy.nix ];
       };
 
       darwinConfigurations = {

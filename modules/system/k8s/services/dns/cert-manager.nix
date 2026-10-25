@@ -1,6 +1,4 @@
-{ pkgs, inputs, lib, vars }:
-
-with lib;
+{ lib, charts, vars, ... }:
 
 let
   # Create a function to generate ACME issuers with shared config
@@ -54,37 +52,20 @@ let
     webhook = { timeoutSeconds = 30; };
   };
 in {
-  # Cert-manager for TLS certificates
-  cert-manager = mkChart {
-    name = "cert-manager";
-    chart = nixhelm.jetstack.cert-manager;
+  applications.cert-manager = {
     namespace = vars.namespaces.dns;
-    defaultValues = certManagerDefaults;
-    values = certManagerValues;
+    syncWave = 2;
+    helm.releases.cert-manager = {
+      chart = charts.jetstack.cert-manager;
+      values = lib.recursiveUpdate certManagerDefaults certManagerValues;
+    };
   };
 
-  # Cloudflare API token secret for DNS validation
-  cloudflare-api-token-secret = mkSecretRef {
-    name = "cloudflare-api-token-secret";
+  # Let's Encrypt cluster issuers (DNS-01 via Cloudflare)
+  applications.cert-manager-issuers = {
     namespace = vars.namespaces.dns;
-    secretName = "cloudflare-api-token";
-    secretKey = "api-token";
-    sopsSecretName = "cloudflare_token";
-  };
-
-  cloudflare-email-secret = mkSecretRef {
-    name = "cloudflare-email-secret";
-    namespace = vars.namespaces.dns;
-    secretName = "cloudflare-email";
-    secretKey = "email";
-    sopsSecretName = "cloudflare_email";
-  };
-
-  # Cluster issuer for Let's Encrypt
-  cert-manager-issuers = mkRawManifest {
-    name = "cert-manager-issuers";
-    namespace = vars.namespaces.dns;
-    resources = [
+    syncWave = 3;
+    yamls = map builtins.toJSON [
       (mkAcmeIssuer {
         name = vars.tls.stagingIssuer;
         server = vars.tls.acmeServerStaging;

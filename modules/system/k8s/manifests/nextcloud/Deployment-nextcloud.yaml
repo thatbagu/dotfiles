@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       annotations:
-        hooks-hash: 9525c2748a6c7cd0e28ec740623d0b3fa5a75c83b51ccfd136bc89c76737b204
+        hooks-hash: 5608e87bf99740259e536bb50f86c550f0ccf55762164d91f0a5ea49d592353a
         nextcloud-config-hash: 23b95042deaafbd40df04d522c11bd934de6135c4583e9834e6a5a7f6e9da76f
         php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
@@ -172,6 +172,10 @@ spec:
             - mountPath: /var/www/html/config/upgrade-disable-web.config.php
               name: nextcloud-config
               subPath: upgrade-disable-web.config.php
+            - mountPath: /docker-entrypoint-hooks.d/before-starting/helm.sh
+              name: nextcloud-hooks
+              readOnly: true
+              subPath: before-starting.sh
       initContainers:
         - command:
             - sh
@@ -198,3 +202,7 @@ spec:
         - configMap:
             name: nextcloud-config
           name: nextcloud-config
+        - configMap:
+            defaultMode: 493
+            name: nextcloud-hooks
+          name: nextcloud-hooks

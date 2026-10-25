@@ -1,0 +1,28 @@
+apiVersion: v1
+data:
+  before-starting.sh: |
+    #!/bin/sh
+    set -e
+    occ() { php /var/www/html/occ "$@"; }
+    if occ saml:config:get --providerId=1 2>/dev/null | grep -q 'general-uid_mapping: REMOTE_USER'; then
+      echo "VPN SSO already configured"
+      exit 0
+    fi
+    echo "Configuring user_saml for VPN header auth..."
+    occ app:install user_saml 2>/dev/null || occ app:enable user_saml
+    occ config:app:set user_saml type --value=environment-variable
+    occ config:app:set user_saml general-require_provisioned_account --value=0
+    # HTTP_* vars are rejected by saml:config:set; .htaccess bridges the
+    # header into REMOTE_USER instead.
+    occ saml:config:set 1 --general-uid_mapping=REMOTE_USER
+    occ saml:config:set 1 --general-idp0_display_name=VPN-SSO
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: nextcloud
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nextcloud
+    app.kubernetes.io/version: 33.0.3
+    helm.sh/chart: nextcloud-9.0.6
+  name: nextcloud-hooks
+  namespace: nextcloud

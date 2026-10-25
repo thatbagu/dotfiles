@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, vars }:
+{ vars, ... }:
 
 let
   namespace = vars.namespaces.cv;
@@ -49,9 +49,9 @@ let
     };
   };
 in {
-  sslh = lib.mkRawManifest {
-    name = "sslh";
-    inherit namespace;
-    resources = [ deploymentResource serviceResource ];
+  applications.sslh = {
+    namespace = vars.namespaces.cv;
+    syncWave = 4;
+    yamls = map builtins.toJSON [ deploymentResource serviceResource ];
   };
 }

@@ -1,6 +1,4 @@
-{ pkgs, inputs, lib, vars }:
-
-with lib;
+{ charts, vars, ... }:
 
 let
   # Default values for MetalLB with monitoring removed
@@ -40,17 +38,19 @@ let
     spec = { ipAddressPools = [ "pool" ]; };
   };
 in {
-  # MetalLB - Load balancer for bare metal Kubernetes clusters
-  metallb = mkChart {
-    name = "metallb";
-    chart = nixhelm.metallb.metallb;
+  # MetalLB - load balancer for bare metal clusters
+  applications.metallb = {
     namespace = vars.namespaces.metallb;
-    values = metallbDefaults;
+    syncWave = 0;
+    helm.releases.metallb = {
+      chart = charts.metallb.metallb;
+      values = metallbDefaults;
+    };
   };
 
-  metallb-config = mkRawManifest {
-    name = "metallb-config";
+  applications.metallb-config = {
     namespace = vars.namespaces.metallb;
-    resources = [ poolConfig l2AdvertisementConfig ];
+    syncWave = 1;
+    yamls = map builtins.toJSON [ poolConfig l2AdvertisementConfig ];
   };
 }

@@ -1,6 +1,4 @@
-{ pkgs, inputs, lib, vars }:
-
-with lib;
+{ charts, vars, ... }:
 
 let
   nginxValues = {
@@ -75,10 +73,12 @@ let
   };
 
 in {
-  ingress-nginx = mkChart {
-    name = "ingress-nginx";
-    chart = nixhelm.kubernetes-ingress-nginx.ingress-nginx;
+  applications.ingress-nginx = {
     namespace = vars.namespaces.nginx;
-    values = nginxValues;
+    syncWave = 2;
+    helm.releases.ingress-nginx = {
+      chart = charts.kubernetes-ingress-nginx.ingress-nginx;
+      values = nginxValues;
+    };
   };
 }

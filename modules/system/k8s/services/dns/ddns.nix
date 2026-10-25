@@ -1,6 +1,4 @@
-{ pkgs, inputs, lib, vars }:
-
-with lib;
+{ vars, ... }:
 
 let
   cronJobResource = {
@@ -97,9 +95,9 @@ let
     };
   };
 in {
-  cloudflare-ddns = lib.mkRawManifest {
-    name = "cloudflare-ddns";
+  applications.cloudflare-ddns = {
     namespace = vars.namespaces.dns;
-    resources = [ cronJobResource ];
+    syncWave = 3;
+    yamls = map builtins.toJSON [ cronJobResource ];
   };
 }

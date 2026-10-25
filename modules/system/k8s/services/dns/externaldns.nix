@@ -1,6 +1,4 @@
-{ pkgs, inputs, lib, vars }:
-
-with lib;
+{ lib, charts, vars, ... }:
 
 let
   commonServiceAccountConfig = { create = true; };
@@ -36,7 +34,7 @@ let
   };
 
   # Pi-hole specific configuration WITHOUT password authentication
-  externalDnsPiholeConfig = overlayValues externalDnsBase {
+  externalDnsPiholeConfig = lib.recursiveUpdate externalDnsBase {
     provider = "pihole";
     registry = "noop";
     serviceAccount = commonServiceAccountConfig // {
@@ -68,7 +66,7 @@ let
   };
 
   # Cloudflare specific configuration (unchanged)
-  externalDnsCloudflareConfig = overlayValues externalDnsBase {
+  externalDnsCloudflareConfig = lib.recursiveUpdate externalDnsBase {
     provider = "cloudflare";
     registry = "txt";
     txtOwnerId = vars.domain;
@@ -98,22 +96,23 @@ let
   };
 
 in {
-  # ExternalDNS for automatic DNS registration with Pi-hole (no auth)
-  externaldns-pihole = mkChart {
-    name = "externaldns-pihole";
-    chart = nixhelm.external-dns.external-dns;
+  # ExternalDNS -> Pi-hole (LAN records, no auth)
+  applications.externaldns-pihole = {
     namespace = vars.namespaces.dns;
-    values = externalDnsPiholeConfig;
+    syncWave = 3;
+    helm.releases.externaldns-pihole = {
+      chart = charts.external-dns.external-dns;
+      values = externalDnsPiholeConfig;
+    };
   };
 
-  # External DNS for Cloudflare integration (unchanged)
-  externaldns-cloudflare = mkChart {
-    name = "externaldns-cloudflare";
-    chart = nixhelm.external-dns.external-dns;
+  # ExternalDNS -> Cloudflare (public records)
+  applications.externaldns-cloudflare = {
     namespace = vars.namespaces.dns;
-    values = externalDnsCloudflareConfig;
+    syncWave = 3;
+    helm.releases.externaldns-cloudflare = {
+      chart = charts.external-dns.external-dns;
+      values = externalDnsCloudflareConfig;
+    };
   };
-
-  # Remove the pihole-password-dns secret since it's no longer needed
-  # pihole-password-dns = mkSecretRef { ... };  # Comment out or remove this
 }

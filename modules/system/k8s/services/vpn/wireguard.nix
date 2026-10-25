@@ -1,12 +1,11 @@
-{ pkgs, inputs, lib, vars, config }:
+{ lib, vars, ... }:
 
 let
-  # Import standard lib functions we need from pkgs.lib
-  inherit (pkgs.lib)
+  inherit (lib)
     filterAttrs mapAttrs mapAttrsToList concatStringsSep listToAttrs toUpper;
 
   # Import users configuration
-  usersConfig = import ./users.nix { inherit config lib; };
+  usersConfig = import ./users.nix { inherit lib; config = null; };
 
   # Filter enabled users only
   enabledUsers = filterAttrs (_: user: user.enabled) usersConfig.wireguardUsers;
@@ -403,76 +402,16 @@ let
     };
   };
 
-  # Generate user secret references dynamically (public keys only — private keys stay local)
-  userSecrets = listToAttrs (mapAttrsToList (name: user: {
-    name = "wireguard-user-${name}";
-    value = lib.mkSecretRef {
-      name = "wireguard-user-${name}";
-      namespace = vars.namespaces.wireguard;
-      secretName = "wireguard-secrets";
-      secretKey = user.publicKeySecret;
-      sopsSecretName = user.publicKeySecret;
-    };
-  }) enabledUsers);
-
 in {
-  # Server public key and endpoint secrets
-  wireguard-server-public-key = lib.mkSecretRef {
-    name = "wireguard-server-public-key";
+  applications.wireguard = {
     namespace = vars.namespaces.wireguard;
-    secretName = "wireguard-secrets";
-    secretKey = "server-public-key";
-    sopsSecretName = "wireguard_server_public_key";
+    syncWave = 4;
+    yamls = map builtins.toJSON [
+      configMapResource
+      caddyCertResource
+      pvcResource
+      deploymentResource
+      serviceResource
+    ];
   };
-
-  wireguard-server-endpoint = lib.mkSecretRef {
-    name = "wireguard-server-endpoint";
-    namespace = vars.namespaces.wireguard;
-    secretName = "wireguard-secrets";
-    secretKey = "wg-server-endpoint";
-    sopsSecretName = "wireguard_server_endpoint";
-  };
-
-  wireguard-server-key = lib.mkSecretRef {
-    name = "wireguard-server-key";
-    namespace = vars.namespaces.wireguard;
-    secretName = "wireguard-secrets";
-    secretKey = "server-private-key";
-    sopsSecretName = "wireguard_server_private_key";
-  };
-
-  # WireGuard configuration
-  wireguard-config = lib.mkRawManifest {
-    name = "wireguard-config";
-    namespace = vars.namespaces.wireguard;
-    resources = [ configMapResource ];
-  };
-
-  # cert-manager Certificate for caddy TLS in wireguard namespace
-  wireguard-caddy-cert = lib.mkRawManifest {
-    name = "wireguard-caddy-cert";
-    namespace = vars.namespaces.wireguard;
-    resources = [ caddyCertResource ];
-  };
-
-  # WireGuard storage
-  wireguard-storage = lib.mkRawManifest {
-    name = "wireguard-storage";
-    namespace = vars.namespaces.wireguard;
-    resources = [ pvcResource ];
-  };
-
-  # WireGuard deployment
-  wireguard-deployment = lib.mkRawManifest {
-    name = "wireguard-deployment";
-    namespace = vars.namespaces.wireguard;
-    resources = [ deploymentResource ];
-  };
-
-  # WireGuard service
-  wireguard-service = lib.mkRawManifest {
-    name = "wireguard-service";
-    namespace = vars.namespaces.wireguard;
-    resources = [ serviceResource ];
-  };
-} // userSecrets
+}
