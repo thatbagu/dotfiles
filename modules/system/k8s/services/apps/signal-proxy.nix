@@ -98,7 +98,8 @@ let
       namespace = vars.namespaces.proxies;
     };
     spec = {
-      replicas = 1;
+      # No `replicas`: the HPA owns it. Setting it here made every Argo sync
+      # bounce the Deployment 1 -> 2 -> 1.
       selector.matchLabels.app = "signal-proxy";
       template = {
         metadata.labels.app = "signal-proxy";

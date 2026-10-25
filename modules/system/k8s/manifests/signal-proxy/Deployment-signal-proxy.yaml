@@ -4,7 +4,6 @@ metadata:
   name: signal-proxy
   namespace: proxies
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: signal-proxy
