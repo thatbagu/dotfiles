@@ -22,6 +22,7 @@ in {
     syncPolicy.autoSync = {
       enable = true;
       selfHeal = true;
+      prune = true;
     };
 
     helm.releases.argocd = {

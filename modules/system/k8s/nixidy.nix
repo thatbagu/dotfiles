@@ -10,7 +10,8 @@ let
   regularCharts = lib.filterAttrs (_: chart: !chart.isSecret) charts;
 
   # Argo application -> charts it's built from + sync wave (replaces the old
-  # deploymentGroups ordering). `auto` apps are auto-synced with self-heal;
+  # deploymentGroups ordering). `auto` apps are auto-synced with self-heal and
+  # prune;
   # the rest wait for a manual sync (longhorn stays manual on purpose).
   apps = {
     metallb        = { charts = [ "metallb" ];        wave = 0; auto = true; };
@@ -50,6 +51,13 @@ let
   mappedCharts = lib.concatMap (app: app.charts) (lib.attrValues apps);
   unmappedCharts = lib.subtractLists mappedCharts (lib.attrNames regularCharts);
 in {
+  # Never let Argo delete storage, CRDs (would cascade to every CR) or
+  # namespaces, whether by pruning or by deleting an Application.
+  nixidy.objectTransforms.protect-stateful = {
+    match.kind = [ "PersistentVolumeClaim" "CustomResourceDefinition" "Namespace" ];
+    update.metadata.annotations."argocd.argoproj.io/sync-options" = "Prune=false,Delete=false";
+  };
+
   nixidy.target = {
     repository = "https://github.com/thatbagu/dotfiles.git";
     branch = "main";
@@ -59,9 +67,16 @@ in {
   applications = lib.mapAttrs (name: app: {
     namespace = regularCharts.${lib.head app.charts}.namespace;
     annotations."argocd.argoproj.io/sync-wave" = toString app.wave;
-    syncPolicy.autoSync = lib.mkIf (app.auto or false) {
-      enable = true;
-      selfHeal = true;
+    syncPolicy = {
+      autoSync = lib.mkIf (app.auto or false) {
+        enable = true;
+        selfHeal = true;
+        prune = true;
+      };
+      syncOptions = {
+        createNamespace = true;
+        pruneLast = true;
+      };
     };
     yamls = map (chart: builtins.readFile regularCharts.${chart}.path) app.charts;
   }) (lib.throwIf (unmappedCharts != [ ])

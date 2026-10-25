@@ -3,6 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/external-dns/pull/2007
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
   name: dnsendpoints.externaldns.k8s.io
 spec:
   group: externaldns.k8s.io
