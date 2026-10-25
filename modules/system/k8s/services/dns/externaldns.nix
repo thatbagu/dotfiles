@@ -30,7 +30,6 @@ let
   # Base configuration for all ExternalDNS instances
   externalDnsBase = {
     deploymentStrategy = { type = "Recreate"; };
-    securityContext = { fsGroup = 65534; };
     sources = [ "service" "ingress" ];
     policy = "upsert-only";
     logLevel = "debug";

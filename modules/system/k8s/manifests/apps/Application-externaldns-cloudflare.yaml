@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  name: externaldns-cloudflare
+  namespace: argocd
+spec:
+  destination:
+    namespace: dns-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./modules/system/k8s/manifests/externaldns-cloudflare
+    repoURL: https://github.com/Jahysama/dotfiles.git
+    targetRevision: main
+  syncPolicy: {}

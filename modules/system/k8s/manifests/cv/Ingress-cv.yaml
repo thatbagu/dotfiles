@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      set $cc "public, max-age=300, s-maxage=3600";
+      if ($http_hx_request = "true") { set $cc "no-store"; }
+      add_header Cache-Control $cc always;
+      add_header Vary "HX-Request" always;
+      proxy_hide_header Content-Security-Policy;
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';" always;
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  name: cv
+  namespace: cv
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: mlship.dev
+      http:
+        paths:
+          - backend:
+              service:
+                name: cv
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - mlship.dev
+      secretName: cv-tls-cert

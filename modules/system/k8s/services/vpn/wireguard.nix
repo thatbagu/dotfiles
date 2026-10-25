@@ -141,10 +141,6 @@ let
       template = {
         metadata = { labels = { app = "wireguard"; }; };
         spec = {
-          securityContext = {
-            capabilities = { add = [ "NET_ADMIN" "SYS_MODULE" ]; };
-            privileged = true;
-          };
           initContainers = [{
             name = "setup-config";
             image = "alpine:3.18";

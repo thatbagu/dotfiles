@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signal-proxy
+  namespace: proxies
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: signal-proxy
+  template:
+    metadata:
+      labels:
+        app: signal-proxy
+    spec:
+      containers:
+        - image: nginx:stable-alpine
+          name: signal-proxy
+          ports:
+            - containerPort: 443
+              name: tcp
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
+          volumeMounts:
+            - mountPath: /etc/nginx/nginx.conf
+              name: config
+              subPath: nginx.conf
+            - mountPath: /etc/ssl/signal
+              name: tls
+              readOnly: true
+      volumes:
+        - configMap:
+            name: signal-proxy-config
+          name: config
+        - name: tls
+          secret:
+            secretName: signal-proxy-tls

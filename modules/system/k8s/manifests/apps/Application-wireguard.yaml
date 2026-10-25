@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  name: wireguard
+  namespace: argocd
+spec:
+  destination:
+    namespace: wireguard-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./modules/system/k8s/manifests/wireguard
+    repoURL: https://github.com/Jahysama/dotfiles.git
+    targetRevision: main
+  syncPolicy: {}

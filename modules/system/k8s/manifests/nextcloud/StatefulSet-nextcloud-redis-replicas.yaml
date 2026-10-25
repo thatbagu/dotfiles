@@ -1,0 +1,192 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: replica
+    app.kubernetes.io/instance: nextcloud
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.1
+    helm.sh/chart: redis-21.1.3
+  name: nextcloud-redis-replicas
+  namespace: nextcloud
+spec:
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: replica
+      app.kubernetes.io/instance: nextcloud
+      app.kubernetes.io/name: redis
+  serviceName: nextcloud-redis-headless
+  template:
+    metadata:
+      annotations:
+        checksum/configmap: 2a9ab4a5432825504d910f022638674ce88eaefe9f9f595ad8bc107377d104fb
+        checksum/health: aff24913d801436ea469d8d374b2ddb3ec4c43ee7ab24663d5f8ff1a1b6991a9
+        checksum/scripts: 06cff14d6838208d327ef535f52575d95d4cbf252fb6a70f45b54f62c57afe03
+        checksum/secret: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+      labels:
+        app.kubernetes.io/component: replica
+        app.kubernetes.io/instance: nextcloud
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/version: 8.0.1
+        helm.sh/chart: redis-21.1.3
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/component: replica
+                    app.kubernetes.io/instance: nextcloud
+                    app.kubernetes.io/name: redis
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+      automountServiceAccountToken: false
+      containers:
+        - args:
+            - -ec
+            - /opt/bitnami/scripts/start-scripts/start-replica.sh
+          command:
+            - /bin/bash
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: replica
+            - name: REDIS_MASTER_HOST
+              value: nextcloud-redis-master-0.nextcloud-redis-headless.nextcloud.svc.cluster.local
+            - name: REDIS_MASTER_PORT_NUMBER
+              value: "6379"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD_FILE
+              value: /opt/bitnami/redis/secrets/redis-password
+            - name: REDIS_MASTER_PASSWORD_FILE
+              value: /opt/bitnami/redis/secrets/redis-password
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          image: docker.io/bitnamilegacy/redis:8.0.1-debian-12-r1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - /health/ping_liveness_local_and_master.sh 5
+            failureThreshold: 5
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 6
+          name: redis
+          ports:
+            - containerPort: 6379
+              name: redis
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - /health/ping_readiness_local_and_master.sh 1
+            failureThreshold: 5
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 2
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            failureThreshold: 22
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: redis
+            timeoutSeconds: 5
+          volumeMounts:
+            - mountPath: /opt/bitnami/scripts/start-scripts
+              name: start-scripts
+            - mountPath: /health
+              name: health
+            - mountPath: /opt/bitnami/redis/secrets/
+              name: redis-password
+            - mountPath: /data
+              name: redis-data
+            - mountPath: /opt/bitnami/redis/mounted-etc
+              name: config
+            - mountPath: /opt/bitnami/redis/etc
+              name: empty-dir
+              subPath: app-conf-dir
+            - mountPath: /tmp
+              name: empty-dir
+              subPath: tmp-dir
+      enableServiceLinks: true
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: nextcloud-redis-replica
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - configMap:
+            defaultMode: 493
+            name: nextcloud-redis-scripts
+          name: start-scripts
+        - configMap:
+            defaultMode: 493
+            name: nextcloud-redis-health
+          name: health
+        - name: redis-password
+          secret:
+            items:
+              - key: password
+                path: redis-password
+            secretName: nextcloud-redis
+        - configMap:
+            name: nextcloud-redis-configuration
+          name: config
+        - emptyDir: {}
+          name: empty-dir
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        labels:
+          app.kubernetes.io/component: replica
+          app.kubernetes.io/instance: nextcloud
+          app.kubernetes.io/name: redis
+        name: redis-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 8Gi

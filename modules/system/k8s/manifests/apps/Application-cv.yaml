@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  name: cv
+  namespace: argocd
+spec:
+  destination:
+    namespace: cv
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./modules/system/k8s/manifests/cv
+    repoURL: https://github.com/Jahysama/dotfiles.git
+    targetRevision: main
+  syncPolicy: {}

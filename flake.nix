@@ -54,6 +54,10 @@
     colmena.url = "github:zhaofengli/colmena";
     nixhelm.url = "github:farcaller/nixhelm";
     nix-kube-generators.url = "github:farcaller/nix-kube-generators";
+    nixidy = {
+      url = "github:arnarg/nixidy/v0.23.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     claude-code.url = "github:sadjow/claude-code-nix";
   };
 
@@ -232,6 +236,18 @@
       // (builtins.mapAttrs (
         name: machine: mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname machine.username
       ) nixosMachines);
+
+      # Kubernetes manifests for the homelab cluster, synced by Argo CD.
+      # Render with: nix run github:arnarg/nixidy/v0.23.1 -- switch .#homelab
+      nixidyEnvs.x86_64-linux = inputs.nixidy.lib.mkEnvs {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        charts = inputs.nixhelm.chartsDerivations.x86_64-linux;
+        extraSpecialArgs = { inherit inputs; };
+        envs.homelab.modules = [
+          ./modules/system/k8s/nixidy.nix
+          ./modules/system/k8s/argocd.nix
+        ];
+      };
 
       darwinConfigurations = {
         work = mkSystem inputs.nix-darwin "aarch64-darwin" "work" "egor";
