@@ -1,4 +1,4 @@
-{ charts, vars, ... }:
+{ lib, charts, vars, ... }:
 
 {
   # Longhorn - distributed storage. Manual sync only: a bad push must never
@@ -13,6 +13,10 @@
     };
     helm.releases.longhorn = {
       chart = charts.longhorn.longhorn;
+      # Drop the chart's pre-delete uninstall Job so no Argo operation can ever
+      # run it against live volumes.
+      transformer = lib.filter (obj:
+        !(obj.kind == "Job" && obj.metadata.name == "longhorn-uninstall"));
       values = {
         persistence = {
           defaultClass = true;
