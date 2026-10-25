@@ -26,6 +26,15 @@
         };
       };
 
+      # Patch .htaccess on every pod start so mod_rewrite sets REMOTE_USER from
+      # the X-Remote-User header Caddy injects per VPN client IP.
+      # user_saml reads $_SERVER['REMOTE_USER'] to auto-login without a password.
+      lifecycle.postStartCommand = [
+        "/bin/sh"
+        "-c"
+        "grep -q 'X-Remote-User' /var/www/html/.htaccess || sed -i '/RewriteEngine on/a\\    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]' /var/www/html/.htaccess"
+      ];
+
       internalDatabase.enabled = false;
 
       externalDatabase = {

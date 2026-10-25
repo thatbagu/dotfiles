@@ -56,7 +56,7 @@ let
 
     PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
     PostDown = iptables -D FORWARD -o wg0 -j ACCEPT
-    PostDown = iptables -t nat -D POSTROUTING -s 10.0.100.0/24 ! -d 10.0.100.0/24 -j MASQUERADE  
+    PostDown = iptables -t nat -D POSTROUTING -s 10.0.100.0/24 ! -d 10.0.100.0/24 -j MASQUERADE
     PostDown = iptables -D INPUT -p udp --dport 51820 -j ACCEPT
 
     ${concatStringsSep "\n\n" (mapAttrsToList (name: user: ''
@@ -300,6 +300,47 @@ let
                 mountPath = "/data";
               }
             ];
+          }
+          {
+            name = "ip-watcher";
+            image = "alpine:3.18";
+            command = ["/bin/sh" "-c"];
+            args = [''
+              apk add --no-cache curl iptables > /dev/null 2>&1
+              # Use the nft-based iptables to match the wireguard container's backend
+              ln -sf xtables-nft-multi /sbin/iptables
+              # Wait until WireGuard PostUp has completed (MASQUERADE rule = wg0 is up)
+              until iptables -t nat -L POSTROUTING -n 2>/dev/null | grep -q MASQUERADE; do sleep 3; done
+              echo "ip-watcher: WireGuard up, starting DNAT refresh loop (5 min)"
+
+              set_dnat() {
+                NEW="$1"
+                OLD=$(cat /tmp/wg-wan-ip 2>/dev/null)
+                [ "$OLD" = "$NEW" ] && return 0
+                [ -n "$OLD" ] && iptables -t nat -D PREROUTING -i wg0 -s 10.0.100.0/24 -d "$OLD" -p tcp --dport 443 -j DNAT --to-destination 10.0.100.1:443 2>/dev/null || true
+                iptables -t nat -I PREROUTING 1 -i wg0 -s 10.0.100.0/24 -d "$NEW" -p tcp --dport 443 -j DNAT --to-destination 10.0.100.1:443
+                echo "$NEW" > /tmp/wg-wan-ip
+                echo "ip-watcher: DNAT updated $OLD -> $NEW"
+              }
+
+              while true; do
+                IP=$(curl -sf --max-time 10 https://api.ipify.org 2>/dev/null)
+                if [ -n "$IP" ]; then
+                  set_dnat "$IP"
+                  sleep 300
+                else
+                  echo "ip-watcher: WARN could not fetch public IP, retrying in 60s"
+                  sleep 60
+                fi
+              done
+            ''];
+            securityContext = {
+              capabilities = { add = ["NET_ADMIN"]; };
+            };
+            resources = {
+              requests = { cpu = "5m"; memory = "16Mi"; };
+              limits = { cpu = "50m"; memory = "32Mi"; };
+            };
           }];
           volumes = [
             {

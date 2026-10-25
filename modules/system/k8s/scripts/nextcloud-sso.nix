@@ -2,7 +2,7 @@
 
 pkgs.writeShellApplication {
   name = "nextcloud-sso";
-  runtimeInputs = [ pkgs.kubectl pkgs.python3 ];
+  runtimeInputs = [ pkgs.kubectl ];
   text = ''
     KUBECONFIG=/etc/rancher/k3s/k3s.yaml
     export KUBECONFIG
@@ -14,24 +14,31 @@ pkgs.writeShellApplication {
       exit 0
     fi
 
+    # Idempotency: skip if provider 1 already has the correct uid_mapping
     if kubectl exec -n nextcloud deployment/nextcloud -- \
-        php /var/www/html/occ app:list --output=json 2>/dev/null \
-        | python3 -c "import sys,json; exit(0 if 'user_saml' in json.load(sys.stdin).get('enabled',{}) else 1)" 2>/dev/null; then
+        php /var/www/html/occ saml:config:get --providerId=1 2>/dev/null \
+        | grep -q 'general-uid_mapping: REMOTE_USER'; then
       echo "Nextcloud VPN SSO already configured, skipping"
       exit 0
     fi
 
-    echo "Enabling user_saml for VPN header auth..."
+    echo "Configuring user_saml for VPN header auth..."
+
+    # Enable app (creates empty provider 1 if it doesn't exist)
     kubectl exec -n nextcloud deployment/nextcloud -- php /var/www/html/occ app:enable user_saml
 
-    # user_saml v8+ stores type as an app config key, not a per-provider SAML config.
-    # HTTP_X_REMOTE_USER is how PHP exposes the X-Remote-User HTTP header.
+    # Global: environment-variable mode + auto-provision accounts on first login
     kubectl exec -n nextcloud deployment/nextcloud -- \
       php /var/www/html/occ config:app:set user_saml type --value=environment-variable
     kubectl exec -n nextcloud deployment/nextcloud -- \
-      php /var/www/html/occ config:app:set user_saml general-uid_mapping --value=HTTP_X_REMOTE_USER
-    kubectl exec -n nextcloud deployment/nextcloud -- \
       php /var/www/html/occ config:app:set user_saml general-require_provisioned_account --value=0
+
+    # Per-provider: read REMOTE_USER (set by Apache SetEnvIf from X-Remote-User header)
+    # HTTP_* vars are rejected by saml:config:set for security; SetEnvIf bridges the gap.
+    kubectl exec -n nextcloud deployment/nextcloud -- \
+      php /var/www/html/occ saml:config:set 1 --general-uid_mapping=REMOTE_USER
+    kubectl exec -n nextcloud deployment/nextcloud -- \
+      php /var/www/html/occ saml:config:set 1 --general-idp0_display_name=VPN-SSO
 
     echo "Nextcloud VPN SSO configured"
   '';
