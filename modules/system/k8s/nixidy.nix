@@ -13,18 +13,18 @@ let
   # deploymentGroups ordering). `auto` apps are auto-synced with self-heal;
   # the rest wait for a manual sync (longhorn stays manual on purpose).
   apps = {
-    metallb        = { charts = [ "metallb" ];        wave = 0; };
+    metallb        = { charts = [ "metallb" ];        wave = 0; auto = true; };
     longhorn       = { charts = [ "longhorn" ];       wave = 0; };
-    metallb-config = { charts = [ "metallb-config" ]; wave = 1; };
+    metallb-config = { charts = [ "metallb-config" ]; wave = 1; auto = true; };
 
-    ingress-nginx  = { charts = [ "ingress-nginx" ];  wave = 2; };
-    pihole         = { charts = [ "pihole" ];         wave = 2; };
-    haproxy        = { charts = [ "haproxy" ];        wave = 2; };
-    cert-manager   = { charts = [ "cert-manager" ];   wave = 2; };
+    ingress-nginx  = { charts = [ "ingress-nginx" ];  wave = 2; auto = true; };
+    pihole         = { charts = [ "pihole" ];         wave = 2; auto = true; };
+    haproxy        = { charts = [ "haproxy" ];        wave = 2; auto = true; };
+    cert-manager   = { charts = [ "cert-manager" ];   wave = 2; auto = true; };
 
-    externaldns-pihole      = { charts = [ "externaldns-pihole" ];      wave = 3; };
-    externaldns-cloudflare  = { charts = [ "externaldns-cloudflare" ];  wave = 3; };
-    cert-manager-issuers    = { charts = [ "cert-manager-issuers" ];    wave = 3; };
+    externaldns-pihole      = { charts = [ "externaldns-pihole" ];      wave = 3; auto = true; };
+    externaldns-cloudflare  = { charts = [ "externaldns-cloudflare" ];  wave = 3; auto = true; };
+    cert-manager-issuers    = { charts = [ "cert-manager-issuers" ];    wave = 3; auto = true; };
     cloudflare-ddns         = { charts = [ "cloudflare-ddns" ];         wave = 3; auto = true; };
     pihole-external-ingress = { charts = [ "pihole-external-ingress" ]; wave = 3; auto = true; };
 

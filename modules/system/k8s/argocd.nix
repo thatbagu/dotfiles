@@ -19,6 +19,10 @@ in {
     namespace = "argocd";
     createNamespace = true;
     annotations."argocd.argoproj.io/sync-wave" = "-1";
+    syncPolicy.autoSync = {
+      enable = true;
+      selfHeal = true;
+    };
 
     helm.releases.argocd = {
       chart = charts.argoproj.argo-cd;
