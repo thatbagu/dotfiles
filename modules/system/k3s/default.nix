@@ -59,7 +59,14 @@ in {
           "--disable=traefik"
           "--disable=local-storage"
           "--node-label=node-role=master"
-        ] else [
+        ] ++ concatMap (component: map (arg: "--${component}-arg=${arg}") [
+          # meowth's SSD stalls ~2s on cache flush every ~2.5min; back-to-back
+          # stalls exceeded the default 10s renew deadline, and a lost leader
+          # lease makes k3s exit. Defaults are 15s lease / 10s renew.
+          "leader-elect-lease-duration=60s"
+          "leader-elect-renew-deadline=40s"
+        ]) [ "kube-controller-manager" "kube-scheduler" "kube-cloud-controller-manager" ]
+        else [
           "--node-label=node-role=worker"
         ]) ++ [
           "--node-label=node.longhorn.io/create-default-disk=true"
