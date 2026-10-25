@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard
+  namespace: wireguard-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wireguard
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wireguard
+    spec:
+      containers:
+        - env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: UTC
+            - name: SERVERURL
+              value: auto
+            - name: SERVERPORT
+              value: "51820"
+            - name: PEERDNS
+              value: 192.168.1.250
+            - name: INTERNAL_SUBNET
+              value: 10.0.100.0
+            - name: ALLOWEDIPS
+              value: 0.0.0.0/0
+            - name: LOG_CONFS
+              value: "true"
+          image: lscr.io/linuxserver/wireguard:latest
+          name: wireguard
+          ports:
+            - containerPort: 51820
+              name: wireguard
+              protocol: UDP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+            privileged: true
+          volumeMounts:
+            - mountPath: /config
+              name: wireguard-data
+            - mountPath: /lib/modules
+              name: lib-modules
+              readOnly: true
+        - args:
+            - caddy
+            - run
+            - --config
+            - /etc/caddy/Caddyfile
+            - --adapter
+            - caddyfile
+          image: caddy:2-alpine
+          name: caddy
+          ports:
+            - containerPort: 443
+              name: https
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /etc/caddy
+              name: caddy-config
+            - mountPath: /certs
+              name: nextcloud-tls
+              readOnly: true
+            - mountPath: /data
+              name: caddy-data
+        - args:
+            - |
+              apk add --no-cache curl iptables > /dev/null 2>&1
+              # Use the nft-based iptables to match the wireguard container's backend
+              ln -sf xtables-nft-multi /sbin/iptables
+              # Wait until WireGuard PostUp has completed (MASQUERADE rule = wg0 is up)
+              until iptables -t nat -L POSTROUTING -n 2>/dev/null | grep -q MASQUERADE; do sleep 3; done
+              echo "ip-watcher: WireGuard up, starting DNAT refresh loop (5 min)"
+
+              set_dnat() {
+                NEW="$1"
+                OLD=$(cat /tmp/wg-wan-ip 2>/dev/null)
+                [ "$OLD" = "$NEW" ] && return 0
+                [ -n "$OLD" ] && iptables -t nat -D PREROUTING -i wg0 -s 10.0.100.0/24 -d "$OLD" -p tcp --dport 443 -j DNAT --to-destination 10.0.100.1:443 2>/dev/null || true
+                iptables -t nat -I PREROUTING 1 -i wg0 -s 10.0.100.0/24 -d "$NEW" -p tcp --dport 443 -j DNAT --to-destination 10.0.100.1:443
+                echo "$NEW" > /tmp/wg-wan-ip
+                echo "ip-watcher: DNAT updated $OLD -> $NEW"
+              }
+
+              while true; do
+                IP=$(curl -sf --max-time 10 https://api.ipify.org 2>/dev/null)
+                if [ -n "$IP" ]; then
+                  set_dnat "$IP"
+                  sleep 300
+                else
+                  echo "ip-watcher: WARN could not fetch public IP, retrying in 60s"
+                  sleep 60
+                fi
+              done
+          command:
+            - /bin/sh
+            - -c
+          image: alpine:3.18
+          name: ip-watcher
+          resources:
+            limits:
+              cpu: 50m
+              memory: 32Mi
+            requests:
+              cpu: 5m
+              memory: 16Mi
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+      initContainers:
+        - args:
+            - "# Copy template to the config directory  \ncp /config-template/wg0.conf.template /config/wg_confs/wg0.conf\n\n# Replace server private key\nsed -i \"s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g\" /config/wg_confs/wg0.conf\n\n# Replace user public keys from SOPS secrets\nsed -i \"s|__EGOR-MAIN_PUBLIC_KEY__|$(cat /secrets/egor_main_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__FRIEND-TEST_PUBLIC_KEY__|$(cat /secrets/dsh_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\n\n# For client configs, replace server public key and endpoint\nSERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)\nWG_ENDPOINT=$(cat /secrets/wg-server-endpoint)\n\n# Replace placeholders in all client config files\nfor file in /config-template/*; do\n  if [[ $file != *.template ]]; then\n    filename=$(basename \"$file\")\n    cp \"$file\" \"/config/$filename\"\n    sed -i \"s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g\" \"/config/$filename\"\n    sed -i \"s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g\" \"/config/$filename\"\n  fi\ndone\n\n# Set proper permissions\nchmod 600 /config/wg_confs/wg0.conf\n\necho \"WireGuard config ready with 2 users\"\n"
+          command:
+            - /bin/sh
+            - -c
+          image: alpine:3.18
+          name: setup-config
+          volumeMounts:
+            - mountPath: /config-template
+              name: config-template
+            - mountPath: /config
+              name: wireguard-data
+            - mountPath: /secrets
+              name: wireguard-secrets
+      volumes:
+        - name: wireguard-data
+          persistentVolumeClaim:
+            claimName: wireguard-data
+        - configMap:
+            name: wireguard-config
+          name: config-template
+        - name: wireguard-secrets
+          secret:
+            secretName: wireguard-secrets
+        - hostPath:
+            path: /lib/modules
+            type: Directory
+          name: lib-modules
+        - configMap:
+            items:
+              - key: Caddyfile
+                path: Caddyfile
+            name: wireguard-config
+          name: caddy-config
+        - name: nextcloud-tls
+          secret:
+            secretName: nextcloud-tls
+        - emptyDir: {}
+          name: caddy-data

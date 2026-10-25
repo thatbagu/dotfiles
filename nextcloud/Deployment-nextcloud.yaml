@@ -1,0 +1,208 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: app
+    app.kubernetes.io/instance: nextcloud
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nextcloud
+    app.kubernetes.io/version: 33.0.3
+    helm.sh/chart: nextcloud-9.0.6
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: app
+      app.kubernetes.io/instance: nextcloud
+      app.kubernetes.io/name: nextcloud
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        hooks-hash: 5608e87bf99740259e536bb50f86c550f0ccf55762164d91f0a5ea49d592353a
+        nextcloud-config-hash: 23b95042deaafbd40df04d522c11bd934de6135c4583e9834e6a5a7f6e9da76f
+        php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+      labels:
+        app.kubernetes.io/component: app
+        app.kubernetes.io/instance: nextcloud
+        app.kubernetes.io/name: nextcloud
+        nextcloud-redis-client: "true"
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_HOST
+              value: nextcloud-postgresql
+            - name: POSTGRES_DB
+              value: nextcloud
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  key: db-username
+                  name: nextcloud-db
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: nextcloud-db
+            - name: NEXTCLOUD_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  key: nextcloud-username
+                  name: nextcloud-admin
+            - name: NEXTCLOUD_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: nextcloud-admin
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
+              value: nextcloud.egor.house
+            - name: OPENMETRICS_ALLOWED_CLIENTS
+              value: 127.0.0.1,10.42.0.0/16,10.43.0.0/16
+            - name: NEXTCLOUD_DATA_DIR
+              value: /var/www/html/data
+            - name: REDIS_HOST
+              value: nextcloud-redis-master
+            - name: REDIS_HOST_PORT
+              value: "6379"
+            - name: REDIS_HOST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: nextcloud-redis
+          image: docker.io/library/nextcloud:33.0.3-apache
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - grep -q 'X-Remote-User' /var/www/html/.htaccess || sed -i '/RewriteEngine on/a\    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]' /var/www/html/.htaccess
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: nextcloud.egor.house
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: nextcloud
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: nextcloud.egor.house
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/www/
+              name: nextcloud-main
+              subPath: root
+            - mountPath: /var/www/html
+              name: nextcloud-main
+              subPath: html
+            - mountPath: /var/www/html/data
+              name: nextcloud-main
+              subPath: data
+            - mountPath: /var/www/html/config
+              name: nextcloud-main
+              subPath: config
+            - mountPath: /var/www/html/custom_apps
+              name: nextcloud-main
+              subPath: custom_apps
+            - mountPath: /var/www/tmp
+              name: nextcloud-main
+              subPath: tmp
+            - mountPath: /var/www/html/themes
+              name: nextcloud-main
+              subPath: themes
+            - mountPath: /var/www/html/config/proxy.config.php
+              name: nextcloud-config
+              subPath: proxy.config.php
+            - mountPath: /var/www/html/config/.htaccess
+              name: nextcloud-config
+              subPath: .htaccess
+            - mountPath: /var/www/html/config/apache-pretty-urls.config.php
+              name: nextcloud-config
+              subPath: apache-pretty-urls.config.php
+            - mountPath: /var/www/html/config/apcu.config.php
+              name: nextcloud-config
+              subPath: apcu.config.php
+            - mountPath: /var/www/html/config/apps.config.php
+              name: nextcloud-config
+              subPath: apps.config.php
+            - mountPath: /var/www/html/config/autoconfig.php
+              name: nextcloud-config
+              subPath: autoconfig.php
+            - mountPath: /var/www/html/config/helm-metrics.config.php
+              name: nextcloud-config
+              subPath: helm-metrics.config.php
+            - mountPath: /var/www/html/config/redis.config.php
+              name: nextcloud-config
+              subPath: redis.config.php
+            - mountPath: /var/www/html/config/reverse-proxy.config.php
+              name: nextcloud-config
+              subPath: reverse-proxy.config.php
+            - mountPath: /var/www/html/config/s3.config.php
+              name: nextcloud-config
+              subPath: s3.config.php
+            - mountPath: /var/www/html/config/smtp.config.php
+              name: nextcloud-config
+              subPath: smtp.config.php
+            - mountPath: /var/www/html/config/swift.config.php
+              name: nextcloud-config
+              subPath: swift.config.php
+            - mountPath: /var/www/html/config/upgrade-disable-web.config.php
+              name: nextcloud-config
+              subPath: upgrade-disable-web.config.php
+            - mountPath: /docker-entrypoint-hooks.d/before-starting/helm.sh
+              name: nextcloud-hooks
+              readOnly: true
+              subPath: before-starting.sh
+      initContainers:
+        - command:
+            - sh
+            - -c
+            - until pg_isready -h ${POSTGRES_HOST} -U ${POSTGRES_USER} ; do sleep 2 ; done
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  key: db-username
+                  name: nextcloud-db
+            - name: POSTGRES_HOST
+              value: nextcloud-postgresql
+          image: docker.io/bitnamilegacy/postgresql:17.5.0-debian-12-r3
+          name: postgresql-isready
+          resources: {}
+          securityContext: {}
+      securityContext:
+        fsGroup: 33
+      volumes:
+        - name: nextcloud-main
+          persistentVolumeClaim:
+            claimName: nextcloud-nextcloud
+        - configMap:
+            name: nextcloud-config
+          name: nextcloud-config
+        - configMap:
+            defaultMode: 493
+            name: nextcloud-hooks
+          name: nextcloud-hooks

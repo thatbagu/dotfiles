@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  name: cv-tui
+  namespace: argocd
+spec:
+  destination:
+    namespace: cv
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./cv-tui
+    repoURL: https://github.com/thatbagu/dotfiles.git
+    targetRevision: k8s-rendered
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true

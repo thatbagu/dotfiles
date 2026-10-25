@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy
+  namespace: nginx-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haproxy
+  template:
+    metadata:
+      labels:
+        app: haproxy
+    spec:
+      containers:
+        - image: haproxy:3.0-alpine
+          name: haproxy
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+            - containerPort: 443
+              name: https
+              protocol: TCP
+            - containerPort: 22
+              name: ssh-tui
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+            - mountPath: /usr/local/etc/haproxy
+              name: config
+              readOnly: true
+      volumes:
+        - configMap:
+            name: haproxy-config
+          name: config

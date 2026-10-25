@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: longhorn
+  namespace: argocd
+spec:
+  destination:
+    namespace: longhorn-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./longhorn
+    repoURL: https://github.com/thatbagu/dotfiles.git
+    targetRevision: k8s-rendered
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true

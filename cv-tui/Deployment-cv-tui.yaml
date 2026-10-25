@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cv-tui
+  namespace: cv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cv-tui
+  template:
+    metadata:
+      labels:
+        app: cv-tui
+    spec:
+      containers:
+        - image: docker.io/thatbagu/cv-tui:latest
+          imagePullPolicy: Always
+          name: cv-tui
+          ports:
+            - containerPort: 2222
+              name: ssh
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /app/.ssh/cv_ssh_host_key
+              name: ssh-host-key
+              readOnly: true
+      nodeName: meowth
+      volumes:
+        - hostPath:
+            path: /run/secrets/cv_ssh_host_key
+            type: File
+          name: ssh-host-key

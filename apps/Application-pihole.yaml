@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  name: pihole
+  namespace: argocd
+spec:
+  destination:
+    namespace: pihole-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./pihole
+    repoURL: https://github.com/thatbagu/dotfiles.git
+    targetRevision: k8s-rendered
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true

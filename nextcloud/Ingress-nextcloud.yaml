@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  labels:
+    app.kubernetes.io/component: app
+    app.kubernetes.io/instance: nextcloud
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nextcloud
+    app.kubernetes.io/version: 33.0.3
+    helm.sh/chart: nextcloud-9.0.6
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: nextcloud.egor.house
+      http:
+        paths:
+          - backend:
+              service:
+                name: nextcloud
+                port:
+                  number: 8080
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - nextcloud.egor.house
+      secretName: nextcloud-tls

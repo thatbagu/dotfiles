@@ -1,0 +1,58 @@
+apiVersion: v1
+data:
+  nginx.conf: |
+    error_log /dev/stderr info;
+
+    events {
+      worker_connections 4096;
+    }
+
+    stream {
+      log_format proxy '$remote_addr [$time_local] $protocol $status '
+                       '$bytes_sent $bytes_received $session_time';
+      access_log /dev/stdout proxy;
+
+      resolver 1.1.1.1 8.8.8.8 valid=300s;
+      resolver_timeout 10s;
+
+      # Outer TLS termination — decrypts Signal's outer TLS layer.
+      server {
+        listen 443 ssl;
+        ssl_certificate /etc/ssl/signal/tls.crt;
+        ssl_certificate_key /etc/ssl/signal/tls.key;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        proxy_pass 127.0.0.1:4433;
+        proxy_connect_timeout 30s;
+        proxy_timeout 600s;
+      }
+
+      # Route inner TLS by SNI to the correct Signal service.
+      map $ssl_preread_server_name $signal_upstream {
+        chat.signal.org          chat.signal.org:443;
+        storage.signal.org       storage.signal.org:443;
+        cdn.signal.org           cdn.signal.org:443;
+        cdn2.signal.org          cdn2.signal.org:443;
+        cdn3.signal.org          cdn3.signal.org:443;
+        cdsi.signal.org          cdsi.signal.org:443;
+        contentproxy.signal.org  contentproxy.signal.org:443;
+        grpc.chat.signal.org     grpc.chat.signal.org:443;
+        sfu.voip.signal.org      sfu.voip.signal.org:443;
+        svr2.signal.org          svr2.signal.org:443;
+        svrb.signal.org          svrb.signal.org:443;
+        updates.signal.org       updates.signal.org:443;
+        updates2.signal.org      updates2.signal.org:443;
+        default                  127.0.0.1:9;
+      }
+
+      server {
+        listen 4433;
+        ssl_preread on;
+        proxy_pass $signal_upstream;
+        proxy_connect_timeout 30s;
+        proxy_timeout 600s;
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: signal-proxy-config
+  namespace: proxies

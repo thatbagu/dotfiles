@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  name: externaldns-pihole
+  namespace: argocd
+spec:
+  destination:
+    namespace: dns-system
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: ./externaldns-pihole
+    repoURL: https://github.com/thatbagu/dotfiles.git
+    targetRevision: k8s-rendered
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
