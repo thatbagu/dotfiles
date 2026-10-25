@@ -57,8 +57,13 @@ let
 
       ingressClass = "nginx";
 
+      # Report haproxy's LB IP in Ingress status instead of nginx's ClusterIP,
+      # so external-dns (pihole) publishes an address LAN clients can reach.
+      publishService.enabled = false;
+
       extraArgs = {
         "enable-ssl-passthrough" = "";
+        "publish-status-address" = vars.ipPools.nginxExternal;
       };
 
       # Disable metrics to reduce overhead
