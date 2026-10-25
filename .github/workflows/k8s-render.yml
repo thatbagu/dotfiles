@@ -1,0 +1,56 @@
+# Render the homelab Kubernetes manifests (nixidy env .#homelab) and commit
+# them to the `k8s-rendered` branch, which Argo CD syncs the cluster from.
+name: Render k8s manifests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "modules/system/k8s/**"
+      - "flake.nix"
+      - "flake.lock"
+  workflow_dispatch:
+
+# Renders must land in push order.
+concurrency:
+  group: k8s-render
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Build nixidy environment
+        id: build
+        uses: arnarg/nixidy/actions/build@v0.23.1
+        with:
+          environment: .#homelab
+
+      - uses: actions/checkout@v4
+        with:
+          ref: k8s-rendered
+          path: rendered
+
+      - name: Commit rendered manifests
+        working-directory: rendered
+        env:
+          OUT: ${{ steps.build.outputs.out-path }}
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name README.md -exec rm -rf {} +
+          cp -rL --no-preserve=mode "$OUT"/. .
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Rendered manifests unchanged."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898273+github-actions[bot]@users.noreply.github.com" \
+              commit -m "render: main@${GITHUB_SHA::7}"
+          git push

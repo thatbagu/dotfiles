@@ -1,10 +1,11 @@
 { lib, ... }:
 
 # nixidy environment for the homelab cluster. Each service module defines its
-# own `applications.<name>`; Argo CD syncs the rendered output from git.
+# own `applications.<name>`.
 #
-# Render after changing anything under modules/system/k8s:
-#   nix run github:arnarg/nixidy/v0.23.1 -- switch .#homelab
+# On every push to main, .github/workflows/k8s-render.yml renders this env and
+# commits the YAML to the `k8s-rendered` branch, which Argo CD syncs from.
+# Preview locally with: nix run github:arnarg/nixidy/v0.23.1 -- build .#homelab
 {
   imports = [
     ./argocd.nix
@@ -48,8 +49,8 @@
 
   nixidy.target = {
     repository = "https://github.com/thatbagu/dotfiles.git";
-    branch = "main";
-    rootPath = "./modules/system/k8s/manifests";
+    branch = "k8s-rendered";
+    rootPath = "./";
   };
 
   # Every app auto-syncs, self-heals and prunes unless it opts out.
