@@ -14,4 +14,7 @@ spec:
     path: ./modules/system/k8s/manifests/nextcloud
     repoURL: https://github.com/thatbagu/dotfiles.git
     targetRevision: main
-  syncPolicy: {}
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

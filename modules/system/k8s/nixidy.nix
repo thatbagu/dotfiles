@@ -37,10 +37,11 @@ let
         "wireguard-service"
       ];
       wave = 4;
+      auto = true;
     };
     signal-proxy   = { charts = [ "signal-proxy" ];   wave = 4; auto = true; };
     telegram-proxy = { charts = [ "telegram-proxy" ]; wave = 4; auto = true; };
-    nextcloud      = { charts = [ "nextcloud" ];      wave = 4; };
+    nextcloud      = { charts = [ "nextcloud" ];      wave = 4; auto = true; };
     cv             = { charts = [ "cv" ];             wave = 4; auto = true; };
     cv-tui         = { charts = [ "cv-tui" ];         wave = 4; auto = true; };
     sslh           = { charts = [ "sslh" ];           wave = 4; auto = true; };
