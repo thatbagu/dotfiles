@@ -40,6 +40,8 @@ let
         tcp-request content accept if { req.ssl_hello_type 1 }
         use_backend b_nginx_https if { req.ssl_sni -m end .egor.house }
         use_backend b_nginx_https if { req.ssl_sni -m str egor.house }
+        use_backend b_nginx_https if { req.ssl_sni -m str mlship.dev }
+        use_backend b_nginx_https if { req.ssl_sni -m end .mlship.dev }
         default_backend b_telegram
 
       # Raw TCP passthrough for the SSH TUI (replaces nginx TCP configmap).
