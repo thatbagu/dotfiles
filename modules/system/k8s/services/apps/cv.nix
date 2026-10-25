@@ -62,7 +62,10 @@ let
         # Override the upstream CSP to add 'unsafe-eval' — needed for Vue/React runtime
         # template compilation on page refresh.
         "nginx.ingress.kubernetes.io/configuration-snippet" = ''
-          add_header Cache-Control "public, max-age=300, s-maxage=3600" always;
+          set $cc "public, max-age=300, s-maxage=3600";
+          if ($http_hx_request = "true") { set $cc "no-store"; }
+          add_header Cache-Control $cc always;
+          add_header Vary "HX-Request" always;
           proxy_hide_header Content-Security-Policy;
           add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';" always;
         '';
