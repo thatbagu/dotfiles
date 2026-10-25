@@ -49,7 +49,7 @@ let
   unmappedCharts = lib.subtractLists mappedCharts (lib.attrNames regularCharts);
 in {
   nixidy.target = {
-    repository = "https://github.com/Jahysama/dotfiles.git";
+    repository = "https://github.com/thatbagu/dotfiles.git";
     branch = "main";
     rootPath = "./modules/system/k8s/manifests";
   };

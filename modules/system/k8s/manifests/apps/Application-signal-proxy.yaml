@@ -12,6 +12,6 @@ spec:
   project: default
   source:
     path: ./modules/system/k8s/manifests/signal-proxy
-    repoURL: https://github.com/Jahysama/dotfiles.git
+    repoURL: https://github.com/thatbagu/dotfiles.git
     targetRevision: main
   syncPolicy: {}
