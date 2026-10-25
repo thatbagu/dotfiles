@@ -55,17 +55,25 @@ let
       name = "cv-tui";
       inherit namespace;
     };
+    # ClusterIP: external SSH reaches the TUI via haproxy (:22) and sslh, both
+    # of which dial cv-tui:2222.
     spec = {
-      type           = "LoadBalancer";
-      loadBalancerIP = vars.ipPools.sslh;
-      externalTrafficPolicy = "Cluster";
-      selector.app   = "cv-tui";
-      ports = [{
-        name       = "ssh";
-        port       = 22;
-        targetPort = 2222;
-        protocol   = "TCP";
-      }];
+      type         = "ClusterIP";
+      selector.app = "cv-tui";
+      ports = [
+        {
+          name       = "ssh";
+          port       = 2222;
+          targetPort = 2222;
+          protocol   = "TCP";
+        }
+        {
+          name       = "ssh-22";
+          port       = 22;
+          targetPort = 2222;
+          protocol   = "TCP";
+        }
+      ];
     };
   };
 in {
