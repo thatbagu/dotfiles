@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 # nixidy environment for the homelab cluster. Each service module defines its
 # own `applications.<name>`; Argo CD syncs the rendered output from git.
@@ -61,8 +61,17 @@
 
   # Never let Argo delete storage, CRDs (would cascade to every CR) or
   # namespaces, whether by pruning or by deleting an Application.
+  # Appends to existing sync-options (e.g. ServerSideApply=true on large CRDs).
   nixidy.objectTransforms.protect-stateful = {
     match.kind = [ "PersistentVolumeClaim" "CustomResourceDefinition" "Namespace" ];
-    update.metadata.annotations."argocd.argoproj.io/sync-options" = "Prune=false,Delete=false";
+    update = obj:
+      let
+        key = "argocd.argoproj.io/sync-options";
+        existing = obj.metadata.annotations.${key} or "";
+        options = lib.filter (o: o != "") (lib.splitString "," existing)
+          ++ [ "Prune=false" "Delete=false" ];
+      in {
+        metadata.annotations.${key} = lib.concatStringsSep "," (lib.unique options);
+      };
   };
 }
