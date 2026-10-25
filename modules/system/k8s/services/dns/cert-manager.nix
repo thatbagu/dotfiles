@@ -11,18 +11,10 @@ let
     spec = {
       acme = {
         inherit server;
-        emailSecretRef = {
-          name = "cloudflare-email";
-          key = "email";
-        };
         privateKeySecretRef = { inherit name; };
         solvers = [{
           dns01 = {
             cloudflare = {
-              emailSecretRef = {
-                name = "cloudflare-email";
-                key = "email";
-              };
               apiTokenSecretRef = {
                 name = "cloudflare-api-token";
                 key = "api-token";

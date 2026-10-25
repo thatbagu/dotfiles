@@ -4,9 +4,6 @@ metadata:
   name: letsencrypt-prod
 spec:
   acme:
-    emailSecretRef:
-      key: email
-      name: cloudflare-email
     privateKeySecretRef:
       name: letsencrypt-prod
     server: https://acme-v02.api.letsencrypt.org/directory
@@ -16,6 +13,3 @@ spec:
             apiTokenSecretRef:
               key: api-token
               name: cloudflare-api-token
-            emailSecretRef:
-              key: email
-              name: cloudflare-email

@@ -27,7 +27,8 @@ in {
 
         dex.enabled = false;
         notifications.enabled = false;
-        applicationSet.enabled = false;
+        # chart 9.x has no enable toggle for the applicationset controller
+        applicationSet.replicas = 0;
 
         configs = {
           cm = {
