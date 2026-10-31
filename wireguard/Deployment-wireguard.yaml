@@ -12,6 +12,8 @@ spec:
     type: Recreate
   template:
     metadata:
+      annotations:
+        checksum/config: 96afaeaeb9cb3283d16e088708e88f3c879ff01ecb35215b2167d5c849735a58
       labels:
         app: wireguard
     spec:
@@ -135,7 +137,7 @@ spec:
                 - NET_ADMIN
       initContainers:
         - args:
-            - "# Copy template to the config directory  \ncp /config-template/wg0.conf.template /config/wg_confs/wg0.conf\n\n# Replace server private key\nsed -i \"s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g\" /config/wg_confs/wg0.conf\n\n# Replace user public keys from SOPS secrets\nsed -i \"s|__EGOR-MAIN_PUBLIC_KEY__|$(cat /secrets/egor_main_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__FRIEND-TEST_PUBLIC_KEY__|$(cat /secrets/dsh_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\n\n# For client configs, replace server public key and endpoint\nSERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)\nWG_ENDPOINT=$(cat /secrets/wg-server-endpoint)\n\n# Replace placeholders in all client config files\nfor file in /config-template/*; do\n  if [[ $file != *.template ]]; then\n    filename=$(basename \"$file\")\n    cp \"$file\" \"/config/$filename\"\n    sed -i \"s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g\" \"/config/$filename\"\n    sed -i \"s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g\" \"/config/$filename\"\n  fi\ndone\n\n# Set proper permissions\nchmod 600 /config/wg_confs/wg0.conf\n\necho \"WireGuard config ready with 2 users\"\n"
+            - "# Copy template to the config directory  \ncp /config-template/wg0.conf.template /config/wg_confs/wg0.conf\n\n# Replace server private key\nsed -i \"s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g\" /config/wg_confs/wg0.conf\n\n# Replace user public keys from SOPS secrets\nsed -i \"s|__ANYA-LAPTOP_PUBLIC_KEY__|$(cat /secrets/anya_laptop_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__ANYA-PHONE_PUBLIC_KEY__|$(cat /secrets/anya_phone_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__EGOR-MAIN_PUBLIC_KEY__|$(cat /secrets/egor_main_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__FRIEND-TEST_PUBLIC_KEY__|$(cat /secrets/dsh_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\n\n# For client configs, replace server public key and endpoint\nSERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)\nWG_ENDPOINT=$(cat /secrets/wg-server-endpoint)\n\n# Replace placeholders in all client config files\nfor file in /config-template/*; do\n  if [[ $file != *.template ]]; then\n    filename=$(basename \"$file\")\n    cp \"$file\" \"/config/$filename\"\n    sed -i \"s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g\" \"/config/$filename\"\n    sed -i \"s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g\" \"/config/$filename\"\n  fi\ndone\n\n# Set proper permissions\nchmod 600 /config/wg_confs/wg0.conf\n\necho \"WireGuard config ready with 4 users\"\n"
           command:
             - /bin/sh
             - -c
