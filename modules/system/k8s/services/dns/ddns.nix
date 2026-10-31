@@ -17,7 +17,8 @@ let
         restartPolicy = "OnFailure";
         containers = [{
           name = "ddns";
-          image = "badouralix/curl-jq";
+          # Pinned to a digest so the image can't change without a commit.
+          image = "badouralix/curl-jq@sha256:7f3c18b2a7d72e8f6f89d5395f171d37a83d6015b6de718e5f4c5396305981b7";
           command = [ "/bin/sh" "-c" ];
           args = [ ''
             CF_TOKEN=$(cat /secrets/api-token)

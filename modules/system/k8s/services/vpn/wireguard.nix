@@ -22,6 +22,7 @@ let
 
     :443 {
       tls /certs/tls.crt /certs/tls.key
+      header Strict-Transport-Security "max-age=15552000"
 
     ${concatStringsSep "\n\n" (mapAttrsToList (name: user: ''
       @${builtins.replaceStrings ["-"] ["_"] name} remote_ip ${user.ip}
@@ -226,7 +227,8 @@ let
           }];
           containers = [{
             name = "wireguard";
-            image = "lscr.io/linuxserver/wireguard:latest";
+            # Pinned to a digest so the image can't change without a commit.
+            image = "lscr.io/linuxserver/wireguard@sha256:b677c3f46d524921c8a7c91873479eb7bab190d098fddbbd887ce333ec078c90";
             env = [
               {
                 name = "PUID";

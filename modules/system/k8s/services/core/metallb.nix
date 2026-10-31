@@ -15,6 +15,9 @@ let
     speaker = {
       # Disable metrics reporting
       metrics = { enabled = false; };
+      # L2 mode only (no BGP): the FRR sidecar would just be extra
+      # host-network exposure.
+      frr.enabled = false;
     };
   };
 

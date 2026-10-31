@@ -63,6 +63,13 @@ let
       '';
 
       configs = {
+        # Heavy daily background jobs between 01:00 and 05:00 UTC.
+        "maintenance.config.php" = ''
+          <?php
+          $CONFIG = array(
+            'maintenance_window_start' => 1,
+          );
+        '';
         "proxy.config.php" = ''
           <?php
           $CONFIG = array(

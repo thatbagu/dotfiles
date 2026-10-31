@@ -14,7 +14,8 @@ let
         metadata.labels.app = "sslh";
         spec.containers = [{
           name = "sslh";
-          image = "ghcr.io/yrutschle/sslh:latest";
+          # Pinned to a digest so the image can't change without a commit.
+          image = "ghcr.io/yrutschle/sslh@sha256:9428d9890980ad328f64c67c18a99fd7be3234db3cc5a5c505b1db99e4b31831";
           args = [
             "--foreground"
             "--listen=0.0.0.0:443"
