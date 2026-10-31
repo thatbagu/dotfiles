@@ -6,12 +6,6 @@ metadata:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-Remote-User "";
       proxy_set_header X-Remote-Auth "";
-      # The public entry point never carries a VPN identity, so the VPN SSO
-      # route can only fail here (500, and it poisons the session for a
-      # later password login). Send it to the normal login form instead.
-      if ($request_uri ~* "^/(index\.php/)?apps/user_saml/saml/login") {
-        return 302 https://$host/login?direct=1;
-      }
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
