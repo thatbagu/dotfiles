@@ -78,7 +78,8 @@ tooltip {
   color: #f38ba8;
 }
 
-#custom-vpn {
+#custom-vpn,
+#custom-vpn-home {
   background: #313244;
   padding: 0px 8px;
   margin: 3px 2px;
@@ -86,11 +87,13 @@ tooltip {
   color: #6c7086;
 }
 
-#custom-vpn.on {
+#custom-vpn.on,
+#custom-vpn-home.on {
   color: #a6e3a1;
 }
 
-#custom-vpn.off {
+#custom-vpn.off,
+#custom-vpn-home.off {
   color: #f38ba8;
 }
 

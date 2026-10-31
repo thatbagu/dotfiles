@@ -14,6 +14,7 @@
       sops.enable = true;
       desktop.enable = true;
       wireguard.enable = true;
+      wireguard.homelab.enable = true;
     };
   };
 }

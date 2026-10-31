@@ -14,7 +14,7 @@ in {
           modules-left =
             [ "hyprland/workspaces" "hyprland/language" "custom/spotify" ];
           modules-center = [ "clock" ];
-          modules-right = [ "custom/vpn" "network" "backlight" "wireplumber" "battery" ];
+          modules-right = [ "custom/vpn" "custom/vpn-home" "network" "backlight" "wireplumber" "battery" ];
           "hyprland/language" = {
             format-en = "US";
             format-ru = "RU";
@@ -122,6 +122,28 @@ in {
                 sudo systemctl stop wg-quick-japan
               else
                 sudo systemctl start wg-quick-japan
+              fi
+            '';
+            "interval" = 5;
+            "tooltip" = false;
+          };
+          # Homelab VPN (split tunnel). While on, Nextcloud logs in as egor.
+          "custom/vpn-home" = {
+            "format" = "{icon} {text}";
+            "format-icons" = { "on" = "󰖂"; "off" = "󰖪"; };
+            "return-type" = "json";
+            "exec" = ''
+              if systemctl is-active --quiet wg-quick-homelab; then
+                echo '{"text":"HOME","class":"on","alt":"on"}'
+              else
+                echo '{"text":"HOME","class":"off","alt":"off"}'
+              fi
+            '';
+            "on-click" = ''
+              if systemctl is-active --quiet wg-quick-homelab; then
+                sudo systemctl stop wg-quick-homelab
+              else
+                sudo systemctl start wg-quick-homelab
               fi
             '';
             "interval" = 5;
