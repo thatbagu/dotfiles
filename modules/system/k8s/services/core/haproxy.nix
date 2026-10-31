@@ -77,6 +77,9 @@ let
       selector.matchLabels.app = "haproxy";
       template = {
         metadata.labels.app = "haproxy";
+        # haproxy doesn't reload its config; roll the pod when it changes.
+        metadata.annotations."checksum/config" =
+          builtins.hashString "sha256" configMap.data."haproxy.cfg";
         spec = {
           containers = [{
             name = "haproxy";
