@@ -17,7 +17,6 @@
     ./services/dns/externaldns.nix
     ./services/dns/cert-manager.nix
     ./services/dns/ddns.nix
-    ./services/ingress/ingress.nix
     ./services/vpn/wireguard.nix
     ./services/apps/signal-proxy.nix
     ./services/apps/telegram-proxy.nix
