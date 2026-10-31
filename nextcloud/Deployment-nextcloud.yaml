@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       annotations:
-        hooks-hash: 7f76c609167221eb83f33b587a0a203a15010aa5e531cf6671008438558262a3
+        hooks-hash: 6e0dc1f64cdb9608a83020ef09884428b8793ad4bd0e991d6993ba71e97bd523
         nextcloud-config-hash: fc0a295d2d784085f4266b11b585a3787f12609245b98b7bf7cc0651a158c9f3
         php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
@@ -79,20 +79,6 @@ spec:
                   name: nextcloud-sso
           image: docker.io/library/nextcloud:33.0.10-apache
           imagePullPolicy: IfNotPresent
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - /bin/sh
-                  - -c
-                  - |
-                    f=/var/www/html/.htaccess
-                    sed -i '/X-Remote-User/d; /X-Remote-Auth/d' "$f"
-                    # Fail closed: without the shared secret there is no header SSO at all.
-                    if [ -n "$SSO_SECRET" ]; then
-                      sed -i "/RewriteEngine on/a\\    RewriteCond %{HTTP:X-Remote-Auth} =$SSO_SECRET\\n    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]" "$f"
-                    fi
-                    chown www-data:www-data "$f"
           livenessProbe:
             failureThreshold: 3
             httpGet:

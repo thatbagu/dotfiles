@@ -5,6 +5,16 @@ data:
     set -e
     occ() { php /var/www/html/occ "$@"; }
 
+    # VPN SSO bridge: only honour X-Remote-User when Caddy's shared secret
+    # matches. Done here, not in a postStart command: this hook runs after
+    # the image's upgrade step (which rewrites .htaccess) and before Apache
+    # starts, so it can't lose a race. Fail closed without the secret.
+    f=/var/www/html/.htaccess
+    sed -i '/X-Remote-User/d; /X-Remote-Auth/d' "$f"
+    if [ -n "$SSO_SECRET" ]; then
+      sed -i "/RewriteEngine on/a\\    RewriteCond %{HTTP:X-Remote-Auth} =$SSO_SECRET\\n    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]" "$f"
+    fi
+
     # Defense in depth: logins only from VPN addresses (Nextcloud has no
     # public route at all; see ingress below). The app store is
     # too slow from here (occ app:install times out), so install a pinned,
