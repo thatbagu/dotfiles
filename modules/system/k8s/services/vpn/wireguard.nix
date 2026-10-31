@@ -41,6 +41,21 @@ let
     }
   '';
 
+  # Non-admin peers may only use Pi-hole DNS and their group's allowedNetworks
+  # through the tunnel. Caddy (Nextcloud SSO) runs inside this pod, so reaching
+  # it (directly or via ip-watcher's public-IP DNAT) is INPUT, not FORWARD, and
+  # stays allowed. Everything else they send is dropped, including traffic to
+  # other peers, the LAN and cluster services.
+  restrictedUsers = filterAttrs (_: user: user.group != "admin") enabledUsers;
+  peerFirewall = concatStringsSep "\n" (mapAttrsToList (name: user:
+    concatStringsSep "\n" ([
+      "PostUp = iptables -A WG-PEERS -s ${user.ip} -d ${vars.piholeIp} -p udp --dport 53 -j RETURN"
+      "PostUp = iptables -A WG-PEERS -s ${user.ip} -d ${vars.piholeIp} -p tcp --dport 53 -j RETURN"
+    ] ++ map (net: "PostUp = iptables -A WG-PEERS -s ${user.ip} -d ${net} -j RETURN")
+      usersConfig.wireguardGroups.${user.group}.allowedNetworks
+      ++ [ "PostUp = iptables -A WG-PEERS -s ${user.ip} -j DROP" ])
+  ) restrictedUsers);
+
   # Generate WireGuard server configuration
   generateServerConfig = ''
     [Interface]
@@ -55,10 +70,18 @@ let
     PostUp = iptables -t nat -A POSTROUTING -s 10.0.100.0/24 ! -d 10.0.100.0/24 -j MASQUERADE
     PostUp = iptables -A INPUT -p udp --dport 51820 -j ACCEPT
 
+    # Per-peer restrictions (see peerFirewall)
+    PostUp = iptables -N WG-PEERS
+    PostUp = iptables -I FORWARD 1 -i wg0 -j WG-PEERS
+    ${peerFirewall}
+
     PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
     PostDown = iptables -D FORWARD -o wg0 -j ACCEPT
     PostDown = iptables -t nat -D POSTROUTING -s 10.0.100.0/24 ! -d 10.0.100.0/24 -j MASQUERADE
     PostDown = iptables -D INPUT -p udp --dport 51820 -j ACCEPT
+    PostDown = iptables -D FORWARD -i wg0 -j WG-PEERS
+    PostDown = iptables -F WG-PEERS
+    PostDown = iptables -X WG-PEERS
 
     ${concatStringsSep "\n\n" (mapAttrsToList (name: user: ''
       [Peer]

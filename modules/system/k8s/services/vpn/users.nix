@@ -58,7 +58,9 @@
     #   enabled = false; # Enable when needed
     # };
   };
-  # Group definitions with access policies
+  # Group definitions with access policies. For non-admin groups the WireGuard
+  # server enforces allowedNetworks (plus Pi-hole DNS); the other fields are
+  # informational.
   wireguardGroups = {
     admin = {
       description = "Full administrative access to everything";
@@ -68,8 +70,8 @@
       dns = "192.168.1.1"; # Can use any DNS
     };
     family = {
-      description = "Family members with broad homelab access";
-      allowedNetworks = [ "192.168.1.0/24" ];
+      description = "Family: home services (Nextcloud via the VPN proxy) and DNS only";
+      allowedNetworks = [ ];
       blockedNetworks = [
         "192.168.1.250/32" # Pi-hole admin
         "192.168.1.192/26" # MetalLB critical services
