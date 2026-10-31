@@ -26,8 +26,8 @@ let
         set -e
         occ() { php /var/www/html/occ "$@"; }
 
-        # Password logins only from the VPN and the home LAN; public share
-        # links don't log in and keep working from anywhere. The app store is
+        # Defense in depth: logins only from VPN addresses (Nextcloud has no
+        # public route at all; see ingress below). The app store is
         # too slow from here (occ app:install times out), so install a pinned,
         # checksummed release from GitHub. Never block startup on it.
         LLI_VER=4.5.0
@@ -46,7 +46,7 @@ let
           rm -f "$tmp"
         fi
         occ app:enable limit_login_to_ip || echo "WARNING: limit_login_to_ip not enabled"
-        occ config:app:set limit_login_to_ip whitelisted.ranges --value="10.0.100.0/24,192.168.1.0/24"
+        occ config:app:set limit_login_to_ip whitelisted.ranges --value="10.0.100.0/24"
 
         if occ saml:config:get --providerId=1 2>/dev/null | grep -q 'general-uid_mapping: REMOTE_USER'; then
           echo "VPN SSO already configured"
@@ -145,38 +145,9 @@ let
       size = "100Gi";
     };
 
-    ingress = {
-      enabled = true;
-      className = "nginx";
-      annotations = {
-        "nginx.ingress.kubernetes.io/proxy-body-size" = "0";
-        "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600";
-        "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600";
-        "cert-manager.io/cluster-issuer" = vars.tls.defaultIssuer;
-        # SECURITY: X-Remote-User logs the request in as that user (VPN SSO).
-        # Only Caddy in the wireguard pod may set it, and it talks to the
-        # Service directly; never pass a client-supplied value from the
-        # public ingress.
-        "nginx.ingress.kubernetes.io/configuration-snippet" = ''
-          proxy_set_header X-Remote-User "";
-          proxy_set_header X-Remote-Auth "";
-          # The public entry point never carries a VPN identity, so the VPN SSO
-          # route can only fail here (500, and it poisons the session for a
-          # later password login). Send it to the normal login form instead.
-          if ($request_uri ~* "^/(index\.php/)?apps/user_saml/saml/login") {
-            return 302 https://$host/login?direct=1;
-          }
-        '';
-      };
-      hosts = [{
-        host = "nextcloud.${vars.domain}";
-        paths = [{ path = "/"; pathType = "Prefix"; }];
-      }];
-      tls = [{
-        secretName = "nextcloud-tls";
-        hosts = [ "nextcloud.${vars.domain}" ];
-      }];
-    };
+    # VPN-only: no public Ingress. The only way in is Caddy in the wireguard
+    # pod (10.0.100.1), which talks to the Service directly.
+    ingress.enabled = false;
   };
 in {
   applications.nextcloud = {

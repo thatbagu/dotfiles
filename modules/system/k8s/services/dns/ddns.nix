@@ -40,6 +40,8 @@ let
               ZONE_ID="$1"
               DOMAIN="$2"
               PROXIED="$3"
+              # Optional 4th argument pins the record to a fixed IP.
+              IP="''${4:-$CURRENT_IP}"
 
               RECORD=$(curl -sf \
                 "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=A&name=$DOMAIN" \
@@ -48,8 +50,8 @@ let
               CF_IP=$(echo "$RECORD" | jq -r '.result[0].content')
               RECORD_ID=$(echo "$RECORD" | jq -r '.result[0].id')
 
-              if [ "$CURRENT_IP" = "$CF_IP" ]; then
-                echo "IP unchanged for $DOMAIN: $CURRENT_IP"
+              if [ "$IP" = "$CF_IP" ]; then
+                echo "IP unchanged for $DOMAIN: $IP"
                 return 0
               fi
 
@@ -58,25 +60,27 @@ let
                   "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
                   -H "Authorization: Bearer $CF_TOKEN" \
                   -H "Content-Type: application/json" \
-                  -d "{\"type\":\"A\",\"name\":\"$DOMAIN\",\"content\":\"$CURRENT_IP\",\"ttl\":60,\"proxied\":$PROXIED}" \
+                  -d "{\"type\":\"A\",\"name\":\"$DOMAIN\",\"content\":\"$IP\",\"ttl\":60,\"proxied\":$PROXIED}" \
                   | jq -e '.success' > /dev/null || { echo "ERROR: Failed to create A record for $DOMAIN" >&2; return 1; }
               else
                 curl -sf -X PATCH \
                   "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
                   -H "Authorization: Bearer $CF_TOKEN" \
                   -H "Content-Type: application/json" \
-                  -d "{\"content\":\"$CURRENT_IP\",\"proxied\":$PROXIED,\"ttl\":60}" \
+                  -d "{\"content\":\"$IP\",\"proxied\":$PROXIED,\"ttl\":60}" \
                   | jq -e '.success' > /dev/null || { echo "ERROR: Failed to update A record for $DOMAIN" >&2; return 1; }
               fi
 
-              echo "Updated $DOMAIN to $CURRENT_IP"
+              echo "Updated $DOMAIN to $IP"
             }
 
             ZONE_ID_EGOR=$(get_zone_id "${vars.domain}") || exit 1
             update_record "$ZONE_ID_EGOR" "vpn.${vars.domain}" false
             update_record "$ZONE_ID_EGOR" "signal.${vars.domain}" false
             update_record "$ZONE_ID_EGOR" "telegram.${vars.domain}" false
-            update_record "$ZONE_ID_EGOR" "nextcloud.${vars.domain}" false
+            # VPN-only: resolves everywhere to the Caddy proxy on the VPN, which
+            # is unreachable without the VPN (also defeats browser DoH bypass).
+            update_record "$ZONE_ID_EGOR" "nextcloud.${vars.domain}" false 10.0.100.1
 
             ZONE_ID_MLSHIP=$(get_zone_id "mlship.dev") || exit 1
             update_record "$ZONE_ID_MLSHIP" "mlship.dev" true

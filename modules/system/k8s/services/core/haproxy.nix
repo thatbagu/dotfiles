@@ -37,6 +37,8 @@ let
       frontend f_https
         bind :443
         tcp-request inspect-delay 5s
+        # Nextcloud is VPN-only: drop the connection (must precede the accept below), don't even answer TLS.
+        tcp-request content reject if { req.ssl_sni -i nextcloud.${vars.domain} }
         tcp-request content accept if { req.ssl_hello_type 1 }
         use_backend b_nginx_https if { req.ssl_sni -m end .egor.house }
         use_backend b_nginx_https if { req.ssl_sni -m str egor.house }
