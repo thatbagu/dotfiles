@@ -25,6 +25,12 @@ let
         #!/bin/sh
         set -e
         occ() { php /var/www/html/occ "$@"; }
+
+        # Password logins only from the VPN and the home LAN. Public share
+        # links don't log in, so they keep working from anywhere.
+        occ app:install limit_login_to_ip 2>/dev/null || occ app:enable limit_login_to_ip
+        occ config:app:set limit_login_to_ip whitelisted.ranges --value="10.0.100.0/24,192.168.1.0/24"
+
         if occ saml:config:get --providerId=1 2>/dev/null | grep -q 'general-uid_mapping: REMOTE_USER'; then
           echo "VPN SSO already configured"
           exit 0
@@ -128,6 +134,12 @@ let
         "nginx.ingress.kubernetes.io/configuration-snippet" = ''
           proxy_set_header X-Remote-User "";
           proxy_set_header X-Remote-Auth "";
+          # The public entry point never carries a VPN identity, so the VPN SSO
+          # route can only fail here (500, and it poisons the session for a
+          # later password login). Send it to the normal login form instead.
+          if ($request_uri ~* "^/(index\.php/)?apps/user_saml/saml/login") {
+            return 302 https://$host/login?direct=1;
+          }
         '';
       };
       hosts = [{
