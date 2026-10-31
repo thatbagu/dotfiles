@@ -10,6 +10,8 @@ spec:
       app: haproxy
   template:
     metadata:
+      annotations:
+        checksum/config: ac927af324c485b2f974f64fe3a8ab40d8343d05f06e99c1d9f42a424536db7c
       labels:
         app: haproxy
     spec:
