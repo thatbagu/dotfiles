@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       annotations:
-        hooks-hash: 5608e87bf99740259e536bb50f86c550f0ccf55762164d91f0a5ea49d592353a
+        hooks-hash: 77b6e63c07f9ae46aee674986f482e98b86c2c7401945a7954a8d9ba025f5bf6
         nextcloud-config-hash: 23b95042deaafbd40df04d522c11bd934de6135c4583e9834e6a5a7f6e9da76f
         php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
