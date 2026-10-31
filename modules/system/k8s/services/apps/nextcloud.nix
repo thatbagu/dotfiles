@@ -106,6 +106,13 @@ let
         "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600";
         "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600";
         "cert-manager.io/cluster-issuer" = vars.tls.defaultIssuer;
+        # SECURITY: X-Remote-User logs the request in as that user (VPN SSO).
+        # Only Caddy in the wireguard pod may set it, and it talks to the
+        # Service directly; never pass a client-supplied value from the
+        # public ingress.
+        "nginx.ingress.kubernetes.io/configuration-snippet" = ''
+          proxy_set_header X-Remote-User "";
+        '';
       };
       hosts = [{
         host = "nextcloud.${vars.domain}";
