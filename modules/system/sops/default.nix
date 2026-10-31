@@ -39,8 +39,10 @@ in
         k3s_token = {
           owner = "${username}";
         };
+        # Pi-hole admin/API password (also used by external-dns' Pi-hole provider)
         pihole_password = {
-          owner = "${username}";
+          owner = "root";
+          mode = "0400";
         };
         cloudflare_token = {
           owner = "${username}";

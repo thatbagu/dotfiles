@@ -41,12 +41,16 @@ let
       name = "external-dns-pihole";
     };
     rbac = commonRbacConfig;
-    env = [{
-      name = "EXTERNAL_DNS_PIHOLE_SERVER";
-      value = "http://${vars.piholeIp}";
-    }
-    # No EXTERNAL_DNS_PIHOLE_PASSWORD needed when Pi-hole has no auth
-      ];
+    env = [
+      {
+        name = "EXTERNAL_DNS_PIHOLE_SERVER";
+        value = "http://${vars.piholeIp}";
+      }
+      {
+        name = "EXTERNAL_DNS_PIHOLE_PASSWORD";
+        valueFrom.secretKeyRef = { name = "externaldns-pihole"; key = "password"; };
+      }
+    ];
     args = [
       "--source=service"
       "--source=ingress"

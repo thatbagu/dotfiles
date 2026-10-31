@@ -33,8 +33,12 @@ let
       type = "LoadBalancer";
     };
 
+    # Password from SOPS (pushed by k8s-secrets). Never run Pi-hole without
+    # one: anyone who can reach it could rewrite DNS for the LAN and VPN.
     admin = {
-      enabled = false;
+      enabled = true;
+      existingSecret = "pihole-admin";
+      passwordKey = "password";
     };
 
     dnsmasq = {

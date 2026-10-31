@@ -9,6 +9,20 @@ let
   enabledUsers = lib.filterAttrs (_: user: user.enabled) users;
 in
 [
+  # Pi-hole admin/API password: Pi-hole itself and external-dns' Pi-hole provider.
+  {
+    namespace = vars.namespaces.pihole;
+    secretName = "pihole-admin";
+    secretKey = "password";
+    sopsSecretName = "pihole_password";
+  }
+  {
+    namespace = vars.namespaces.dns;
+    secretName = "externaldns-pihole";
+    secretKey = "password";
+    sopsSecretName = "pihole_password";
+  }
+
   {
     namespace = vars.namespaces.dns;
     secretName = "cloudflare-api-token";
