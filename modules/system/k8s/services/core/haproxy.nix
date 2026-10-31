@@ -50,10 +50,11 @@ let
         default_backend b_cvtui
 
       backend b_nginx_http
-        server nginx ingress-nginx-controller.${namespace}.svc.cluster.local:80
+        # PROXY protocol carries the real client IP to nginx (TCP mode loses it).
+        server nginx ingress-nginx-controller.${namespace}.svc.cluster.local:80 send-proxy-v2
 
       backend b_nginx_https
-        server nginx ingress-nginx-controller.${namespace}.svc.cluster.local:443
+        server nginx ingress-nginx-controller.${namespace}.svc.cluster.local:443 send-proxy-v2
 
       # Fake-TLS MTProto: send directly to mtg, bypassing nginx entirely.
       backend b_telegram

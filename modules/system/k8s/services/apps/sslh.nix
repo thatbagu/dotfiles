@@ -19,7 +19,8 @@ let
             "--foreground"
             "--listen=0.0.0.0:443"
             "--ssh=cv-tui.cv.svc.cluster.local:2222"
-            "--tls=ingress-nginx-controller.nginx-system.svc.cluster.local:443"
+            # via haproxy: nginx only accepts connections carrying PROXY protocol
+            "--tls=haproxy.nginx-system.svc.cluster.local:443"
             "--on-timeout=ssh"
           ];
           ports = [{ containerPort = 443; protocol = "TCP"; }];

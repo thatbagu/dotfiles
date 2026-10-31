@@ -33,7 +33,11 @@ let
         # Security settings (will apply to all traffic, but can be overridden per ingress)
         "ssl-protocols" = "TLSv1.2 TLSv1.3";
         "ssl-ciphers" = "HIGH:!aNULL:!MD5";
-        "use-forwarded-headers" = "true";
+        # Real client IP comes from haproxy's PROXY protocol header. Never
+        # trust client-supplied X-Forwarded-For (it would let anyone spoof an
+        # allowed IP). Everything reaching nginx must go through haproxy.
+        "use-proxy-protocol" = "true";
+        "use-forwarded-headers" = "false";
         "proxy-buffer-size" = "16k";
         "client-header-buffer-size" = "16k";
         "large-client-header-buffers" = "4 16k";

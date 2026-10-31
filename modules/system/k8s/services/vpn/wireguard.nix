@@ -30,6 +30,7 @@ let
           header_up Host nextcloud.${vars.domain}
           header_up X-Remote-User "${user.nextcloudUser}"
           header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
+          header_up X-Real-IP {remote_host}
         }
       }
     '') ncUsers)}
