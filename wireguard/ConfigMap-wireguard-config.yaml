@@ -8,6 +8,7 @@ data:
 
     :443 {
       tls /certs/tls.crt /certs/tls.key
+      header Strict-Transport-Security "max-age=15552000"
 
     @anya_laptop remote_ip 10.0.100.12
     handle @anya_laptop {

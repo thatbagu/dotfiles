@@ -88,6 +88,11 @@ data:
     if ($openmetricsAllowedClients) {
       $CONFIG['openmetrics_allowed_clients'] = array_filter(array_map('trim', explode(',', $openmetricsAllowedClients)));
     }
+  maintenance.config.php: |-
+    <?php
+    $CONFIG = array(
+      'maintenance_window_start' => 1,
+    );
   proxy.config.php: |-
     <?php
     $CONFIG = array(

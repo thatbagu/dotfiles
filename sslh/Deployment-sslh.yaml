@@ -20,7 +20,7 @@ spec:
             - --ssh=cv-tui.cv.svc.cluster.local:2222
             - --tls=haproxy.nginx-system.svc.cluster.local:443
             - --on-timeout=ssh
-          image: ghcr.io/yrutschle/sslh:latest
+          image: ghcr.io/yrutschle/sslh@sha256:9428d9890980ad328f64c67c18a99fd7be3234db3cc5a5c505b1db99e4b31831
           name: sslh
           ports:
             - containerPort: 443

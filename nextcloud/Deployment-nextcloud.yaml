@@ -23,7 +23,7 @@ spec:
     metadata:
       annotations:
         hooks-hash: 7f76c609167221eb83f33b587a0a203a15010aa5e531cf6671008438558262a3
-        nextcloud-config-hash: 23b95042deaafbd40df04d522c11bd934de6135c4583e9834e6a5a7f6e9da76f
+        nextcloud-config-hash: fc0a295d2d784085f4266b11b585a3787f12609245b98b7bf7cc0651a158c9f3
         php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
         app.kubernetes.io/component: app
@@ -157,6 +157,9 @@ spec:
             - mountPath: /var/www/html/themes
               name: nextcloud-main
               subPath: themes
+            - mountPath: /var/www/html/config/maintenance.config.php
+              name: nextcloud-config
+              subPath: maintenance.config.php
             - mountPath: /var/www/html/config/proxy.config.php
               name: nextcloud-config
               subPath: proxy.config.php

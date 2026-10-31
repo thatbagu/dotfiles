@@ -80,7 +80,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-              image: badouralix/curl-jq
+              image: badouralix/curl-jq@sha256:7f3c18b2a7d72e8f6f89d5395f171d37a83d6015b6de718e5f4c5396305981b7
               name: ddns
               volumeMounts:
                 - mountPath: /secrets

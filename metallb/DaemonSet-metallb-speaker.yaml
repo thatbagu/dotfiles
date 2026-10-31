@@ -46,12 +46,6 @@ spec:
               value: "7946"
             - name: METALLB_ML_SECRET_KEY_PATH
               value: /etc/ml_secret_key
-            - name: FRR_CONFIG_FILE
-              value: /etc/frr_reloader/frr.conf
-            - name: FRR_RELOADER_PID_FILE
-              value: /etc/frr_reloader/reloader.pid
-            - name: METALLB_BGP_TYPE
-              value: frr
             - name: METALLB_POD_NAME
               valueFrom:
                 fieldRef:
@@ -96,135 +90,12 @@ spec:
           volumeMounts:
             - mountPath: /etc/ml_secret_key
               name: memberlist
-            - mountPath: /etc/frr_reloader
-              name: reloader
             - mountPath: /etc/metallb
               name: metallb-excludel2
-        - command:
-            - /bin/sh
-            - -c
-            - |
-              /sbin/tini -- /usr/lib/frr/docker-start &
-              attempts=0
-              until [[ -f /etc/frr/frr.log || $attempts -eq 60 ]]; do
-                sleep 1
-                attempts=$(( $attempts + 1 ))
-              done
-              tail -f /etc/frr/frr.log
-          env:
-            - name: TINI_SUBREAPER
-              value: "true"
-          image: quay.io/frrouting/frr:10.4.1
-          livenessProbe:
-            failureThreshold: 3
-            httpGet:
-              path: livez
-              port: 7473
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          name: frr
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              add:
-                - NET_ADMIN
-                - NET_RAW
-                - SYS_ADMIN
-                - NET_BIND_SERVICE
-            readOnlyRootFilesystem: true
-          startupProbe:
-            failureThreshold: 30
-            httpGet:
-              path: /livez
-              port: 7473
-            periodSeconds: 5
-          volumeMounts:
-            - mountPath: /var/run/frr
-              name: frr-sockets
-            - mountPath: /etc/frr
-              name: frr-conf
-            - mountPath: /var/tmp/frr
-              name: frr-tmp
-            - mountPath: /var/lib/frr
-              name: frr-lib
-        - command:
-            - /etc/frr_reloader/frr-reloader.sh
-          image: quay.io/frrouting/frr:10.4.1
-          name: reloader
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-          volumeMounts:
-            - mountPath: /var/run/frr
-              name: frr-sockets
-            - mountPath: /etc/frr
-              name: frr-conf
-            - mountPath: /etc/frr_reloader
-              name: reloader
-            - mountPath: /var/log/frr
-              name: frr-log
-        - args:
-            - --metrics-port=7473
-          command:
-            - /etc/frr_metrics/frr-metrics
-          env:
-            - name: VTYSH_HISTFILE
-              value: /dev/null
-          image: quay.io/frrouting/frr:10.4.1
-          name: frr-metrics
-          ports:
-            - containerPort: 7473
-              name: frrmetrics
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-          volumeMounts:
-            - mountPath: /var/run/frr
-              name: frr-sockets
-            - mountPath: /etc/frr
-              name: frr-conf
-            - mountPath: /etc/frr_metrics
-              name: metrics
       hostNetwork: true
-      initContainers:
-        - command:
-            - /bin/sh
-            - -c
-            - cp -rLf /tmp/frr/* /etc/frr/
-          image: quay.io/frrouting/frr:10.4.1
-          name: cp-frr-files
-          securityContext:
-            runAsGroup: 101
-            runAsUser: 100
-          volumeMounts:
-            - mountPath: /tmp/frr
-              name: frr-startup
-            - mountPath: /etc/frr
-              name: frr-conf
-        - command:
-            - /cp-tool
-            - /frr-reloader.sh
-            - /etc/frr_reloader/frr-reloader.sh
-          image: quay.io/metallb/speaker:v0.15.3
-          name: cp-reloader
-          volumeMounts:
-            - mountPath: /etc/frr_reloader
-              name: reloader
-        - command:
-            - /cp-tool
-            - /frr-metrics
-            - /etc/frr_metrics/frr-metrics
-          image: quay.io/metallb/speaker:v0.15.3
-          name: cp-metrics
-          volumeMounts:
-            - mountPath: /etc/frr_metrics
-              name: metrics
       nodeSelector:
         kubernetes.io/os: linux
       serviceAccountName: metallb-speaker
-      shareProcessNamespace: true
       terminationGracePeriodSeconds: 0
       tolerations:
         - effect: NoSchedule
@@ -242,22 +113,5 @@ spec:
             defaultMode: 256
             name: metallb-excludel2
           name: metallb-excludel2
-        - emptyDir: {}
-          name: frr-sockets
-        - configMap:
-            name: metallb-frr-startup
-          name: frr-startup
-        - emptyDir: {}
-          name: frr-conf
-        - emptyDir: {}
-          name: reloader
-        - emptyDir: {}
-          name: metrics
-        - emptyDir: {}
-          name: frr-tmp
-        - emptyDir: {}
-          name: frr-lib
-        - emptyDir: {}
-          name: frr-log
   updateStrategy:
     type: RollingUpdate

@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 0d645d7f934139adb98e735bfd3213a67a36e441cc6f58f4210c1d62cf52706a
+        checksum/config: c7744e22abdf79d5002b4d0b42a0dc347450c66923ef9566d211906943740309
       labels:
         app: wireguard
     spec:
@@ -37,7 +37,7 @@ spec:
               value: 0.0.0.0/0
             - name: LOG_CONFS
               value: "true"
-          image: lscr.io/linuxserver/wireguard:latest
+          image: lscr.io/linuxserver/wireguard@sha256:b677c3f46d524921c8a7c91873479eb7bab190d098fddbbd887ce333ec078c90
           name: wireguard
           ports:
             - containerPort: 51820

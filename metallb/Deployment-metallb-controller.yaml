@@ -36,8 +36,6 @@ spec:
               value: metallb-memberlist
             - name: METALLB_DEPLOYMENT
               value: metallb-controller
-            - name: METALLB_BGP_TYPE
-              value: frr
           image: quay.io/metallb/controller:v0.15.3
           livenessProbe:
             failureThreshold: 3
