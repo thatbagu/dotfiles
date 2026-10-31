@@ -11,7 +11,7 @@ let
         passwordKey = "password";
       };
       # Shared secret Caddy sends as X-Remote-Auth; .htaccess only honours
-      # X-Remote-User when it matches (see lifecycle.postStartCommand).
+      # X-Remote-User when it matches (see hooks.before-starting).
       extraEnv = [{
         name = "SSO_SECRET";
         valueFrom.secretKeyRef = { name = "nextcloud-sso"; key = "secret"; };
@@ -25,6 +25,16 @@ let
         #!/bin/sh
         set -e
         occ() { php /var/www/html/occ "$@"; }
+
+        # VPN SSO bridge: only honour X-Remote-User when Caddy's shared secret
+        # matches. Done here, not in a postStart command: this hook runs after
+        # the image's upgrade step (which rewrites .htaccess) and before Apache
+        # starts, so it can't lose a race. Fail closed without the secret.
+        f=/var/www/html/.htaccess
+        sed -i '/X-Remote-User/d; /X-Remote-Auth/d' "$f"
+        if [ -n "$SSO_SECRET" ]; then
+          sed -i "/RewriteEngine on/a\\    RewriteCond %{HTTP:X-Remote-Auth} =$SSO_SECRET\\n    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]" "$f"
+        fi
 
         # Defense in depth: logins only from VPN addresses (Nextcloud has no
         # public route at all; see ingress below). The app store is
@@ -81,22 +91,6 @@ let
       };
     };
 
-    # Patch .htaccess on every pod start so mod_rewrite sets REMOTE_USER from
-    # the X-Remote-User header Caddy injects per VPN client IP.
-    # user_saml reads $_SERVER['REMOTE_USER'] to auto-login without a password.
-    lifecycle.postStartCommand = [
-      "/bin/sh"
-      "-c"
-      ''
-        f=/var/www/html/.htaccess
-        sed -i '/X-Remote-User/d; /X-Remote-Auth/d' "$f"
-        # Fail closed: without the shared secret there is no header SSO at all.
-        if [ -n "$SSO_SECRET" ]; then
-          sed -i "/RewriteEngine on/a\\    RewriteCond %{HTTP:X-Remote-Auth} =$SSO_SECRET\\n    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]" "$f"
-        fi
-        chown www-data:www-data "$f"
-      ''
-    ];
 
     # The before-starting hook can take a while; don't let the liveness
     # probe kill the container mid-hook (that crash-looped Nextcloud once).
