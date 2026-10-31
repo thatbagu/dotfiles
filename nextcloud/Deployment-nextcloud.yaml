@@ -77,7 +77,7 @@ spec:
                 secretKeyRef:
                   key: secret
                   name: nextcloud-sso
-          image: docker.io/library/nextcloud:33.0.3-apache
+          image: docker.io/library/nextcloud:33.0.10-apache
           imagePullPolicy: IfNotPresent
           lifecycle:
             postStart:
