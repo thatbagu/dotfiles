@@ -29,6 +29,7 @@ let
         reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
           header_up Host nextcloud.${vars.domain}
           header_up X-Remote-User "${user.nextcloudUser}"
+          header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
         }
       }
     '') ncUsers)}
@@ -276,6 +277,10 @@ let
           {
             name = "caddy";
             image = "caddy:2-alpine";
+            env = [{
+              name = "NEXTCLOUD_SSO_SECRET";
+              valueFrom.secretKeyRef = { name = "wireguard-secrets"; key = "nextcloud-sso-secret"; };
+            }];
             args = [ "caddy" "run" "--config" "/etc/caddy/Caddyfile" "--adapter" "caddyfile" ];
             ports = [{
               name = "https";

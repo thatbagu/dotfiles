@@ -105,6 +105,11 @@ in
           owner = "root";
           mode = "0644";
         };
+        # Shared secret Caddy (VPN SSO) sends so Nextcloud trusts X-Remote-User
+        nextcloud_sso_secret = {
+          owner = "root";
+          mode = "0400";
+        };
         nextcloud_redis_password = {
           owner = "root";
           mode = "0644";

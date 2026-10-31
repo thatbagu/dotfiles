@@ -10,6 +10,13 @@ let
         secretName = "nextcloud-admin";
         passwordKey = "password";
       };
+      # Shared secret Caddy sends as X-Remote-Auth; .htaccess only honours
+      # X-Remote-User when it matches (see lifecycle.postStartCommand).
+      extraEnv = [{
+        name = "SSO_SECRET";
+        valueFrom.secretKeyRef = { name = "nextcloud-sso"; key = "secret"; };
+      }];
+
       # VPN SSO: user_saml in environment-variable mode reads REMOTE_USER, which
       # Apache sets from the X-Remote-User header Caddy injects per VPN client
       # IP (see vpn/wireguard.nix). Runs as www-data on every start; no-op once
@@ -50,7 +57,15 @@ let
     lifecycle.postStartCommand = [
       "/bin/sh"
       "-c"
-      "grep -q 'X-Remote-User' /var/www/html/.htaccess || sed -i '/RewriteEngine on/a\\    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]' /var/www/html/.htaccess"
+      ''
+        f=/var/www/html/.htaccess
+        sed -i '/X-Remote-User/d; /X-Remote-Auth/d' "$f"
+        # Fail closed: without the shared secret there is no header SSO at all.
+        if [ -n "$SSO_SECRET" ]; then
+          sed -i "/RewriteEngine on/a\\    RewriteCond %{HTTP:X-Remote-Auth} =$SSO_SECRET\\n    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]" "$f"
+        fi
+        chown www-data:www-data "$f"
+      ''
     ];
 
     internalDatabase.enabled = false;
@@ -112,6 +127,7 @@ let
         # public ingress.
         "nginx.ingress.kubernetes.io/configuration-snippet" = ''
           proxy_set_header X-Remote-User "";
+          proxy_set_header X-Remote-Auth "";
         '';
       };
       hosts = [{

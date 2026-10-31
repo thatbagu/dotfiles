@@ -40,6 +40,19 @@ in
     secretKey = "db-username";
     sopsSecretName = "nextcloud_db_username";
   }
+  # VPN SSO shared secret: Caddy (wireguard ns) sends it, Nextcloud checks it.
+  {
+    namespace = vars.namespaces.nextcloud;
+    secretName = "nextcloud-sso";
+    secretKey = "secret";
+    sopsSecretName = "nextcloud_sso_secret";
+  }
+  {
+    namespace = vars.namespaces.wireguard;
+    secretName = "wireguard-secrets";
+    secretKey = "nextcloud-sso-secret";
+    sopsSecretName = "nextcloud_sso_secret";
+  }
   {
     namespace = vars.namespaces.nextcloud;
     secretName = "nextcloud-redis";
