@@ -15,7 +15,8 @@ data:
   server-tokens: "false"
   ssl-ciphers: HIGH:!aNULL:!MD5
   ssl-protocols: TLSv1.2 TLSv1.3
-  use-forwarded-headers: "true"
+  use-forwarded-headers: "false"
+  use-proxy-protocol: "true"
 kind: ConfigMap
 metadata:
   labels:

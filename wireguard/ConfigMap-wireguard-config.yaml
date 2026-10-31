@@ -15,6 +15,7 @@ data:
         header_up Host nextcloud.egor.house
         header_up X-Remote-User "anya"
         header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
+        header_up X-Real-IP {remote_host}
       }
     }
 
@@ -25,6 +26,7 @@ data:
         header_up Host nextcloud.egor.house
         header_up X-Remote-User "anya"
         header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
+        header_up X-Real-IP {remote_host}
       }
     }
 
@@ -35,6 +37,7 @@ data:
         header_up Host nextcloud.egor.house
         header_up X-Remote-User "egor"
         header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
+        header_up X-Real-IP {remote_host}
       }
     }
 

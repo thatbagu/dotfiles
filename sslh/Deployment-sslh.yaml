@@ -18,7 +18,7 @@ spec:
             - --foreground
             - --listen=0.0.0.0:443
             - --ssh=cv-tui.cv.svc.cluster.local:2222
-            - --tls=ingress-nginx-controller.nginx-system.svc.cluster.local:443
+            - --tls=haproxy.nginx-system.svc.cluster.local:443
             - --on-timeout=ssh
           image: ghcr.io/yrutschle/sslh:latest
           name: sslh

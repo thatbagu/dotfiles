@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: c6b5dc717d87fd3f8f1c5f657e0d439611b0a6cd8c5691ab0a5b32835b32514b
+        checksum/config: ace6b2504642ce02ec2c5bab45d67a38d150e34a206b4fa30f558a4b761bf1f4
       labels:
         app: wireguard
     spec:
