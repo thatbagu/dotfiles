@@ -107,6 +107,10 @@ let
       failureThreshold = 30;
     };
 
+    # Pinned app version (chart default lags behind security releases).
+    # The container upgrades code + database itself on start.
+    image.tag = "33.0.10-apache";
+
     internalDatabase.enabled = false;
 
     externalDatabase = {
