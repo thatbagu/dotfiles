@@ -78,6 +78,15 @@ in
           owner = "${username}";
           mode = "0600";
         };
+        # Anya's devices (private keys stay in secrets.yaml, not installed anywhere)
+        anya_phone_wg_public_key = {
+          owner = "root";
+          mode = "0644";
+        };
+        anya_laptop_wg_public_key = {
+          owner = "root";
+          mode = "0644";
+        };
 
         # Nextcloud secrets
         nextcloud_admin_password = {

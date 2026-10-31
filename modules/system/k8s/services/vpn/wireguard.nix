@@ -138,7 +138,13 @@ let
       strategy = { type = "Recreate"; };
       selector = { matchLabels = { app = "wireguard"; }; };
       template = {
-        metadata = { labels = { app = "wireguard"; }; };
+        metadata = {
+          labels = { app = "wireguard"; };
+          # Peers and the Caddyfile are only read at pod start; roll the pod
+          # whenever they change.
+          annotations."checksum/config" =
+            builtins.hashString "sha256" (builtins.toJSON configMapResource.data);
+        };
         spec = {
           initContainers = [{
             name = "setup-config";
