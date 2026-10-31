@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: ac927af324c485b2f974f64fe3a8ab40d8343d05f06e99c1d9f42a424536db7c
+        checksum/config: 446e3f08cd822be039dde24e8137a3fc888f6503d479275b0fc86756ffe6903a
       labels:
         app: haproxy
     spec:

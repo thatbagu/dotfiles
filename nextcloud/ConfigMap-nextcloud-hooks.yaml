@@ -5,8 +5,8 @@ data:
     set -e
     occ() { php /var/www/html/occ "$@"; }
 
-    # Password logins only from the VPN and the home LAN; public share
-    # links don't log in and keep working from anywhere. The app store is
+    # Defense in depth: logins only from VPN addresses (Nextcloud has no
+    # public route at all; see ingress below). The app store is
     # too slow from here (occ app:install times out), so install a pinned,
     # checksummed release from GitHub. Never block startup on it.
     LLI_VER=4.5.0
@@ -25,7 +25,7 @@ data:
       rm -f "$tmp"
     fi
     occ app:enable limit_login_to_ip || echo "WARNING: limit_login_to_ip not enabled"
-    occ config:app:set limit_login_to_ip whitelisted.ranges --value="10.0.100.0/24,192.168.1.0/24"
+    occ config:app:set limit_login_to_ip whitelisted.ranges --value="10.0.100.0/24"
 
     if occ saml:config:get --providerId=1 2>/dev/null | grep -q 'general-uid_mapping: REMOTE_USER'; then
       echo "VPN SSO already configured"
