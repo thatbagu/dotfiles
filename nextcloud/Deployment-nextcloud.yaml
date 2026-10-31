@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       annotations:
-        hooks-hash: 5608e87bf99740259e536bb50f86c550f0ccf55762164d91f0a5ea49d592353a
+        hooks-hash: 767e1e883c74238f62ef8281b36e38d11e3ef76c03502d121c04375da4e31109
         nextcloud-config-hash: 23b95042deaafbd40df04d522c11bd934de6135c4583e9834e6a5a7f6e9da76f
         php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
@@ -123,6 +123,18 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
           resources: {}
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: nextcloud.egor.house
+              path: /status.php
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           volumeMounts:
             - mountPath: /var/www/
               name: nextcloud-main
