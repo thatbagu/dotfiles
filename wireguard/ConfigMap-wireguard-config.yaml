@@ -49,7 +49,7 @@ data:
     [Peer]
     PublicKey = __SERVER_PUBLIC_KEY__
     Endpoint = __WG_SERVER_ENDPOINT__:51820
-    AllowedIPs = 10.0.100.0/24, 192.168.1.250/32
+    AllowedIPs = 0.0.0.0/0, ::/0
     PersistentKeepalive = 25
   anya-phone: |
     [Interface]
@@ -60,7 +60,7 @@ data:
     [Peer]
     PublicKey = __SERVER_PUBLIC_KEY__
     Endpoint = __WG_SERVER_ENDPOINT__:51820
-    AllowedIPs = 10.0.100.0/24, 192.168.1.250/32
+    AllowedIPs = 0.0.0.0/0, ::/0
     PersistentKeepalive = 25
   egor-main: |
     [Interface]
