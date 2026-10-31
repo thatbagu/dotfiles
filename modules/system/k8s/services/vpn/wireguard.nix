@@ -65,11 +65,7 @@ let
     '') enabledUsers)}
   '';
 
-  # Generate client configs. Full tunnel unless the user sets allowedIPs: with
-  # all traffic in the tunnel, Windows' WireGuard kill switch forces the VPN's
-  # DNS, and even a browser resolving nextcloud.egor.house to the public IP
-  # (DNS over HTTPS) reaches Caddy via ip-watcher's DNAT, so auto-login works
-  # regardless of the client's DNS behaviour.
+  # Generate client configs
   generateClientConfig = name: user: ''
     [Interface]
     PrivateKey = __PASTE_${toUpper name}_PRIVATE_KEY_HERE__
@@ -79,7 +75,7 @@ let
     [Peer]
     PublicKey = __SERVER_PUBLIC_KEY__
     Endpoint = __WG_SERVER_ENDPOINT__:51820
-    AllowedIPs = ${user.allowedIPs or "0.0.0.0/0, ::/0"}
+    AllowedIPs = ${user.allowedIPs}
     PersistentKeepalive = 25
   '';
 
