@@ -44,7 +44,10 @@ spec:
             - name: FTLCONF_misc_etc_dnsmasq_d
               value: "true"
             - name: FTLCONF_webserver_api_password
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: pihole-admin
             - name: FTLCONF_dns_listeningMode
               value: all
             - name: FTLCONF_dns_upstreams
