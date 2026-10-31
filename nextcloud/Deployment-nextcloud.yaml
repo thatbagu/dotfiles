@@ -72,6 +72,11 @@ spec:
                 secretKeyRef:
                   key: password
                   name: nextcloud-redis
+            - name: SSO_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: secret
+                  name: nextcloud-sso
           image: docker.io/library/nextcloud:33.0.3-apache
           imagePullPolicy: IfNotPresent
           lifecycle:
@@ -80,7 +85,14 @@ spec:
                 command:
                   - /bin/sh
                   - -c
-                  - grep -q 'X-Remote-User' /var/www/html/.htaccess || sed -i '/RewriteEngine on/a\    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]' /var/www/html/.htaccess
+                  - |
+                    f=/var/www/html/.htaccess
+                    sed -i '/X-Remote-User/d; /X-Remote-Auth/d' "$f"
+                    # Fail closed: without the shared secret there is no header SSO at all.
+                    if [ -n "$SSO_SECRET" ]; then
+                      sed -i "/RewriteEngine on/a\\    RewriteCond %{HTTP:X-Remote-Auth} =$SSO_SECRET\\n    RewriteRule ^ - [E=REMOTE_USER:%{HTTP:X-Remote-User}]" "$f"
+                    fi
+                    chown www-data:www-data "$f"
           livenessProbe:
             failureThreshold: 3
             httpGet:

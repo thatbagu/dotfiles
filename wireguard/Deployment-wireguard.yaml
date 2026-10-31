@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 96afaeaeb9cb3283d16e088708e88f3c879ff01ecb35215b2167d5c849735a58
+        checksum/config: c6b5dc717d87fd3f8f1c5f657e0d439611b0a6cd8c5691ab0a5b32835b32514b
       labels:
         app: wireguard
     spec:
@@ -69,6 +69,12 @@ spec:
             - /etc/caddy/Caddyfile
             - --adapter
             - caddyfile
+          env:
+            - name: NEXTCLOUD_SSO_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: nextcloud-sso-secret
+                  name: wireguard-secrets
           image: caddy:2-alpine
           name: caddy
           ports:

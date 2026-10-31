@@ -14,6 +14,7 @@ data:
       reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
         header_up Host nextcloud.egor.house
         header_up X-Remote-User "anya"
+        header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
       }
     }
 
@@ -23,6 +24,7 @@ data:
       reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
         header_up Host nextcloud.egor.house
         header_up X-Remote-User "anya"
+        header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
       }
     }
 
@@ -32,6 +34,7 @@ data:
       reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
         header_up Host nextcloud.egor.house
         header_up X-Remote-User "egor"
+        header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
       }
     }
 
