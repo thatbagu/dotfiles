@@ -12,14 +12,13 @@
       description = "Egor's main machine - full admin access";
       enabled = true;
     };
-    # === FAMILY USERS (Home access, split tunnel) ===
+    # === FAMILY USERS (full tunnel, the default when allowedIPs is unset) ===
     "anya-phone" = {
       ip = "10.0.100.11";
       nextcloudUser = "anya";
       group = "family";
       publicKeySecret = "anya_phone_wg_public_key";
-      allowedIPs = "10.0.100.0/24, 192.168.1.250/32";
-      description = "Anya's phone - home services, Nextcloud auto-login";
+      description = "Anya's phone - full tunnel, Nextcloud auto-login";
       enabled = true;
     };
     "anya-laptop" = {
@@ -27,8 +26,7 @@
       nextcloudUser = "anya";
       group = "family";
       publicKeySecret = "anya_laptop_wg_public_key";
-      allowedIPs = "10.0.100.0/24, 192.168.1.250/32";
-      description = "Anya's laptop - home services, Nextcloud auto-login";
+      description = "Anya's laptop - full tunnel, Nextcloud auto-login";
       enabled = true;
     };
     # "dad-phone" = {
