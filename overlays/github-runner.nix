@@ -66,7 +66,9 @@ setup_runner_home() {
     fname="$(basename "$f")"
     [ "$fname" = "Runner.Listener" ] && continue
     dest="$CVRUN/bin/$fname"
-    cmp -s "$f" "$dest" 2>/dev/null || cp "$f" "$dest" 2>/dev/null || true
+    # -f: earlier copies are read-only (from the store); a plain cp can't
+    # overwrite them, which silently kept old runner versions after upgrades.
+    cmp -s "$f" "$dest" 2>/dev/null || cp -f "$f" "$dest" 2>/dev/null || true
   done
   chmod +x "$CVRUN/bin/Runner.Listener.real" 2>/dev/null || true
   ln -sfn "$NXROOT/externals" "$CVRUN/externals" 2>/dev/null || true
