@@ -43,7 +43,16 @@ in {
     };
 
     services = {
-      openssh.enable = mkForce true;
+      openssh = {
+        enable = mkForce true;
+        # Keys only: egor has passwordless sudo, so a guessed/phished password
+        # would mean root on the cluster. Deploys use egor + sudo, never root.
+        settings = {
+          PasswordAuthentication = false;
+          KbdInteractiveAuthentication = false;
+          PermitRootLogin = "no";
+        };
+      };
       openiscsi = {
         enable = true;
         name = "iqn.2016-04.com.open-iscsi:${hostname}";
