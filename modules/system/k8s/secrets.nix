@@ -9,6 +9,14 @@ let
   enabledUsers = lib.filterAttrs (_: user: user.enabled) users;
 in
 [
+  # SSH host key of the cv TUI (was a hostPath mount of the SOPS file).
+  {
+    namespace = vars.namespaces.cv;
+    secretName = "cv-tui-ssh-host-key";
+    secretKey = "cv_ssh_host_key";
+    sopsSecretName = "cv_tui_ssh_host_key";
+  }
+
   # Pi-hole admin/API password: Pi-hole itself and external-dns' Pi-hole provider.
   {
     namespace = vars.namespaces.pihole;

@@ -16,7 +16,7 @@ let
       template = {
         metadata.labels.app = "cv-tui";
         spec = {
-          nodeName = "meowth";
+          affinity = vars.workerAffinity;
           containers = [{
             name = "cv-tui";
             image = "docker.io/thatbagu/cv-tui:latest";
@@ -29,6 +29,7 @@ let
             volumeMounts = [{
               name = "ssh-host-key";
               mountPath = "/app/.ssh/cv_ssh_host_key";
+              subPath = "cv_ssh_host_key";
               readOnly = true;
             }];
             resources = {
@@ -36,11 +37,13 @@ let
               limits   = { cpu = "200m"; memory = "256Mi"; };
             };
           }];
+          # From SOPS via k8s-secrets; no hostPath, so the namespace can
+          # enforce Pod Security "baseline".
           volumes = [{
             name = "ssh-host-key";
-            hostPath = {
-              path = "/run/secrets/cv_ssh_host_key";
-              type = "File";
+            secret = {
+              secretName = "cv-tui-ssh-host-key";
+              defaultMode = 256; # 0400
             };
           }];
         };

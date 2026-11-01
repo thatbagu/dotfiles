@@ -90,10 +90,61 @@ let
       }];
     };
   };
+  # Pod Security: no privileged / hostPath / hostNetwork pods in cv. Matters
+  # because the CI deployer below may patch Deployments here.
+  namespaceResource = {
+    apiVersion = "v1";
+    kind = "Namespace";
+    metadata = {
+      name = namespace;
+      labels = {
+        "pod-security.kubernetes.io/enforce" = "baseline";
+        "pod-security.kubernetes.io/enforce-version" = "latest";
+        "pod-security.kubernetes.io/warn" = "restricted";
+        "pod-security.kubernetes.io/audit" = "restricted";
+      };
+    };
+  };
+
+  # Least-privilege identity for the self-hosted GitHub runner: rollout
+  # restart/status of the cv and cv-tui Deployments only.
+  deployerResources = [
+    {
+      apiVersion = "v1";
+      kind = "ServiceAccount";
+      metadata = { name = "cv-deployer"; inherit namespace; };
+    }
+    {
+      apiVersion = "v1";
+      kind = "Secret";
+      type = "kubernetes.io/service-account-token";
+      metadata = {
+        name = "cv-deployer-token";
+        inherit namespace;
+        annotations."kubernetes.io/service-account.name" = "cv-deployer";
+      };
+    }
+    {
+      apiVersion = "rbac.authorization.k8s.io/v1";
+      kind = "Role";
+      metadata = { name = "cv-deployer"; inherit namespace; };
+      rules = [
+        { apiGroups = [ "apps" ]; resources = [ "deployments" "replicasets" ]; verbs = [ "get" "list" "watch" ]; }
+        { apiGroups = [ "apps" ]; resources = [ "deployments" ]; resourceNames = [ "cv" "cv-tui" ]; verbs = [ "patch" ]; }
+      ];
+    }
+    {
+      apiVersion = "rbac.authorization.k8s.io/v1";
+      kind = "RoleBinding";
+      metadata = { name = "cv-deployer"; inherit namespace; };
+      roleRef = { apiGroup = "rbac.authorization.k8s.io"; kind = "Role"; name = "cv-deployer"; };
+      subjects = [{ kind = "ServiceAccount"; name = "cv-deployer"; inherit namespace; }];
+    }
+  ];
 in {
   applications.cv = {
     namespace = vars.namespaces.cv;
     syncWave = 4;
-    yamls = map builtins.toJSON [ deploymentResource serviceResource ingressResource ];
+    yamls = map builtins.toJSON ([ namespaceResource deploymentResource serviceResource ingressResource ] ++ deployerResources);
   };
 }
