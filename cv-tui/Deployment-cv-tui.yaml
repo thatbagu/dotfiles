@@ -13,6 +13,16 @@ spec:
       labels:
         app: cv-tui
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - preference:
+                matchExpressions:
+                  - key: node-role
+                    operator: In
+                    values:
+                      - worker
+              weight: 100
       containers:
         - image: docker.io/thatbagu/cv-tui:latest
           imagePullPolicy: Always
@@ -32,9 +42,9 @@ spec:
             - mountPath: /app/.ssh/cv_ssh_host_key
               name: ssh-host-key
               readOnly: true
-      nodeName: meowth
+              subPath: cv_ssh_host_key
       volumes:
-        - hostPath:
-            path: /run/secrets/cv_ssh_host_key
-            type: File
-          name: ssh-host-key
+        - name: ssh-host-key
+          secret:
+            defaultMode: 256
+            secretName: cv-tui-ssh-host-key
