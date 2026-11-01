@@ -25,7 +25,27 @@ in {
     systemd.tmpfiles.rules =
       [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
     virtualisation.docker.logDriver = "json-file";
-    networking.firewall.enable = mkForce false;
+    # Firewall: only what the cluster needs from the LAN. LoadBalancer/NodePort
+    # traffic is DNATed to pods in PREROUTING (FORWARD, not filtered here), so
+    # it isn't affected. etcd (2379/2380) stays closed: single server, local only.
+    networking.firewall = {
+      allowedTCPPorts = [
+        22 # ssh (keys only)
+        6443 # Kubernetes API (agents -> server, kubectl)
+        10250 # kubelet (API server, metrics-server)
+        7946 # MetalLB memberlist
+      ];
+      allowedUDPPorts = [
+        8472 # flannel VXLAN (pod network between nodes)
+        7946 # MetalLB memberlist
+      ];
+      allowedTCPPortRanges = [{ from = 30000; to = 32767; }]; # NodePorts / health checks
+      allowedUDPPortRanges = [{ from = 30000; to = 32767; }];
+      # Pod traffic to the host (kubelet, API via the kubernetes Service, ...).
+      trustedInterfaces = [ "cni0" "flannel.1" ];
+      # Strict reverse-path filtering drops asymmetric overlay/LB traffic.
+      checkReversePath = "loose";
+    };
     systemd.services.sshd.stopIfChanged = mkForce false;
 
     # Pre-seed the node password from k3s_token before k3s starts so the worker
