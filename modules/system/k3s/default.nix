@@ -63,7 +63,10 @@ in {
         tokenFile = config.sops.secrets.k3s_token.path;
         extraFlags = toString ((if cfg.master then [
           "--cluster-init"
-          "--write-kubeconfig-mode=0644"
+          # Admin kubeconfig: root + wheel only (it was world-readable, i.e.
+          # cluster-admin for any local user or process).
+          "--write-kubeconfig-mode=0640"
+          "--write-kubeconfig-group=wheel"
           "--disable=servicelb"
           "--disable=traefik"
           "--disable=local-storage"

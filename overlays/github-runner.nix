@@ -3,11 +3,11 @@ final: prev: {
     { nodeRuntimes ? [ ] }:
     prev.stdenv.mkDerivation rec {
       pname = "github-runner";
-      version = "2.335.1";
+      version = "2.338.1";
 
       src = prev.fetchurl {
         url = "https://github.com/actions/runner/releases/download/v${version}/actions-runner-linux-x64-${version}.tar.gz";
-        hash = "sha256-TvLyUoXwrkR38f4eNG23bS8+vwOCTi3dGXOigZv2yM8=";
+        hash = "sha256-COnMs2BNJGLCS14zYE3DCBApbKFcxl8jz/1DF+sUTDc=";
       };
 
       sourceRoot = ".";
