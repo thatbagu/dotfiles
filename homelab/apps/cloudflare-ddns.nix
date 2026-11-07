@@ -1,7 +1,6 @@
-# The homelab's Cloudflare DDNS job. It replaces nixlab's (see overrides.nix)
-# because it also covers telegram.<domain> and the mlship.dev zone, and checks
-# Cloudflare's replies.
-{ vars }:
+# The homelab's Cloudflare DDNS job, in place of nixlab's: it also covers
+# telegram.<domain> and the mlship.dev zone, and checks Cloudflare's replies.
+{ lib, vars, ... }:
 
 let
   cronJobResource = {
@@ -102,5 +101,6 @@ let
       };
     };
   };
-in
-cronJobResource
+in {
+  applications.cloudflare-ddns.yamls = lib.mkForce [ (builtins.toJSON cronJobResource) ];
+}

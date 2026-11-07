@@ -1,5 +1,5 @@
-# Homelab-specific changes to nixlab's platform apps (merged into them by the
-# module system; see nixlab's docs/adding-charts.md).
+# nginx behind HAProxy: changes to nixlab's ingress-nginx app (merged into it
+# by the module system; see nixlab's docs/adding-charts.md).
 { lib, vars, ... }:
 
 {
@@ -18,9 +18,4 @@
     publishService.enabled = false;
     extraArgs."publish-status-address" = vars.ipPools.nginxExternal;
   };
-
-  # Our own DDNS job instead of nixlab's (more records and zones).
-  applications.cloudflare-ddns.yamls = lib.mkForce [
-    (builtins.toJSON (import ./ddns.nix { inherit vars; }))
-  ];
 }

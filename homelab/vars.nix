@@ -1,7 +1,7 @@
 # The homelab's nixlab settings (see nixlab's docs/configuration.md). The nodes
 # and the Kubernetes render are built from this with nixlab.lib.mkNixlab in
-# flake.nix; homelab-only additions live next to it (apps/, hosts/, node.nix,
-# overrides.nix).
+# flake.nix; the homelab's own apps (and changes to nixlab's) are in apps/,
+# the nodes' hardware and extras in hosts/.
 {
   username = "egor";
   timezone = "Asia/Almaty";

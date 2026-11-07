@@ -1,10 +1,11 @@
-# Homelab-only additions to nixlab's nodes (extraNixosModules in flake.nix).
+# Extras for every homelab node, on top of nixlab's (extraNixosModules in
+# flake.nix).
 # Takes this flake's inputs: the `inputs` nixlab passes to modules are its own.
 inputs:
 { config, lib, pkgs, username, hostname, ... }:
 
 let
-  isWorker = !(import ./vars.nix).nodes.${hostname}.master;
+  isWorker = !(import ../vars.nix).nodes.${hostname}.master;
 in
 {
   imports = [
@@ -24,7 +25,7 @@ in
           claude-code = inputs.claude-code.packages.x86_64-linux.default;
         };
         users.${username}.imports = [
-          (./hosts + "/${hostname}/user.nix")
+          (./. + "/${hostname}/user.nix")
           inputs.nixvim.homeModules.nixvim
         ];
       };
@@ -33,7 +34,7 @@ in
     {
       # This flake's package overlays too (e.g. the newer github-runner);
       # nixlab only applies its own.
-      nixpkgs.overlays = builtins.attrValues (import ../overlays/default.nix);
+      nixpkgs.overlays = builtins.attrValues (import ../../overlays/default.nix);
 
       # Same locales as before (changing them restarts every service).
       i18n.supportedLocales = lib.mkForce [ "en_US.UTF-8/UTF-8" "ja_JP.UTF-8/UTF-8" ];

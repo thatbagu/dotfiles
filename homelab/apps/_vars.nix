@@ -1,5 +1,6 @@
-# Homelab-only Kubernetes settings, merged into nixlab's `vars` by the
-# modules in apps/ (nixlab doesn't know about these apps).
+# Settings for the homelab's own apps, merged into nixlab's `vars` by the
+# modules here (nixlab doesn't know about these apps). The leading "_" keeps
+# nixlab from loading this file as an app.
 {
   namespaces = {
     cv = "cv";

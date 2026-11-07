@@ -1,6 +1,6 @@
-# Kubernetes Secrets for the homelab-only apps, pushed from SOPS by nixlab's
+# Kubernetes Secrets for the homelab's own apps, pushed from SOPS by nixlab's
 # k8s-secrets unit (extraSecrets in flake.nix).
-let vars = import ./k8s-vars.nix; in
+let vars = import ./_vars.nix; in
 [
   # SSH host key of the cv TUI.
   {

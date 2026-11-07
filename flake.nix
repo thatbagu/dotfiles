@@ -251,9 +251,8 @@
         secretsFile = ./modules/system/sops/secrets.yaml;
         appsDir = ./homelab/apps;
         hardwareConfig = hostname: ./homelab/hosts + "/${hostname}/hardware-configuration.nix";
-        extraAppModules = [ ./homelab/overrides.nix ];
-        extraNixosModules = [ (import ./homelab/node.nix inputs) ];
-        extraSecrets = import ./homelab/secrets.nix;
+        extraNixosModules = [ (import ./homelab/hosts inputs) ];
+        extraSecrets = import ./homelab/apps/_secrets.nix;
       };
 
     in
