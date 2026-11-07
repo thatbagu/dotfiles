@@ -1,12 +1,10 @@
-# Extras for every homelab node, on top of nixlab's (extraNixosModules in
-# flake.nix).
-# Takes this flake's inputs: the `inputs` nixlab passes to modules are its own.
+# Extras for the homelab nodes, on top of nixlab's (extraNixosModules in
+# flake.nix): the shell setup, this flake's overlays, and the cv GitHub runner
+# on meowth. Takes this flake's inputs: the `inputs` nixlab passes to modules
+# are its own.
 inputs:
 { config, lib, pkgs, username, hostname, ... }:
 
-let
-  isWorker = !(import ../vars.nix).nodes.${hostname}.master;
-in
 {
   imports = [
     inputs.stylix.nixosModules.stylix
@@ -15,7 +13,9 @@ in
 
   config = lib.mkMerge [
     {
-      # The same shell setup as before (fish, nixvim, zellij, k9s, …).
+      # Shell setup: fish, nixvim, zellij, k9s, …
+      programs.fish.enable = true;
+      users.users.${username}.shell = pkgs.fish;
       home-manager = {
         useUserPackages = true;
         useGlobalPkgs = true;
@@ -36,50 +36,10 @@ in
       # nixlab only applies its own.
       nixpkgs.overlays = builtins.attrValues (import ../../overlays/default.nix);
 
-      # Same locales as before (changing them restarts every service).
+      # The locales the nodes were installed with: changing them restarts
+      # nearly every service. Drop this line at a planned reboot.
       i18n.supportedLocales = lib.mkForce [ "en_US.UTF-8/UTF-8" "ja_JP.UTF-8/UTF-8" ];
-
-      # Same login shell as before.
-      programs.fish.enable = true;
-      users.users.${username}.shell = pkgs.fish;
-
-      # k3s flags exactly as before: nixlab's, plus a node-role label (used by
-      # the apps' worker affinity) and, on the master, longer leader-election
-      # timeouts so meowth's slow SSD flushes don't restart the control plane.
-      # (nixlab builds extraFlags as one string, so it is restated here: check
-      # it when nixlab's k3s flags change.)
-      services.k3s.extraFlags = lib.mkForce (toString (
-        (if isWorker then [ "--node-label=node-role=worker" ] else [
-          "--cluster-init"
-          "--write-kubeconfig-mode=0640"
-          "--write-kubeconfig-group=wheel"
-          "--disable=servicelb"
-          "--disable=traefik"
-          "--disable=local-storage"
-          "--node-label=node-role=master"
-        ] ++ lib.concatMap (c: [
-          "--${c}-arg=leader-elect-lease-duration=60s"
-          "--${c}-arg=leader-elect-renew-deadline=40s"
-        ] ) [ "kube-controller-manager" "kube-scheduler" "kube-cloud-controller-manager" ])
-        ++ [ "--node-label=node.longhorn.io/create-default-disk=true" ]
-      ));
     }
-
-    # Workers present a deterministic node password (the k3s token), so the
-    # server still accepts them after a reinstall.
-    (lib.mkIf isWorker {
-      systemd.services.k3s-node-password = {
-        description = "Pre-seed k3s node password from k3s_token";
-        before = [ "k3s.service" ];
-        wantedBy = [ "k3s.service" ];
-        serviceConfig.Type = "oneshot";
-        script = ''
-          mkdir -p /etc/rancher/node
-          cp ${config.sops.secrets.k3s_token.path} /etc/rancher/node/password
-          chmod 0600 /etc/rancher/node/password
-        '';
-      };
-    })
 
     (lib.mkIf (hostname == "meowth") {
       # The runner's registration token.

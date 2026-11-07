@@ -1,10 +1,9 @@
-{ lib, vars, ... }@args:
-
-# (nixlab's vars plus the homelab apps' own, in _vars.nix.)
-let vars = lib.recursiveUpdate args.vars (import ./_vars.nix); in
+# The CV site's terminal UI over SSH: the edge proxy forwards port 22 to it
+# (vars.nix edge.tcp). Its host key comes from SOPS (_secrets.nix).
+{ nixlab, ... }:
 
 let
-  namespace = vars.namespaces.cv;
+  namespace = "cv";
 
   deploymentResource = {
     apiVersion = "apps/v1";
@@ -19,7 +18,7 @@ let
       template = {
         metadata.labels.app = "cv-tui";
         spec = {
-          affinity = vars.workerAffinity;
+          affinity = nixlab.preferWorkers;
           containers = [{
             name = "cv-tui";
             image = "docker.io/thatbagu/cv-tui:latest";
@@ -84,7 +83,7 @@ let
   };
 in {
   applications.cv-tui = {
-    namespace = vars.namespaces.cv;
+    namespace = "cv";
     syncWave = 4;
     yamls = map builtins.toJSON [ deploymentResource serviceResource ];
   };

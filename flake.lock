@@ -727,16 +727,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1793940412,
-        "narHash": "sha256-tbk0mYrl5tlWuG4cc5t9daEvbyiBmJMon+TNdjPQTxg=",
+        "lastModified": 1794077705,
+        "narHash": "sha256-z31exinHnwrT03aZTrlvQiBGHf+49J13ZkftYkEeECc=",
         "owner": "thatbagu",
         "repo": "nixlab",
-        "rev": "d3f3fa8aa3e57f8ca8da6ff322a115c213e9ce5a",
+        "rev": "8d387d1d24ca94be69e5bce8c65929acc72048e3",
         "type": "github"
       },
       "original": {
         "owner": "thatbagu",
-        "ref": "v1.5.0",
+        "ref": "v1.6.0",
         "repo": "nixlab",
         "type": "github"
       }

@@ -1,7 +1,7 @@
 # The homelab's nixlab settings (see nixlab's docs/configuration.md). The nodes
 # and the Kubernetes render are built from this with nixlab.lib.mkNixlab in
-# flake.nix; the homelab's own apps (and changes to nixlab's) are in apps/,
-# the nodes' hardware and extras in hosts/.
+# flake.nix; the homelab's own apps (cv, cv-tui) are in apps/, the nodes'
+# hardware and extras in hosts/.
 {
   username = "egor";
   timezone = "Asia/Almaty";
@@ -14,11 +14,31 @@
   };
 
   domain = "egor.house";
-  cloudflare.enable = true;
+  cloudflare = {
+    enable = true;
+    # The CV site, behind Cloudflare's proxy.
+    ddns.records = [ { name = "mlship.dev"; proxied = true; } ];
+  };
 
   nextcloud.enable = true;
   signalProxy.enable = true;
+  telegramProxy.enable = true;
   sso.enable = false;
+
+  # HAProxy in front of nginx: shares :443 with the Telegram proxy, serves
+  # mlship.dev, and forwards SSH on :22 to the CV's terminal UI.
+  edge = {
+    domains = [ "mlship.dev" ];
+    tcp."22" = "cv-tui.cv.svc.cluster.local:2222";
+  };
+
+  k3s = {
+    # meowth's SSD stalls for seconds on cache flushes; longer leader
+    # election keeps them from restarting the control plane.
+    leaderElection = { leaseDuration = "60s"; renewDeadline = "40s"; };
+    # Workers rejoin after a reinstall (their node password is the k3s token).
+    stableNodePasswords = true;
+  };
 
   # Argo CD syncs the rendered manifests from this repo's k8s-rendered branch.
   gitRepository = "https://github.com/thatbagu/dotfiles.git";
