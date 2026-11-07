@@ -250,7 +250,7 @@
         vars = import ./homelab/vars.nix;
         secretsFile = ./modules/system/sops/secrets.yaml;
         appsDir = ./homelab/apps;
-        hardwareConfig = hostname: ./hosts/homelab + "/${hostname}/hardware-configuration.nix";
+        hardwareConfig = hostname: ./homelab/hosts + "/${hostname}/hardware-configuration.nix";
         extraAppModules = [ ./homelab/overrides.nix ];
         extraNixosModules = [ (import ./homelab/node.nix inputs) ];
         extraSecrets = import ./homelab/secrets.nix;

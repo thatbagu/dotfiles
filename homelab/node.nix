@@ -24,7 +24,7 @@ in
           claude-code = inputs.claude-code.packages.x86_64-linux.default;
         };
         users.${username}.imports = [
-          (../hosts/homelab + "/${hostname}/user.nix")
+          (./hosts + "/${hostname}/user.nix")
           inputs.nixvim.homeModules.nixvim
         ];
       };
