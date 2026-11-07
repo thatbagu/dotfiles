@@ -11,8 +11,6 @@
     ./desktop
     ./impermanence
     ./disko
-    ./k3s
-    ./k8s
     ./wireguard
   ];
 

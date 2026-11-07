@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "modules/system/k8s/**"
+      - "homelab/**"
       - "flake.nix"
       - "flake.lock"
   workflow_dispatch:

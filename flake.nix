@@ -59,6 +59,23 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     claude-code.url = "github:sadjow/claude-code-nix";
+
+    # The homelab platform (NixOS + k3s + GitOps). The homelab nodes and the
+    # Kubernetes render are built with nixlab.lib.mkNixlab (homelab/). Shares
+    # this flake's pins so the nodes keep the same package versions.
+    nixlab = {
+      url = "github:thatbagu/nixlab/v1.5.0";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        disko.follows = "disko";
+        sops-nix.follows = "sops-nix";
+        impermanence.follows = "impermanence";
+        colmena.follows = "colmena";
+        nixhelm.follows = "nixhelm";
+        nix-kube-generators.follows = "nix-kube-generators";
+        nixidy.follows = "nixidy";
+      };
+    };
   };
 
   outputs =
@@ -225,6 +242,20 @@
           modules = modules ++ [{ nixpkgs.hostPlatform = system; }];
         };
 
+      isHomelab = machine: builtins.elem "homelab" machine.tags;
+      personalMachines = nixpkgs.lib.filterAttrs (_: m: !isHomelab m) nixosMachines;
+
+      # The homelab (nodes + Kubernetes render), built with nixlab.
+      homelab = inputs.nixlab.lib.mkNixlab {
+        vars = import ./homelab/vars.nix;
+        secretsFile = ./modules/system/sops/secrets.yaml;
+        appsDir = ./homelab/apps;
+        hardwareConfig = hostname: ./hosts/homelab + "/${hostname}/hardware-configuration.nix";
+        extraAppModules = [ ./homelab/overrides.nix ];
+        extraNixosModules = [ (import ./homelab/node.nix inputs) ];
+        extraSecrets = import ./homelab/secrets.nix;
+      };
+
     in
     {
       inherit nixosMachines;
@@ -235,16 +266,12 @@
       }
       // (builtins.mapAttrs (
         name: machine: mkSystem inputs.nixpkgs "x86_64-linux" machine.hostname machine.username
-      ) nixosMachines);
+      ) personalMachines)
+      // homelab.nixosConfigurations;
 
       # Kubernetes manifests for the homelab cluster, synced by Argo CD.
       # Render with: nix run github:arnarg/nixidy/v0.23.1 -- switch .#homelab
-      nixidyEnvs.x86_64-linux = inputs.nixidy.lib.mkEnvs {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        charts = inputs.nixhelm.chartsDerivations.x86_64-linux;
-        extraSpecialArgs = { inherit inputs; };
-        envs.homelab.modules = [ ./modules/system/k8s/nixidy.nix ];
-      };
+      nixidyEnvs.x86_64-linux = homelab.nixidyEnvs;
 
       darwinConfigurations = {
         work = mkSystem inputs.nix-darwin "aarch64-darwin" "work" "egor";
@@ -260,13 +287,18 @@
         };
       }
       // (builtins.mapAttrs (name: machine: {
-        # Explicitly add the hostname module parameter
-        _module.args = {
+        # Reuse the same modules that we use for NixOS configurations (the
+        # homelab nodes come from nixlab).
+        _module.args = if isHomelab machine then
+          homelab.specialArgsFor name
+        else {
           hostname = cleanHostname machine.hostname;
           username = machine.username;
         };
-        # Reuse the same modules that we use for NixOS configurations
-        imports = mkSystemModules "x86_64-linux" machine.hostname "egor"
+        imports = if isHomelab machine then
+          homelab.modulesFor name
+        else
+          mkSystemModules "x86_64-linux" machine.hostname "egor"
           ++ [{ nixpkgs.hostPlatform = "x86_64-linux"; }];
 
         deployment = {

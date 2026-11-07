@@ -1,4 +1,7 @@
-{ vars, ... }:
+{ lib, vars, ... }@args:
+
+# (Homelab-only app: nixlab's vars plus homelab/k8s-vars.nix.)
+let vars = lib.recursiveUpdate args.vars (import ../k8s-vars.nix); in
 
 let
   namespace = vars.namespaces.cv;

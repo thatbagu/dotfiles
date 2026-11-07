@@ -699,6 +699,48 @@
         "type": "github"
       }
     },
+    "nixlab": {
+      "inputs": {
+        "colmena": [
+          "colmena"
+        ],
+        "disko": [
+          "disko"
+        ],
+        "impermanence": [
+          "impermanence"
+        ],
+        "nix-kube-generators": [
+          "nix-kube-generators"
+        ],
+        "nixhelm": [
+          "nixhelm"
+        ],
+        "nixidy": [
+          "nixidy"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "sops-nix": [
+          "sops-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793940412,
+        "narHash": "sha256-tbk0mYrl5tlWuG4cc5t9daEvbyiBmJMon+TNdjPQTxg=",
+        "owner": "thatbagu",
+        "repo": "nixlab",
+        "rev": "d3f3fa8aa3e57f8ca8da6ff322a115c213e9ce5a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "thatbagu",
+        "ref": "v1.5.0",
+        "repo": "nixlab",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1782118813,
@@ -977,6 +1019,7 @@
         "nix-kube-generators": "nix-kube-generators",
         "nixhelm": "nixhelm",
         "nixidy": "nixidy",
+        "nixlab": "nixlab",
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-wine": "nixpkgs-wine",
         "nixvim": "nixvim",
