@@ -1,5 +1,9 @@
 { ... }: {
-  imports = [ ../../modules/system/configuration.nix ];
+  imports = [
+    ../../modules/system/configuration.nix
+    # Genkan dev prerequisites (Docker, kvm/docker groups, vhost_vsock); see ~/Code/genkan/dev/nixos/APPLY.md
+    ../../modules/system/genkan-dev.nix
+  ];
 
   config = {
     diskConfig = {
@@ -15,6 +19,10 @@
       desktop.enable = true;
       wireguard.enable = true;
       wireguard.homelab.enable = true;
+    };
+    genkan.dev = {
+      enable = true;
+      user = "egor";
     };
   };
 }
