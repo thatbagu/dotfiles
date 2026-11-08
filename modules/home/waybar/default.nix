@@ -12,14 +12,31 @@ in {
           position = "top";
           height = 40;
           modules-left =
-            [ "hyprland/workspaces" "hyprland/language" "custom/spotify" ];
+            [ "hyprland/workspaces" "custom/language" "custom/spotify" ];
           modules-center = [ "clock" ];
           modules-right = [ "custom/vpn" "custom/vpn-home" "network" "backlight" "wireplumber" "battery" ];
-          "hyprland/language" = {
-            format-en = "US";
-            format-ru = "RU";
-            min-length = 5;
-            tooltip = false;
+          # Layouts are switched by fcitx5 (Ctrl+Space), so Hyprland's own
+          # language module can't see them; follow fcitx5 instead.
+          "custom/language" = {
+            "return-type" = "json";
+            "min-length" = 5;
+            "tooltip" = false;
+            "exec" = ''
+              prev=""
+              while true; do
+                case "$(fcitx5-remote -n 2>/dev/null)" in
+                  keyboard-us) cur=US ;;
+                  keyboard-ru-phonetic) cur=RU ;;
+                  mozc) cur=JP ;;
+                  *) cur="" ;;
+                esac
+                if [ "$cur" != "$prev" ]; then
+                  echo "{\"text\": \"$cur\", \"class\": \"$cur\"}"
+                  prev="$cur"
+                fi
+                sleep 0.2
+              done
+            '';
           };
           "hyprland/workspaces" = {
             "on-click" = "activate";

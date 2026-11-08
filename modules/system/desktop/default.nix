@@ -33,6 +33,42 @@ in {
       };
     };
 
+    # Input method: fcitx5 owns the whole layout roster (us / ru phonetic / Japanese).
+    # Ctrl+Space cycles through them; Mozc gives romaji -> kana -> kanji suggestions.
+    i18n.inputMethod = {
+      enable = true;
+      type = "fcitx5";
+      fcitx5 = {
+        waylandFrontend = true;
+        addons = with pkgs; [ fcitx5-mozc fcitx5-gtk ];
+        settings = {
+          inputMethod = {
+            GroupOrder."0" = "Default";
+            "Groups/0" = {
+              Name = "Default";
+              "Default Layout" = "us";
+              DefaultIM = "keyboard-us";
+            };
+            "Groups/0/Items/0".Name = "keyboard-us";
+            "Groups/0/Items/1".Name = "keyboard-ru-phonetic";
+            "Groups/0/Items/2".Name = "mozc";
+          };
+          globalOptions = {
+            # Drop the default "toggle first/current IM" trigger so Ctrl+Space just cycles
+            "Hotkey/TriggerKeys" = { };
+            "Hotkey/EnumerateForwardKeys"."0" = "Control+space";
+            "Hotkey/EnumerateBackwardKeys"."0" = "Control+Shift+space";
+            Hotkey.EnumerateSkipFirst = "False";
+            # No popup near the cursor on switch; waybar shows the current layout
+            Behavior = {
+              ShowInputMethodInformation = "False";
+              ShowInputMethodInformationWhenFocusIn = "False";
+            };
+          };
+        };
+      };
+    };
+
     # Wayland stuff: enable XDG integration
     xdg = {
       portal = {

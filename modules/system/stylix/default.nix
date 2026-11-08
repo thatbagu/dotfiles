@@ -45,11 +45,13 @@ in {
           terminal = builtins.floor (12 * cfg.scale);
         };
       };
-      # Add Bibata cursor with scaled size
       cursor = {
-        package = pkgs.bibata-cursors;
-        name = "Bibata-Modern-Classic";
-        size = builtins.floor (20 * cfg.scale);
+        package = pkgs.runCommand "konata-cursors" {} ''
+          mkdir -p $out/share/icons
+          cp -r ${../../../pics/cursors/konata} $out/share/icons/konata
+        '';
+        name = "konata";
+        size = builtins.floor (48 * cfg.scale);
       };
       polarity = "dark"; # Explicitly set dark mode
       targets.qt.enable = false;
