@@ -262,6 +262,13 @@
             secretKey = "cv_ssh_host_key";
             sopsSecretName = "cv_tui_ssh_host_key";
           }
+          {
+            # GitHub token the cv runners register with (apps/cv-runner.nix).
+            namespace = "arc-runners";
+            secretName = "arc-github";
+            secretKey = "github_token";
+            sopsSecretName = "github_token";
+          }
         ];
       };
 

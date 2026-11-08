@@ -1,7 +1,6 @@
 # Extras for the homelab nodes, on top of nixlab's (extraNixosModules in
-# flake.nix): the shell setup and this flake's overlays; meowth also gets the
-# cv GitHub runner (meowth/cv-runner.nix). Takes this flake's inputs: the
-# `inputs` nixlab passes to modules are its own.
+# flake.nix): the shell setup. Takes this flake's inputs: the `inputs` nixlab
+# passes to modules are its own.
 inputs:
 { lib, pkgs, username, hostname, ... }:
 
@@ -9,7 +8,7 @@ inputs:
   imports = [
     inputs.stylix.nixosModules.stylix
     inputs.home-manager.nixosModules.home-manager
-  ] ++ lib.optional (hostname == "meowth") ./meowth/cv-runner.nix;
+  ];
 
   # Shell setup: fish, nixvim, zellij, k9s, …
   programs.fish.enable = true;
@@ -27,10 +26,6 @@ inputs:
       inputs.nixvim.homeModules.nixvim
     ];
   };
-
-  # This flake's package overlays too (e.g. the newer github-runner); nixlab
-  # only applies its own.
-  nixpkgs.overlays = builtins.attrValues (import ../../overlays/default.nix);
 
   # The locales the nodes were installed with: changing them restarts nearly
   # every service. Drop this line at a planned reboot.

@@ -1,13 +1,13 @@
 # The CV site at https://mlship.dev (public, behind Cloudflare's proxy; DDNS
-# keeps the record, see vars.nix). The GitHub runner on meowth deploys it by
-# restarting the Deployment, which pulls :latest again.
+# keeps the record, see vars.nix). Its GitHub workflow (cv-runner.nix) deploys
+# it by restarting the Deployment, which pulls :latest again.
 { nixlab, ... }:
 
 let
   namespace = "cv";
 
   # Pod Security: no privileged / hostPath / hostNetwork pods in cv. Matters
-  # because the CI deployer below may patch Deployments here.
+  # because the CI runner (cv-runner.nix) may patch Deployments here.
   namespaceResource = {
     apiVersion = "v1";
     kind = "Namespace";
@@ -21,42 +21,6 @@ let
       };
     };
   };
-
-  # Least-privilege identity for the self-hosted GitHub runner: rollout
-  # restart/status of the cv and cv-tui Deployments only.
-  deployerResources = [
-    {
-      apiVersion = "v1";
-      kind = "ServiceAccount";
-      metadata = { name = "cv-deployer"; inherit namespace; };
-    }
-    {
-      apiVersion = "v1";
-      kind = "Secret";
-      type = "kubernetes.io/service-account-token";
-      metadata = {
-        name = "cv-deployer-token";
-        inherit namespace;
-        annotations."kubernetes.io/service-account.name" = "cv-deployer";
-      };
-    }
-    {
-      apiVersion = "rbac.authorization.k8s.io/v1";
-      kind = "Role";
-      metadata = { name = "cv-deployer"; inherit namespace; };
-      rules = [
-        { apiGroups = [ "apps" ]; resources = [ "deployments" "replicasets" ]; verbs = [ "get" "list" "watch" ]; }
-        { apiGroups = [ "apps" ]; resources = [ "deployments" ]; resourceNames = [ "cv" "cv-tui" ]; verbs = [ "patch" ]; }
-      ];
-    }
-    {
-      apiVersion = "rbac.authorization.k8s.io/v1";
-      kind = "RoleBinding";
-      metadata = { name = "cv-deployer"; inherit namespace; };
-      roleRef = { apiGroup = "rbac.authorization.k8s.io"; kind = "Role"; name = "cv-deployer"; };
-      subjects = [{ kind = "ServiceAccount"; name = "cv-deployer"; inherit namespace; }];
-    }
-  ];
 in
 nixlab.webApp {
   name = "cv";
@@ -85,5 +49,5 @@ nixlab.webApp {
       add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';" always;
     '';
   };
-  extraResources = [ namespaceResource ] ++ deployerResources;
+  extraResources = [ namespaceResource ];
 }
