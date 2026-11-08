@@ -4,7 +4,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
   name: signal-proxy
-  namespace: proxies
+  namespace: signal-proxy
 spec:
   ingressClassName: nginx
   rules:

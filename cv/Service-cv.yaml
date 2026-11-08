@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app.kubernetes.io/name: cv
   name: cv
   namespace: cv
 spec:
   ports:
-    - port: 80
-      targetPort: 80
+    - name: http
+      port: 80
+      targetPort: http
   selector:
-    app: cv
-  type: ClusterIP
+    app.kubernetes.io/name: cv

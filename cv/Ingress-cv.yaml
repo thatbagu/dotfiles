@@ -12,6 +12,8 @@ metadata:
       add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';" always;
     nginx.ingress.kubernetes.io/proxy-body-size: 10m
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/name: cv
   name: cv
   namespace: cv
 spec:
@@ -24,10 +26,10 @@ spec:
               service:
                 name: cv
                 port:
-                  number: 80
+                  name: http
             path: /
             pathType: Prefix
   tls:
     - hosts:
         - mlship.dev
-      secretName: cv-tls-cert
+      secretName: cv-tls

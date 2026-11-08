@@ -38,7 +38,7 @@ spec:
             - --provider=cloudflare
             - --exclude-domains=signal.egor.house
             - --exclude-domains=nextcloud.egor.house
-            - --exclude-domains=telegram.egor.house
+            - --annotation-filter=nixlab/public in (true)
           env:
             - name: CF_API_TOKEN
               valueFrom:

@@ -15,7 +15,7 @@ spec:
       port: 443
       protocol: TCP
       targetPort: 443
-    - name: ssh-tui
+    - name: tcp-22
       port: 22
       protocol: TCP
       targetPort: 22

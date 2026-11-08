@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: signal-proxy
-  namespace: proxies
+  namespace: signal-proxy
 spec:
   selector:
     matchLabels:

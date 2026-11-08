@@ -55,4 +55,4 @@ data:
 kind: ConfigMap
 metadata:
   name: signal-proxy-config
-  namespace: proxies
+  namespace: signal-proxy

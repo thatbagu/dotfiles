@@ -2,7 +2,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: signal-proxy
-  namespace: proxies
+  namespace: signal-proxy
 spec:
   maxReplicas: 5
   metrics:

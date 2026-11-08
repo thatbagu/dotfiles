@@ -67,16 +67,13 @@ spec:
                     echo "Updated $DOMAIN to $IP"
                   }
 
-                  ZONE_ID_EGOR=$(get_zone_id "egor.house") || exit 1
-                  update_record "$ZONE_ID_EGOR" "vpn.egor.house" false
-                  update_record "$ZONE_ID_EGOR" "signal.egor.house" false
-                  update_record "$ZONE_ID_EGOR" "telegram.egor.house" false
-                  # VPN-only: resolves everywhere to the Caddy proxy on the VPN, which
-                  # is unreachable without the VPN (also defeats browser DoH bypass).
-                  update_record "$ZONE_ID_EGOR" "nextcloud.egor.house" false 10.0.100.1
-
-                  ZONE_ID_MLSHIP=$(get_zone_id "mlship.dev") || exit 1
-                  update_record "$ZONE_ID_MLSHIP" "mlship.dev" true
+                  ZONE_ID_0=$(get_zone_id "egor.house") || exit 1
+                  ZONE_ID_1=$(get_zone_id "mlship.dev") || exit 1
+                  update_record "$ZONE_ID_0" "vpn.egor.house" false
+                  update_record "$ZONE_ID_0" "signal.egor.house" false
+                  update_record "$ZONE_ID_0" "telegram.egor.house" false
+                  update_record "$ZONE_ID_0" "nextcloud.egor.house" false 10.0.100.1
+                  update_record "$ZONE_ID_1" "mlship.dev" true
               command:
                 - /bin/sh
                 - -c

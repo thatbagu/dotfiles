@@ -11,12 +11,12 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 446e3f08cd822be039dde24e8137a3fc888f6503d479275b0fc86756ffe6903a
+        checksum/config: 70930c2b5205e964d157aa3ff9f20facc4a89c816d2eacbe7c6d8ea39864d398
       labels:
         app: haproxy
     spec:
       containers:
-        - image: haproxy:3.0-alpine
+        - image: docker.io/library/haproxy:3.0-alpine@sha256:1c15903c50d5510dcc01de755049e7015a6dd3f35bb2dc4582e888116cb71d8f
           name: haproxy
           ports:
             - containerPort: 80
@@ -26,7 +26,7 @@ spec:
               name: https
               protocol: TCP
             - containerPort: 22
-              name: ssh-tui
+              name: tcp-22
               protocol: TCP
           resources:
             limits:

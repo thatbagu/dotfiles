@@ -38,6 +38,7 @@ spec:
             - name: LOG_CONFS
               value: "true"
           image: lscr.io/linuxserver/wireguard@sha256:b677c3f46d524921c8a7c91873479eb7bab190d098fddbbd887ce333ec078c90
+          imagePullPolicy: IfNotPresent
           name: wireguard
           ports:
             - containerPort: 51820
@@ -75,7 +76,7 @@ spec:
                 secretKeyRef:
                   key: nextcloud-sso-secret
                   name: wireguard-secrets
-          image: caddy:2-alpine
+          image: docker.io/library/caddy:2.11.8-alpine@sha256:f6228111e5fafa1a5238258d0858e103f10599b8d1659a146e7726681a002bb9
           name: caddy
           ports:
             - containerPort: 443
@@ -98,11 +99,51 @@ spec:
               name: caddy-data
       initContainers:
         - args:
-            - "# Copy template to the config directory  \ncp /config-template/wg0.conf.template /config/wg_confs/wg0.conf\n\n# Replace server private key\nsed -i \"s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g\" /config/wg_confs/wg0.conf\n\n# Replace user public keys from SOPS secrets\nsed -i \"s|__ANYA-LAPTOP_PUBLIC_KEY__|$(cat /secrets/anya_laptop_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__ANYA-PHONE_PUBLIC_KEY__|$(cat /secrets/anya_phone_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__EGOR-MAIN_PUBLIC_KEY__|$(cat /secrets/egor_main_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\nsed -i \"s|__FRIEND-TEST_PUBLIC_KEY__|$(cat /secrets/dsh_wg_public_key)|g\" /config/wg_confs/wg0.conf\n\n\n# For client configs, replace server public key and endpoint\nSERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)\nWG_ENDPOINT=$(cat /secrets/wg-server-endpoint)\n\n# Replace placeholders in all client config files\nfor file in /config-template/*; do\n  if [[ $file != *.template ]]; then\n    filename=$(basename \"$file\")\n    cp \"$file\" \"/config/$filename\"\n    sed -i \"s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g\" \"/config/$filename\"\n    sed -i \"s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g\" \"/config/$filename\"\n  fi\ndone\n\n# Set proper permissions\nchmod 600 /config/wg_confs/wg0.conf\n\necho \"WireGuard config ready with 4 users\"\n"
+            - |
+              # Fail the pod on any error: a half-written config looks like a
+              # working VPN that never comes up.
+              set -e
+
+              # Copy template to the config directory (a fresh volume doesn't
+              # have wg_confs yet).
+              mkdir -p /config/wg_confs
+              cp /config-template/wg0.conf.template /config/wg_confs/wg0.conf
+
+              # Replace server private key
+              sed -i "s|__SERVER_PRIVATE_KEY__|$(cat /secrets/server-private-key)|g" /config/wg_confs/wg0.conf
+
+              # Replace user public keys from SOPS secrets
+              sed -i "s|__ANYA-LAPTOP_PUBLIC_KEY__|$(cat /secrets/anya_laptop_wg_public_key)|g" /config/wg_confs/wg0.conf
+
+              sed -i "s|__ANYA-PHONE_PUBLIC_KEY__|$(cat /secrets/anya_phone_wg_public_key)|g" /config/wg_confs/wg0.conf
+
+              sed -i "s|__EGOR-MAIN_PUBLIC_KEY__|$(cat /secrets/egor_main_wg_public_key)|g" /config/wg_confs/wg0.conf
+
+              sed -i "s|__FRIEND-TEST_PUBLIC_KEY__|$(cat /secrets/dsh_wg_public_key)|g" /config/wg_confs/wg0.conf
+
+
+              # For client configs, replace server public key and endpoint
+              SERVER_PUBLIC_KEY=$(cat /secrets/server-public-key)
+              WG_ENDPOINT=$(cat /secrets/wg-server-endpoint)
+
+              # Replace placeholders in all client config files
+              for file in /config-template/*; do
+                if [[ $file != *.template ]]; then
+                  filename=$(basename "$file")
+                  cp "$file" "/config/$filename"
+                  sed -i "s|__SERVER_PUBLIC_KEY__|$SERVER_PUBLIC_KEY|g" "/config/$filename"
+                  sed -i "s|__WG_SERVER_ENDPOINT__|$WG_ENDPOINT|g" "/config/$filename"
+                fi
+              done
+
+              # Set proper permissions
+              chmod 600 /config/wg_confs/wg0.conf
+
+              echo "WireGuard config ready with 4 users"
           command:
             - /bin/sh
             - -c
-          image: alpine:3.18
+          image: docker.io/library/alpine:3.22@sha256:2e0b81d60597f449baa56dc25d355367869d2dca4cd57e866f1e2b52af3eb55f
           name: setup-config
           volumeMounts:
             - mountPath: /config-template
@@ -123,7 +164,7 @@ spec:
             secretName: wireguard-secrets
         - hostPath:
             path: /lib/modules
-            type: Directory
+            type: DirectoryOrCreate
           name: lib-modules
         - configMap:
             items:

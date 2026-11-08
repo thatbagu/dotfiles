@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telegram-proxy
-  namespace: proxies
+  namespace: telegram-proxy
 spec:
   replicas: 1
   selector:
@@ -26,7 +26,7 @@ spec:
                 secretKeyRef:
                   key: secret
                   name: telegram-proxy-secrets
-          image: ghcr.io/9seconds/mtg:2
+          image: ghcr.io/9seconds/mtg:2@sha256:9553495b5216cbe6b238e88ce8a3d43ef582e4dc45fcdd7a14d54497500f5d4f
           name: telegram-proxy
           ports:
             - containerPort: 443
