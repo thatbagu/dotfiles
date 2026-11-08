@@ -27,6 +27,13 @@ inputs:
     ];
   };
 
+  # Let the N100s ramp up only under real load: with the default
+  # balance_performance, Kubernetes' constant small wakeups keep them near
+  # turbo (~70 °C at idle).
+  systemd.tmpfiles.rules = [
+    "w /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference - - - - balance_power"
+  ];
+
   # The locales the nodes were installed with: changing them restarts nearly
   # every service. Drop this line at a planned reboot.
   i18n.supportedLocales = lib.mkForce [ "en_US.UTF-8/UTF-8" "ja_JP.UTF-8/UTF-8" ];
