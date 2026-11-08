@@ -252,7 +252,17 @@
         appsDir = ./homelab/apps;
         hardwareConfig = hostname: ./homelab/hosts + "/${hostname}/hardware-configuration.nix";
         extraNixosModules = [ (import ./homelab/hosts inputs) ];
-        extraSecrets = import ./homelab/apps/_secrets.nix;
+        # Kubernetes Secrets for the homelab's own apps, from SOPS (see
+        # nixlab's docs/secrets.md).
+        extraSecrets = [
+          {
+            # SSH host key of the cv TUI.
+            namespace = "cv";
+            secretName = "cv-tui-ssh-host-key";
+            secretKey = "cv_ssh_host_key";
+            sopsSecretName = "cv_tui_ssh_host_key";
+          }
+        ];
       };
 
     in

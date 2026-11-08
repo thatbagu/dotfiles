@@ -1,5 +1,5 @@
 # The CV site's terminal UI over SSH: the edge proxy forwards port 22 to it
-# (vars.nix edge.tcp). Its host key comes from SOPS (_secrets.nix).
+# (vars.nix edge.tcp). Its host key comes from SOPS (extraSecrets in flake.nix).
 { nixlab, ... }:
 
 let
