@@ -1,0 +1,65 @@
+apiVersion: actions.github.com/v1alpha1
+kind: AutoscalingRunnerSet
+metadata:
+  annotations:
+    actions.github.com/cleanup-manager-role-binding: cv-runner-gha-rs-manager
+    actions.github.com/cleanup-manager-role-name: cv-runner-gha-rs-manager
+    actions.github.com/values-hash: ce0b9a1b06798975c090db9ff59087bddbf6ea4c0cb3b609b81cf860939e945
+  labels:
+    actions.github.com/scale-set-name: cv-runner
+    actions.github.com/scale-set-namespace: arc-runners
+    app.kubernetes.io/component: autoscaling-runner-set
+    app.kubernetes.io/instance: cv-runner
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cv-runner
+    app.kubernetes.io/part-of: gha-rs
+    app.kubernetes.io/version: 0.15.1
+    helm.sh/chart: gha-rs-0.15.1
+  name: cv-runner
+  namespace: arc-runners
+spec:
+  githubConfigSecret: arc-github
+  githubConfigUrl: https://github.com/thatbagu/cv
+  listenerConfig:
+    scaler:
+      burst: 100
+      qps: 50
+  maxRunners: 2
+  minRunners: 0
+  runnerScaleSetName: cv-runner
+  template:
+    spec:
+      containers:
+        - command:
+            - /home/runner/run.sh
+          image: ghcr.io/actions/actions-runner:2.338.2@sha256:759a1d94a15b05941aba5196974ff43fe15b4cbba29b694b35cbc32a1166b232
+          name: runner
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+      initContainers:
+        - args:
+            - --addr
+            - tcp://127.0.0.1:1234
+            - --oci-worker-no-process-sandbox
+          image: docker.io/moby/buildkit:v0.34.2-rootless@sha256:c8252268760e1baba80780d63d738ef9f260fb7c7c0973c78494cb9ddd99eda1
+          name: buildkitd
+          restartPolicy: Always
+          securityContext:
+            appArmorProfile:
+              type: Unconfined
+            runAsGroup: 1000
+            runAsUser: 1000
+            seccompProfile:
+              type: Unconfined
+          volumeMounts:
+            - mountPath: /home/user/.local/share/buildkit
+              name: buildkit
+      restartPolicy: Never
+      serviceAccountName: cv-runner
+      volumes:
+        - emptyDir: {}
+          name: buildkit

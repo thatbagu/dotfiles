@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    actions.github.com/controller-service-account-name: arc-gha-rs-controller
+    actions.github.com/controller-service-account-namespace: arc-systems
+    app.kubernetes.io/instance: arc
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: gha-rs-controller
+    app.kubernetes.io/namespace: arc-systems
+    app.kubernetes.io/part-of: gha-rs-controller
+    app.kubernetes.io/version: 0.15.1
+    helm.sh/chart: gha-rs-controller-0.15.1
+  name: arc-gha-rs-controller
+  namespace: arc-systems
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: arc
+      app.kubernetes.io/name: gha-rs-controller
+      app.kubernetes.io/namespace: arc-systems
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        app.kubernetes.io/component: controller-manager
+        app.kubernetes.io/instance: arc
+        app.kubernetes.io/name: gha-rs-controller
+        app.kubernetes.io/namespace: arc-systems
+        app.kubernetes.io/part-of: gha-rs-controller
+        app.kubernetes.io/version: 0.15.1
+    spec:
+      containers:
+        - args:
+            - --auto-scaling-runner-set-only
+            - --log-level=debug
+            - --log-format=text
+            - --autoscaling-runner-set-max-concurrent-reconciles=2
+            - --autoscaling-listener-max-concurrent-reconciles=2
+            - --ephemeral-runner-set-max-concurrent-reconciles=2
+            - --ephemeral-runner-max-concurrent-reconciles=4
+            - --listener-metrics-addr=0
+            - --listener-metrics-endpoint=
+            - --metrics-addr=0
+          command:
+            - /manager
+          env:
+            - name: CONTROLLER_MANAGER_CONTAINER_IMAGE
+              value: ghcr.io/actions/gha-runner-scale-set-controller:0.15.1@sha256:4b51a20db717b194e2f3fa96cfe2ddcb21602811f79053c75fd1a383517b9f90
+            - name: CONTROLLER_MANAGER_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/actions/gha-runner-scale-set-controller:0.15.1@sha256:4b51a20db717b194e2f3fa96cfe2ddcb21602811f79053c75fd1a383517b9f90
+          imagePullPolicy: IfNotPresent
+          name: manager
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+      serviceAccountName: arc-gha-rs-controller
+      terminationGracePeriodSeconds: 35
+      volumes:
+        - emptyDir: {}
+          name: tmp

@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  finalizers:
+    - actions.github.com/cleanup-protection
+  labels:
+    actions.github.com/scale-set-name: cv-runner
+    actions.github.com/scale-set-namespace: arc-runners
+    app.kubernetes.io/component: manager-role-binding
+    app.kubernetes.io/instance: cv-runner
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cv-runner
+    app.kubernetes.io/part-of: gha-rs
+    app.kubernetes.io/version: 0.15.1
+    helm.sh/chart: gha-rs-0.15.1
+  name: cv-runner-gha-rs-manager
+  namespace: arc-runners
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cv-runner-gha-rs-manager
+subjects:
+  - kind: ServiceAccount
+    name: arc-gha-rs-controller
+    namespace: arc-systems
