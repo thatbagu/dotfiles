@@ -80,9 +80,10 @@
             enable = true;
             extraOptions = {
               root_dir.__raw = ''
-                function(fname)
-                  return vim.fs.root(fname, {'pyrightconfig.json', 'pyproject.toml', 'setup.py', 'setup.cfg', '.git'})
-                    or vim.fn.fnamemodify(fname, ':h')
+                function(bufnr, cb)
+                  local fname = vim.api.nvim_buf_get_name(bufnr)
+                  cb(vim.fs.root(fname, {'pyrightconfig.json', 'pyproject.toml', 'setup.py', 'setup.cfg', '.git'})
+                    or vim.fn.fnamemodify(fname, ':h'))
                 end
               '';
             };
@@ -91,9 +92,10 @@
             enable = true;
             extraOptions = {
               root_dir.__raw = ''
-                function(fname)
-                  return vim.fs.root(fname, {'pyproject.toml', 'setup.py', '.git'})
-                    or vim.fn.fnamemodify(fname, ':h')
+                function(bufnr, cb)
+                  local fname = vim.api.nvim_buf_get_name(bufnr)
+                  cb(vim.fs.root(fname, {'pyproject.toml', 'setup.py', '.git'})
+                    or vim.fn.fnamemodify(fname, ':h'))
                 end
               '';
             };
