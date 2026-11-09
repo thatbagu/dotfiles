@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: TLSRoute
+metadata:
+  name: signal-proxy
+  namespace: signal-proxy
+spec:
+  hostnames:
+    - signal.egor.house
+  parentRefs:
+    - name: nixlab
+      namespace: gateway-system
+      sectionName: tls-signal-egor-house
+  rules:
+    - backendRefs:
+        - name: signal-proxy
+          port: 443

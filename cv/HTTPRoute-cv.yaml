@@ -1,0 +1,45 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    app.kubernetes.io/name: cv
+  name: cv
+  namespace: cv
+spec:
+  hostnames:
+    - mlship.dev
+  parentRefs:
+    - name: nixlab
+      namespace: gateway-system
+      sectionName: https-mlship-dev
+  rules:
+    - backendRefs:
+        - name: cv
+          port: 80
+      filters:
+        - responseHeaderModifier:
+            set:
+              - name: Cache-Control
+                value: no-store
+              - name: Vary
+                value: HX-Request
+              - name: Content-Security-Policy
+                value: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';
+          type: ResponseHeaderModifier
+      matches:
+        - headers:
+            - name: HX-Request
+              value: "true"
+    - backendRefs:
+        - name: cv
+          port: 80
+      filters:
+        - responseHeaderModifier:
+            set:
+              - name: Cache-Control
+                value: public, max-age=300, s-maxage=3600
+              - name: Vary
+                value: HX-Request
+              - name: Content-Security-Policy
+                value: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';
+          type: ResponseHeaderModifier

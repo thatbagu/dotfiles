@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  name: https-redirect
+  namespace: gateway-system
+spec:
+  parentRefs:
+    - name: nixlab
+      namespace: gateway-system
+      sectionName: http
+  rules:
+    - filters:
+        - requestRedirect:
+            port: 443
+            scheme: https
+            statusCode: 301
+          type: RequestRedirect

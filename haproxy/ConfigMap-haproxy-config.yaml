@@ -11,25 +11,30 @@ data:
       timeout connect 5s
       timeout client 120s
       timeout server 120s
-      # Start even when a backend's name doesn't resolve yet (cluster DNS).
-      default-server init-addr last,libc,none
+      # Start even when a backend's name doesn't resolve yet, and keep
+      # resolving it through cluster DNS (after a reboot HAProxy can start
+      # before CoreDNS answers).
+      default-server init-addr last,libc,none resolvers cluster
+    resolvers cluster
+      parse-resolv-conf
+      hold valid 10s
     frontend f_http
       bind :80
-      default_backend b_nginx_http
+      default_backend b_gateway_http
     frontend f_https
       bind :443
       tcp-request inspect-delay 5s
       tcp-request content reject if { req.ssl_sni -i nextcloud.egor.house }
       tcp-request content accept if { req.ssl_hello_type 1 }
-      use_backend b_nginx_https if { req.ssl_sni -m str egor.house }
-      use_backend b_nginx_https if { req.ssl_sni -m end .egor.house }
-      use_backend b_nginx_https if { req.ssl_sni -m str mlship.dev }
-      use_backend b_nginx_https if { req.ssl_sni -m end .mlship.dev }
+      use_backend b_gateway_https if { req.ssl_sni -m str egor.house }
+      use_backend b_gateway_https if { req.ssl_sni -m end .egor.house }
+      use_backend b_gateway_https if { req.ssl_sni -m str mlship.dev }
+      use_backend b_gateway_https if { req.ssl_sni -m end .mlship.dev }
       default_backend b_telegram
-    backend b_nginx_http
-      server nginx ingress-nginx-controller.nginx-system.svc.cluster.local:80 send-proxy-v2
-    backend b_nginx_https
-      server nginx ingress-nginx-controller.nginx-system.svc.cluster.local:443 send-proxy-v2
+    backend b_gateway_http
+      server gateway traefik.gateway-system.svc.cluster.local:80 send-proxy-v2
+    backend b_gateway_https
+      server gateway traefik.gateway-system.svc.cluster.local:443 send-proxy-v2
     backend b_telegram
       server mtg telegram-proxy.telegram-proxy.svc.cluster.local:443
     frontend f_tcp_22
@@ -40,4 +45,4 @@ data:
 kind: ConfigMap
 metadata:
   name: haproxy-config
-  namespace: nginx-system
+  namespace: gateway-system

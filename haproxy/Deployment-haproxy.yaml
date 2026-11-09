@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: haproxy
-  namespace: nginx-system
+  namespace: gateway-system
 spec:
   replicas: 1
   selector:
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 70930c2b5205e964d157aa3ff9f20facc4a89c816d2eacbe7c6d8ea39864d398
+        checksum/config: e30177bd27b004516c6a203c4d75b6b2ef6f44a0e20a115f79c97f6cb7e8603f
       labels:
         app: haproxy
     spec:

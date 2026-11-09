@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: nextcloud-valkey
+  name: nextcloud-valkey
+  namespace: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nextcloud-valkey
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nextcloud-valkey
+    spec:
+      containers:
+        - args:
+            - valkey-server
+            - --requirepass
+            - $(VALKEY_PASSWORD)
+            - --save
+            - ""
+            - --appendonly
+            - "no"
+          env:
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: nextcloud-redis
+          image: docker.io/valkey/valkey:8.1.11-alpine@sha256:2602ace2be6569bc2bbb06f873776516ab9089821525be34f4305c67eb9db02a
+          name: valkey
+          ports:
+            - containerPort: 6379
+              name: valkey
+          readinessProbe:
+            periodSeconds: 10
+            tcpSocket:
+              port: 6379
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              cpu: 20m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      securityContext:
+        runAsGroup: 999
+        runAsNonRoot: true
+        runAsUser: 999
+        seccompProfile:
+          type: RuntimeDefault
