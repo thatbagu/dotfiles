@@ -32,7 +32,6 @@ spec:
             - --source=service
             - --source=ingress
             - --source=gateway-httproute
-            - --source=gateway-tlsroute
             - --policy=upsert-only
             - --registry=noop
             - --provider=pihole

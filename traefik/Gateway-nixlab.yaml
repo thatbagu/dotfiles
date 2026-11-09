@@ -28,7 +28,8 @@ spec:
         mode: Terminate
     - allowedRoutes:
         kinds:
-          - kind: TLSRoute
+          - group: gateway.networking.k8s.io
+            kind: TLSRoute
         namespaces:
           from: All
       hostname: signal.egor.house
