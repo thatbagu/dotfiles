@@ -718,8 +718,8 @@
       },
       "original": {
         "owner": "thatbagu",
+        "ref": "v1.7.1",
         "repo": "nixlab",
-        "rev": "906275b13eefebcfeaeef2256f4d99c778f35203",
         "type": "github"
       }
     },
