@@ -27,11 +27,23 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
 
+      # Helm charts download from GitHub release pages, which time out now
+      # and then (504): retry only for that.
       - name: Build nixidy environment
         id: build
-        uses: arnarg/nixidy/actions/build@v0.23.1
-        with:
-          environment: .#homelab
+        run: |
+          for attempt in 1 2 3; do
+            set +e
+            nix build --no-link --print-out-paths --print-build-logs .#nixidyEnvs.x86_64-linux.homelab.environmentPackage > out.txt 2> build.log
+            status=$?
+            set -e
+            cat build.log
+            if [ "$status" = 0 ]; then echo "out-path=$(tail -1 out.txt)" >> "$GITHUB_OUTPUT"; exit 0; fi
+            grep -qE 'failed to fetch https://github\.com/[^ ]+ : 5[0-9][0-9]' build.log || exit "$status"
+            echo "::warning::A GitHub release download failed; retrying (attempt $attempt of 3)"
+            sleep 30
+          done
+          exit 1
 
       - uses: actions/checkout@v4
         with:

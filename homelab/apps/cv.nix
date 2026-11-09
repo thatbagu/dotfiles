@@ -33,21 +33,27 @@ nixlab.webApp {
     requests = { cpu = "50m"; memory = "64Mi"; };
     limits = { cpu = "500m"; memory = "512Mi"; };
   };
-  ingressAnnotations = {
-    "nginx.ingress.kubernetes.io/ssl-redirect" = "true";
-    "nginx.ingress.kubernetes.io/proxy-body-size" = "10m";
-    # Let Cloudflare cache pages for 1 hour (s-maxage) and browsers for 5 min.
-    # Cloudflare respects s-maxage when the domain is set to Proxied (orange cloud).
-    # Override the upstream CSP to add 'unsafe-eval' — needed for Vue/React runtime
-    # template compilation on page refresh.
-    "nginx.ingress.kubernetes.io/configuration-snippet" = ''
-      set $cc "public, max-age=300, s-maxage=3600";
-      if ($http_hx_request = "true") { set $cc "no-store"; }
-      add_header Cache-Control $cc always;
-      add_header Vary "HX-Request" always;
-      proxy_hide_header Content-Security-Policy;
-      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';" always;
-    '';
-  };
+  # Cloudflare caches pages for an hour (s-maxage) and browsers for 5
+  # minutes, except htmx requests (HX-Request: true), which are never cached.
+  # The CSP replaces the site's own, adding 'unsafe-eval' (Vue/React runtime
+  # template compilation on page refresh).
+  routeRules =
+    let
+      headers = cacheControl: [{
+        type = "ResponseHeaderModifier";
+        responseHeaderModifier.set = [
+          { name = "Cache-Control"; value = cacheControl; }
+          { name = "Vary"; value = "HX-Request"; }
+          { name = "Content-Security-Policy"; value = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://mastodon.social; frame-ancestors 'none';"; }
+        ];
+      }];
+    in
+    [
+      {
+        matches = [{ headers = [{ name = "HX-Request"; value = "true"; }]; }];
+        filters = headers "no-store";
+      }
+      { filters = headers "public, max-age=300, s-maxage=3600"; }
+    ];
   extraResources = [ namespaceResource ];
 }
