@@ -57,10 +57,6 @@
     enable = true;
     target = "s3://homelab-backup@auto/longhorn"; # R2's region is "auto"
     s3Endpoint = "https://ac82cafee9c2ed14c3bd48416f96d262.r2.cloudflarestorage.com";
-    # Before the upgrade window (reboots from 03:00), so a reboot never
-    # interrupts an upload.
-    schedule = "0 2 * * *";
-    dumpSchedule = "30 1 * * *";
   };
   monitoring.enable = false;
 
