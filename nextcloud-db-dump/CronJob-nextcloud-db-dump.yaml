@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nextcloud-db-dump
+  namespace: nextcloud
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 3600
+      backoffLimit: 2
+      template:
+        spec:
+          containers:
+            - args:
+                - |
+                  f="/dumps/nextcloud-$(date -u +%Y%m%dT%H%M%SZ).dump"
+                  pg_dump --format=custom --file="$f.partial"
+                  # A dump that can't be listed is broken; don't keep it.
+                  pg_restore --list "$f.partial" > /dev/null
+                  mv "$f.partial" "$f"
+                  echo "wrote $f ($(du -h "$f" | cut -f1))"
+                  ls -1t /dumps/nextcloud-*.dump | tail -n +8 | xargs -r rm -f
+                  rm -f /dumps/*.partial
+              command:
+                - /bin/sh
+                - -ec
+              env:
+                - name: PGHOST
+                  value: nextcloud-db
+                - name: PGUSER
+                  value: nextcloud
+                - name: PGDATABASE
+                  value: nextcloud
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: password
+                      name: nextcloud-db
+              image: docker.io/library/postgres:17.11-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+              name: dump
+              resources:
+                limits:
+                  memory: 512Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - mountPath: /dumps
+                  name: dumps
+          restartPolicy: OnFailure
+          securityContext:
+            fsGroup: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            runAsUser: 70
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+            - name: dumps
+              persistentVolumeClaim:
+                claimName: nextcloud-db-dumps
+  schedule: 30 2 * * *
+  successfulJobsHistoryLimit: 1
