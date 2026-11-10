@@ -47,7 +47,14 @@
   # Off for now: turn on once the migration has settled (and with backups).
   autoUpgrade.enable = false;
 
-  backups.enable = false;
+  # Nightly Longhorn backups of every volume (and a Postgres dump of
+  # Nextcloud's database) to Cloudflare R2, keeping 14. Keys: SOPS
+  # backup_s3_access_key_id / backup_s3_secret_access_key.
+  backups = {
+    enable = true;
+    target = "s3://homelab-backup@auto/longhorn"; # R2's region is "auto"
+    s3Endpoint = "https://ac82cafee9c2ed14c3bd48416f96d262.r2.cloudflarestorage.com";
+  };
   monitoring.enable = false;
 
   metallbPool = "192.168.1.192/26";
