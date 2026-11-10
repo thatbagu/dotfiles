@@ -27,6 +27,13 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
 
+      # Helm charts from the public binary cache, not from GitHub release
+      # pages (which time out for hours at a time).
+      - uses: cachix/cachix-action@v16
+        with:
+          name: thatbagu0nixlab
+          skipPush: true
+
       # Helm charts download from GitHub release pages, which time out now
       # and then (504): retry only for that.
       - name: Build nixidy environment
@@ -44,6 +51,19 @@ jobs:
             sleep 30
           done
           exit 1
+
+      # Cache new chart downloads (only those), e.g. after a chart update.
+      - name: Push chart downloads to the binary cache
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        run: |
+          [ -n "$CACHIX_AUTH_TOKEN" ] || { echo "No CACHIX_AUTH_TOKEN; not pushing."; exit 0; }
+          shopt -s nullglob
+          charts=()
+          for p in /nix/store/*-helm-chart-*; do
+            [[ "$(basename "$p")" =~ ^[a-z0-9]{32}-helm-chart- && "$p" != *.drv ]] && charts+=("$p")
+          done
+          [ ${#charts[@]} = 0 ] || cachix push thatbagu0nixlab "${charts[@]}"
 
       - uses: actions/checkout@v4
         with:
