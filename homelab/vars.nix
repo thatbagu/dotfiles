@@ -44,8 +44,11 @@
   gitRepository = "https://github.com/thatbagu/dotfiles.git";
   renderedBranch = "k8s-rendered";
 
-  # Off for now: turn on once the migration has settled (and with backups).
-  autoUpgrade.enable = false;
+  # Every night the nodes build their configuration from main and switch,
+  # one at a time: meowth 03:30, then the workers 15 minutes apart. A node
+  # reboots only when its kernel changed, and only between 03:00 and 06:00.
+  # main itself is updated weekly (.github/workflows/update.yml).
+  autoUpgrade.enable = true;
 
   # Nightly Longhorn backups of every volume (and a Postgres dump of
   # Nextcloud's database) to Cloudflare R2, keeping 14. Keys: SOPS
@@ -54,6 +57,10 @@
     enable = true;
     target = "s3://homelab-backup@auto/longhorn"; # R2's region is "auto"
     s3Endpoint = "https://ac82cafee9c2ed14c3bd48416f96d262.r2.cloudflarestorage.com";
+    # Before the upgrade window (reboots from 03:00), so a reboot never
+    # interrupts an upload.
+    schedule = "0 2 * * *";
+    dumpSchedule = "30 1 * * *";
   };
   monitoring.enable = false;
 

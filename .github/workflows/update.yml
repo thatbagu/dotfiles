@@ -1,0 +1,101 @@
+# Weekly updates for the homelab (like nixlab's template, adapted to this
+# repo): nixlab moves to its latest release, the other flake inputs (nixpkgs,
+# ...) to their latest. If the manifests render and every homelab node builds,
+# the update goes straight to main (the nodes pick it up that night, see
+# autoUpgrade in homelab/vars.nix); otherwise, or when nixlab changes its major
+# version, it arrives as a pull request.
+# Note: the desktops share these inputs but aren't built here.
+name: Weekly updates
+
+on:
+  schedule:
+    - cron: "0 1 * * 1" # Mondays 01:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: weekly-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - uses: cachix/cachix-action@v16
+        with:
+          name: thatbagu0nixlab
+          skipPush: true
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898273+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          old=$(grep -oE 'github:thatbagu/nixlab/v[0-9.]+' flake.nix | sed 's|.*/||')
+          new=$(gh release view --repo thatbagu/nixlab --json tagName --jq .tagName)
+          [ "$old" = "$new" ] || sed -i "s|github:thatbagu/nixlab/$old|github:thatbagu/nixlab/$new|" flake.nix
+          nix flake update
+          {
+            echo "summary<<EOF"
+            [ "$old" = "$new" ] && echo "nixlab: $old (latest)" || echo "nixlab: $old -> $new"
+            git diff --stat flake.lock | tail -1
+            echo "EOF"
+            # A new major version (v1 -> v2) may need changes: never auto-merge it.
+            [ "${old%%.*}" = "${new%%.*}" ] && echo "major=" || echo "major=nixlab $old -> $new"
+            git diff --quiet && echo "changed=false" || echo "changed=true"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check
+        id: checks
+        if: steps.update.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          nix build --no-link --print-build-logs .#nixidyEnvs.x86_64-linux.homelab.environmentPackage
+          for n in meowth psyduck bulbasaur; do
+            nix build --no-link --print-build-logs ".#nixosConfigurations.$n.config.system.build.toplevel"
+          done
+
+      - name: Merge
+        if: steps.update.outputs.changed == 'true' && steps.checks.outcome == 'success' && steps.update.outputs.major == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.update.outputs.summary }}
+        run: |
+          git commit -am "chore: weekly update" -m "$SUMMARY" -m "Manifests render and every homelab node builds."
+          git push origin HEAD:main
+          # Pushes with the workflow token don't trigger other workflows.
+          gh workflow run k8s-render.yml --ref main
+
+      - name: Open a pull request instead
+        if: steps.update.outputs.changed == 'true' && (steps.checks.outcome != 'success' || steps.update.outputs.major != '')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.update.outputs.summary }}
+          MAJOR: ${{ steps.update.outputs.major }}
+          CHECKS: ${{ steps.checks.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          branch="update/$(date -u +%Y-%m-%d)"
+          git checkout -b "$branch"
+          git commit -am "chore: weekly update" -m "$SUMMARY"
+          git push --force origin "$branch"
+          {
+            echo "Weekly update from [this run]($RUN_URL). It wasn't merged automatically:"
+            echo
+            if [ "$CHECKS" != success ]; then echo "- **A build failed.** See the run's \"Check\" step."; fi
+            if [ -n "$MAJOR" ]; then echo "- **New major version:** $MAJOR. Read its release notes before merging."; fi
+            echo
+            echo '```'; echo "$SUMMARY"; echo '```'
+          } > body.md
+          gh pr create --base main --head "$branch" --title "Weekly update $(date -u +%Y-%m-%d)" --body-file body.md \
+            || gh pr edit "$branch" --body-file body.md
