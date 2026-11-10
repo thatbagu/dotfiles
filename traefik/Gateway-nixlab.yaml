@@ -24,7 +24,9 @@ spec:
       protocol: HTTPS
       tls:
         certificateRefs:
-          - name: https-mlship-dev
+          - group: ""
+            kind: Secret
+            name: https-mlship-dev
         mode: Terminate
     - allowedRoutes:
         kinds:
