@@ -692,12 +692,6 @@
         "impermanence": [
           "impermanence"
         ],
-        "nix-kube-generators": [
-          "nix-kube-generators"
-        ],
-        "nixhelm": [
-          "nixhelm"
-        ],
         "nixidy": [
           "nixidy"
         ],
@@ -709,16 +703,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1794338888,
-        "narHash": "sha256-x9d0n5iL/YKvhEraxQCbZ3PehrlHrpnx3WACjH6K8vw=",
+        "lastModified": 1794653356,
+        "narHash": "sha256-uJREG3hnzuv2hUBrZ2rGpykR1z/sHQJCV26FVEsba4w=",
         "owner": "thatbagu",
         "repo": "nixlab",
-        "rev": "059768b15dd0adc87f2db591c8b69078f8f94b6c",
+        "rev": "1cce9fbb86cbd85214a8274216e4b91383c199ae",
         "type": "github"
       },
       "original": {
         "owner": "thatbagu",
-        "ref": "v1.8.0",
+        "ref": "v1.18.0",
         "repo": "nixlab",
         "type": "github"
       }

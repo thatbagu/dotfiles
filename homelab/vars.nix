@@ -8,9 +8,9 @@
   clusterSshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQRS6OzC9Ip5lUhIyFvG03KgyupxJE55gmY3Dis0u18 cluster";
 
   nodes = {
-    meowth = { hostname = "meowth"; master = true; disk = "/dev/sda"; espSize = "500M"; tags = [ "homelab" "master" "meowth" ]; };
-    psyduck = { hostname = "psyduck"; master = false; disk = "/dev/sda"; espSize = "500M"; tags = [ "homelab" "worker" "psyduck" ]; };
-    bulbasaur = { hostname = "bulbasaur"; master = false; disk = "/dev/sda"; espSize = "500M"; tags = [ "homelab" "worker" "bulbasaur" ]; };
+    meowth = { hostname = "meowth"; master = true; disk = "/dev/sda"; espSize = "500M"; encrypt = true; tags = [ "homelab" "master" "meowth" ]; };
+    psyduck = { hostname = "psyduck"; master = false; disk = "/dev/sda"; espSize = "500M"; encrypt = true; tags = [ "homelab" "worker" "psyduck" ]; };
+    bulbasaur = { hostname = "bulbasaur"; master = false; disk = "/dev/sda"; espSize = "500M"; encrypt = true; tags = [ "homelab" "worker" "bulbasaur" ]; };
   };
 
   domain = "egor.house";
@@ -57,8 +57,17 @@
     enable = true;
     target = "s3://homelab-backup@auto/longhorn"; # R2's region is "auto"
     s3Endpoint = "https://ac82cafee9c2ed14c3bd48416f96d262.r2.cloudflarestorage.com";
+    # Per-app backups (VolSync + restic) to the same bucket, restorable one
+    # app at a time with nixlab-restore. Key: SOPS backup_restic_password.
+    apps.enable = true;
   };
-  monitoring.enable = false;
+
+  # Prometheus + alerts, pushed to the phone over ntfy (SOPS
+  # monitoring_ntfy_url, grafana_admin_password).
+  monitoring = {
+    enable = true;
+    alerts.ntfy.enable = true;
+  };
 
   metallbPool = "192.168.1.192/26";
   piholeIp = "192.168.1.250";
