@@ -1,0 +1,591 @@
+apiVersion: v1
+data:
+  alerting_rules.yml: |
+    groups:
+    - name: nixlab.disks
+      rules:
+      - alert: NodeDiskFlushSlow
+        annotations:
+          description: Average flush latency has been over 500 ms for 15 minutes. Everything
+            that fsyncs on this node (k3s, databases) stalls; consider replacing the disk.
+          summary: Disk {{ $labels.device }} on {{ $labels.instance }} takes {{ $value
+            | humanizeDuration }} per cache flush
+        expr: |
+          rate(node_disk_flush_requests_time_seconds_total[5m])
+            / rate(node_disk_flush_requests_total[5m]) > 0.5
+        for: 15m
+        labels:
+          severity: warning
+      - alert: DiskSmartFailing
+        annotations:
+          description: 'Its SMART self-assessment failed. Make sure backups are current
+            and replace the disk soon: Longhorn keeps replicas on other nodes, but this
+            node''s local data is at risk.'
+          summary: Disk {{ $labels.device }} on {{ $labels.instance }} reports that it
+            is failing
+        expr: smartctl_device_smart_status == 0
+        for: 5m
+        labels:
+          severity: critical
+      - alert: DiskCriticalWarning
+        annotations:
+          description: 'Check it with: sudo smartctl -a /dev/{{ $labels.device }} on the
+            node.'
+          summary: Disk {{ $labels.device }} on {{ $labels.instance }} raised an NVMe
+            critical warning
+        expr: smartctl_device_critical_warning > 0
+        for: 5m
+        labels:
+          severity: critical
+      - alert: DiskSectorsGrowing
+        annotations:
+          description: Its count of bad sectors or media errors grew in the last day.
+            One-offs happen; if it keeps growing, replace the disk.
+          summary: Disk {{ $labels.device }} on {{ $labels.instance }} has new bad sectors
+            or media errors
+        expr: |
+          delta(smartctl_device_attribute{attribute_value_type="raw", attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable|Reported_Uncorrect"}[1d]) > 0
+            or delta(smartctl_device_media_errors[1d]) > 0
+        labels:
+          severity: warning
+      - alert: DiskWornOut
+        annotations:
+          description: SSDs wear out with writes. Plan its replacement.
+          summary: Disk {{ $labels.device }} on {{ $labels.instance }} has used {{ $value
+            }}% of its rated endurance
+        expr: smartctl_device_percentage_used >= 90
+        labels:
+          severity: warning
+      - alert: DiskHot
+        annotations:
+          description: 'Over 60°C for 30 minutes: check the machine''s airflow. Heat shortens
+            a disk''s life and can throttle it.'
+          summary: Disk {{ $labels.device }} on {{ $labels.instance }} is at {{ $value
+            }}°C
+        expr: smartctl_device_temperature{temperature_type="current"} > 60
+        for: 30m
+        labels:
+          severity: warning
+      - alert: ZfsPoolUnhealthy
+        annotations:
+          description: 'A disk is missing or failing. Check: sudo zpool status {{ $labels.zpool
+            }} on the node, then replace the disk (docs: NAS).'
+          summary: ZFS pool {{ $labels.zpool }} on {{ $labels.instance }} is {{ $labels.state
+            }}
+        expr: node_zfs_zpool_state{state!="online"} == 1
+        for: 5m
+        labels:
+          severity: critical
+      - alert: DiskHealthUnknown
+        annotations:
+          description: 'Prometheus can''t reach the node''s smartctl exporter. Check:
+            systemctl status prometheus-smartctl-exporter on the node.'
+          summary: Disk health of {{ $labels.instance }} is unknown
+        expr: up{job="smartctl"} == 0
+        for: 30m
+        labels:
+          severity: warning
+    - name: nixlab.backups
+      rules:
+      - alert: BackupNotRecent
+        annotations:
+          description: 'The last successful run of {{ $labels.namespace }}/{{ $labels.cronjob
+            }} is more than 26 hours old. Check: kubectl -n {{ $labels.namespace }} get
+            jobs'
+          summary: '{{ $labels.cronjob }} hasn''t succeeded for {{ $value | humanizeDuration
+            }}'
+        expr: |
+          time() - kube_cronjob_status_last_successful_time{cronjob=~"backup-daily|nextcloud-db-dump|backup-offsite-copy"}
+            > 26 * 3600
+        for: 30m
+        labels:
+          severity: critical
+      - alert: BackupNeverSucceeded
+        annotations:
+          summary: '{{ $labels.cronjob }} has existed for over a day without a successful
+            run'
+        expr: |
+          (time() - kube_cronjob_created{cronjob=~"backup-daily|nextcloud-db-dump|backup-offsite-copy"}) > 26 * 3600
+            unless on (namespace, cronjob) kube_cronjob_status_last_successful_time
+        for: 30m
+        labels:
+          severity: critical
+      - alert: LonghornBackupFailed
+        annotations:
+          summary: Longhorn backup {{ $labels.backup }} of volume {{ $labels.volume }}
+            is in state Error
+        expr: longhorn_backup_state == 4
+        labels:
+          severity: warning
+    - name: nixlab.storage
+      rules:
+      - alert: LonghornVolumeDegraded
+        annotations:
+          description: It has fewer healthy replicas than configured. Longhorn rebuilds
+            them if a node has room; check the Longhorn UI.
+          summary: Longhorn volume {{ $labels.volume }} ({{ $labels.pvc_namespace }}/{{
+            $labels.pvc }}) is degraded
+        expr: longhorn_volume_robustness == 2
+        for: 15m
+        labels:
+          severity: warning
+      - alert: LonghornVolumeFaulted
+        annotations:
+          summary: 'Longhorn volume {{ $labels.volume }} ({{ $labels.pvc_namespace }}/{{
+            $labels.pvc }}) is faulted: no healthy replica'
+        expr: longhorn_volume_robustness == 3
+        for: 2m
+        labels:
+          severity: critical
+      - alert: LonghornDiskAlmostFull
+        annotations:
+          summary: Longhorn disk on {{ $labels.node }} is {{ $value | humanizePercentage
+            }} full
+        expr: longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes > 0.85
+        for: 30m
+        labels:
+          severity: warning
+    - name: nixlab.certificates
+      rules:
+      - alert: CertificateExpiringSoon
+        annotations:
+          summary: Certificate {{ $labels.namespace }}/{{ $labels.name }} expires in {{
+            $value | humanizeDuration }}
+        expr: certmanager_certificate_expiration_timestamp_seconds - time() < 14 * 86400
+        for: 1h
+        labels:
+          severity: warning
+      - alert: CertificateNotReady
+        annotations:
+          summary: Certificate {{ $labels.namespace }}/{{ $labels.name }} isn't ready
+        expr: certmanager_certificate_ready_status{condition="False"} == 1
+        for: 1h
+        labels:
+          severity: warning
+    - name: nixlab.gitops
+      rules:
+      - alert: ArgoAppDegraded
+        annotations:
+          summary: Argo CD app {{ $labels.name }} is {{ $labels.health_status }}
+        expr: argocd_app_info{health_status=~"Degraded|Missing"} == 1
+        for: 15m
+        labels:
+          severity: warning
+      - alert: ArgoAppOutOfSync
+        annotations:
+          summary: Argo CD app {{ $labels.name }} has been OutOfSync for 30 minutes
+        expr: argocd_app_info{sync_status="OutOfSync", name!="longhorn"} == 1
+        for: 30m
+        labels:
+          severity: warning
+    - name: essential.pipeline
+      rules:
+      - alert: Watchdog
+        annotations:
+          summary: Alerting works (feeds the dead man's switch)
+        expr: vector(1)
+        labels:
+          severity: none
+      - alert: TargetDown
+        annotations:
+          summary: '{{ $labels.job }} on {{ $labels.instance }} can''t be scraped'
+        expr: up == 0
+        for: 10m
+        labels:
+          severity: warning
+    - name: essential.nodes
+      rules:
+      - alert: NodeFilesystemAlmostFull
+        annotations:
+          summary: '{{ $labels.mountpoint }} on {{ $labels.instance }} has {{ $value |
+            humanizePercentage }} left'
+        expr: |
+          node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|squashfs|overlay"} < 0.10
+        for: 30m
+        labels:
+          severity: warning
+      - alert: NodeMemoryAlmostFull
+        annotations:
+          summary: '{{ $labels.instance }} has {{ $value | humanizePercentage }} of its
+            memory left'
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.05
+        for: 15m
+        labels:
+          severity: warning
+    - name: essential.kubernetes
+      rules:
+      - alert: KubeNodeNotReady
+        annotations:
+          summary: Node {{ $labels.node }} isn't Ready
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 15m
+        labels:
+          severity: critical
+      - alert: KubePodCrashLooping
+        annotations:
+          summary: '{{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }})
+            is crash-looping'
+        expr: max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m])
+          >= 1
+        for: 15m
+        labels:
+          severity: warning
+      - alert: KubeJobFailed
+        annotations:
+          summary: Job {{ $labels.namespace }}/{{ $labels.job_name }} failed
+        expr: kube_job_failed > 0
+        for: 15m
+        labels:
+          severity: warning
+      - alert: KubePersistentVolumeAlmostFull
+        annotations:
+          summary: Volume {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}
+            has {{ $value | humanizePercentage }} left
+        expr: kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes
+          < 0.10
+        for: 30m
+        labels:
+          severity: warning
+  alerts: |
+    {}
+  allow-snippet-annotations: "false"
+  prometheus.yml: |
+    global:
+      evaluation_interval: 60s
+      scrape_interval: 60s
+      scrape_timeout: 10s
+    scrape_configs:
+    - job_name: kubernetes-api-servers
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: endpointslice
+      relabel_configs:
+      - action: keep
+        regex: default;kubernetes;https
+        source_labels:
+        - __meta_kubernetes_namespace
+        - __meta_kubernetes_service_name
+        - __meta_kubernetes_endpointslice_port_name
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    - job_name: kubernetes-nodes
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        insecure_skip_verify: true
+    - job_name: kubernetes-nodes-cadvisor
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      metrics_path: /metrics/cadvisor
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels:
+        - __metrics_path__
+        target_label: metrics_path
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        insecure_skip_verify: true
+    - job_name: kubernetes-pods
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: pod
+      relabel_configs:
+      - action: keep
+        regex: true
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_scrape
+      - action: drop
+        regex: true
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_scrape_slow
+      - action: replace
+        regex: (https?)
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_scheme
+        target_label: __scheme__
+      - action: replace
+        regex: (.+)
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_path
+        target_label: __metrics_path__
+      - action: replace
+        regex: (\d+);(([A-Fa-f0-9]{1,4}::?){1,7}[A-Fa-f0-9]{1,4})
+        replacement: '[$2]:$1'
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
+        target_label: __address__
+      - action: replace
+        regex: (\d+);((([0-9]+?)(\.|$)){4})
+        replacement: $2:$1
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
+        replacement: __param_$1
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_namespace
+        target_label: namespace
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_name
+        target_label: pod
+      - action: drop
+        regex: Pending|Succeeded|Failed|Completed
+        source_labels:
+        - __meta_kubernetes_pod_phase
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_node_name
+        target_label: node
+    - job_name: kubernetes-pods-slow
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: pod
+      relabel_configs:
+      - action: keep
+        regex: true
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_scrape_slow
+      - action: replace
+        regex: (https?)
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_scheme
+        target_label: __scheme__
+      - action: replace
+        regex: (.+)
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_path
+        target_label: __metrics_path__
+      - action: replace
+        regex: (\d+);(([A-Fa-f0-9]{1,4}::?){1,7}[A-Fa-f0-9]{1,4})
+        replacement: '[$2]:$1'
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
+        target_label: __address__
+      - action: replace
+        regex: (\d+);((([0-9]+?)(\.|$)){4})
+        replacement: $2:$1
+        source_labels:
+        - __meta_kubernetes_pod_annotation_prometheus_io_port
+        - __meta_kubernetes_pod_ip
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
+        replacement: __param_$1
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_namespace
+        target_label: namespace
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_name
+        target_label: pod
+      - action: drop
+        regex: Pending|Succeeded|Failed|Completed
+        source_labels:
+        - __meta_kubernetes_pod_phase
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_node_name
+        target_label: node
+      scrape_interval: 5m
+      scrape_timeout: 30s
+    - job_name: kubernetes-service-endpoints
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: endpointslice
+      relabel_configs:
+      - action: keep
+        regex: true
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scrape
+      - action: drop
+        regex: true
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scrape_slow
+      - action: replace
+        regex: (https?)
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scheme
+        target_label: __scheme__
+      - action: replace
+        regex: (.+)
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_path
+        target_label: __metrics_path__
+      - action: replace
+        regex: (.+?)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        source_labels:
+        - __address__
+        - __meta_kubernetes_service_annotation_prometheus_io_port
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_service_annotation_prometheus_io_param_(.+)
+        replacement: __param_$1
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_namespace
+        target_label: namespace
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_service_name
+        target_label: service
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_node_name
+        target_label: node
+    - job_name: kubernetes-service-endpoints-slow
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: endpointslice
+      relabel_configs:
+      - action: keep
+        regex: true
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scrape_slow
+      - action: replace
+        regex: (https?)
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scheme
+        target_label: __scheme__
+      - action: replace
+        regex: (.+)
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_path
+        target_label: __metrics_path__
+      - action: replace
+        regex: (.+?)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        source_labels:
+        - __address__
+        - __meta_kubernetes_service_annotation_prometheus_io_port
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_service_annotation_prometheus_io_param_(.+)
+        replacement: __param_$1
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_namespace
+        target_label: namespace
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_service_name
+        target_label: service
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_pod_node_name
+        target_label: node
+      scrape_interval: 5m
+      scrape_timeout: 30s
+    - job_name: kubernetes-services
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: service
+      metrics_path: /probe
+      params:
+        module:
+        - http_2xx
+      relabel_configs:
+      - action: keep
+        regex: true
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_probe
+      - source_labels:
+        - __address__
+        target_label: __param_target
+      - replacement: blackbox
+        target_label: __address__
+      - source_labels:
+        - __param_target
+        target_label: instance
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels:
+        - __meta_kubernetes_namespace
+        target_label: namespace
+      - source_labels:
+        - __meta_kubernetes_service_name
+        target_label: service
+    - job_name: prometheus
+      static_configs:
+      - targets:
+        - localhost:9090
+    - job_name: prometheus-pushgateway
+      honor_labels: true
+      kubernetes_sd_configs:
+      - role: service
+      relabel_configs:
+      - action: keep
+        regex: pushgateway
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_probe
+    - {"job_name":"longhorn","kubernetes_sd_configs":[{"namespaces":{"names":["longhorn-system"]},"role":"endpoints"}],"relabel_configs":[{"action":"keep","regex":"longhorn-backend;manager","source_labels":["__meta_kubernetes_service_name","__meta_kubernetes_endpoint_port_name"]}],"scrape_interval":"60s"}
+    - {"job_name":"cert-manager","kubernetes_sd_configs":[{"namespaces":{"names":["dns-system"]},"role":"endpoints"}],"relabel_configs":[{"action":"keep","regex":"cert-manager;tcp-prometheus-servicemonitor","source_labels":["__meta_kubernetes_service_name","__meta_kubernetes_endpoint_port_name"]}],"scrape_interval":"60s"}
+    - {"job_name":"argocd","kubernetes_sd_configs":[{"namespaces":{"names":["argocd"]},"role":"endpoints"}],"relabel_configs":[{"action":"keep","regex":"argocd-application-controller-metrics;http-metrics","source_labels":["__meta_kubernetes_service_name","__meta_kubernetes_endpoint_port_name"]}],"scrape_interval":"60s"}
+    - {"job_name":"smartctl","kubernetes_sd_configs":[{"role":"node"}],"relabel_configs":[{"regex":"([^:]+)(:[0-9]+)?","replacement":"$1:9633","source_labels":["__address__"],"target_label":"__address__"},{"source_labels":["__meta_kubernetes_node_name"],"target_label":"instance"}],"scrape_interval":"60s"}
+
+    rule_files:
+    - /etc/config/recording_rules.yml
+    - /etc/config/alerting_rules.yml
+    - /etc/config/rules
+    - /etc/config/alerts
+    alerting:
+      alertmanagers:
+      - kubernetes_sd_configs:
+          - role: pod
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_namespace]
+          regex: monitoring
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+          regex: prometheus
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+          regex: alertmanager
+          action: keep
+        - source_labels: [__meta_kubernetes_pod_container_port_number]
+          regex: "9093"
+          action: keep
+  recording_rules.yml: |
+    {}
+  rules: |
+    {}
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: server
+    app.kubernetes.io/instance: prometheus
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/part-of: prometheus
+    app.kubernetes.io/version: v3.11.3
+    helm.sh/chart: prometheus-29.6.0
+  name: prometheus-server
+  namespace: monitoring

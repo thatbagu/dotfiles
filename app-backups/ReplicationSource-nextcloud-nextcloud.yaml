@@ -1,0 +1,20 @@
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: nextcloud-nextcloud
+  namespace: nextcloud
+spec:
+  restic:
+    cacheCapacity: 1Gi
+    cacheStorageClassName: longhorn
+    copyMethod: Clone
+    pruneIntervalDays: 7
+    repository: volsync-nextcloud-nextcloud
+    retain:
+      daily: 7
+      monthly: 6
+      weekly: 4
+    storageClassName: longhorn
+  sourcePVC: nextcloud-nextcloud
+  trigger:
+    schedule: 15 2 * * *
