@@ -8,9 +8,9 @@
   clusterSshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQRS6OzC9Ip5lUhIyFvG03KgyupxJE55gmY3Dis0u18 cluster";
 
   nodes = {
-    meowth = { hostname = "meowth"; master = true; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q029829"; espSize = "500M"; encrypt = true; tags = [ "homelab" "master" "meowth" ]; };
-    psyduck = { hostname = "psyduck"; master = false; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q033811"; espSize = "500M"; encrypt = true; tags = [ "homelab" "worker" "psyduck" ]; };
-    bulbasaur = { hostname = "bulbasaur"; master = false; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q047291"; espSize = "500M"; encrypt = true; tags = [ "homelab" "worker" "bulbasaur" ]; };
+    meowth = { hostname = "meowth"; master = true; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q029829"; espSize = "500M"; tags = [ "homelab" "master" "meowth" ]; };
+    psyduck = { hostname = "psyduck"; master = false; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q033811"; espSize = "500M"; tags = [ "homelab" "worker" "psyduck" ]; };
+    bulbasaur = { hostname = "bulbasaur"; master = false; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q047291"; espSize = "500M"; tags = [ "homelab" "worker" "bulbasaur" ]; };
   };
 
   domain = "egor.house";
