@@ -1,6 +1,7 @@
 apiVersion: v1
 data:
   default-setting.yaml: |-
+    allow-recurring-job-while-volume-detached: true
     create-default-disk-labeled-nodes: true
     default-data-path: "/var/lib/longhorn"
     replica-soft-anti-affinity: true
