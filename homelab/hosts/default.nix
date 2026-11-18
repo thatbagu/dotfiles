@@ -34,12 +34,6 @@ inputs:
     "w /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference - - - - balance_power"
   ];
 
-  # Until nixlab includes it (thatbagu/nixlab#38): Prometheus scrapes the
-  # other nodes' exporters from a node's LAN address. Drop with that release.
-  networking.firewall.extraCommands = ''
-    iptables -A nixos-fw -p tcp -s 192.168.1.0/24 -m multiport --dports 9100,9633 -j nixos-fw-accept
-  '';
-
   # The locales the nodes were installed with: changing them restarts nearly
   # every service. Drop this line at a planned reboot.
   i18n.supportedLocales = lib.mkForce [ "en_US.UTF-8/UTF-8" "ja_JP.UTF-8/UTF-8" ];
