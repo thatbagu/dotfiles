@@ -117,6 +117,17 @@ data:
         expr: longhorn_backup_state == 4
         labels:
           severity: warning
+      - alert: AppBackupOutOfSync
+        annotations:
+          description: 'Its last scheduled backup failed or didn''t finish in time. Check:
+            kubectl -n {{ $labels.obj_namespace }} describe replicationsource {{ $labels.obj_name
+            }}'
+          summary: The per-app backup of {{ $labels.obj_namespace }}/{{ $labels.obj_name
+            }} is out of date
+        expr: volsync_volume_out_of_sync{role="source"} == 1
+        for: 1h
+        labels:
+          severity: critical
     - name: nixlab.storage
       rules:
       - alert: LonghornVolumeDegraded
@@ -548,6 +559,7 @@ data:
     - {"job_name":"cert-manager","kubernetes_sd_configs":[{"namespaces":{"names":["dns-system"]},"role":"endpoints"}],"relabel_configs":[{"action":"keep","regex":"cert-manager;tcp-prometheus-servicemonitor","source_labels":["__meta_kubernetes_service_name","__meta_kubernetes_endpoint_port_name"]}],"scrape_interval":"60s"}
     - {"job_name":"argocd","kubernetes_sd_configs":[{"namespaces":{"names":["argocd"]},"role":"endpoints"}],"relabel_configs":[{"action":"keep","regex":"argocd-application-controller-metrics;http-metrics","source_labels":["__meta_kubernetes_service_name","__meta_kubernetes_endpoint_port_name"]}],"scrape_interval":"60s"}
     - {"job_name":"smartctl","kubernetes_sd_configs":[{"role":"node"}],"relabel_configs":[{"regex":"([^:]+)(:[0-9]+)?","replacement":"$1:9633","source_labels":["__address__"],"target_label":"__address__"},{"source_labels":["__meta_kubernetes_node_name"],"target_label":"instance"}],"scrape_interval":"60s"}
+    - {"job_name":"volsync","kubernetes_sd_configs":[{"namespaces":{"names":["volsync-system"]},"role":"endpoints"}],"relabel_configs":[{"action":"keep","regex":"volsync-metrics;https","source_labels":["__meta_kubernetes_service_name","__meta_kubernetes_endpoint_port_name"]}],"scheme":"https","scrape_interval":"60s","tls_config":{"insecure_skip_verify":true}}
 
     rule_files:
     - /etc/config/recording_rules.yml

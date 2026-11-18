@@ -7,6 +7,7 @@ data:
     replica-soft-anti-affinity: true
     replica-auto-balance: "best-effort"
     priority-class: "longhorn-critical"
+    node-down-pod-deletion-policy: "delete-both-statefulset-and-deployment-pod"
     disable-revision-counter: "{\"v1\":\"true\"}"
 kind: ConfigMap
 metadata:
