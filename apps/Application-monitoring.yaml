@@ -9,6 +9,11 @@ spec:
   destination:
     namespace: monitoring
     server: https://kubernetes.default.svc
+  ignoreDifferences:
+    - group: apps
+      jsonPointers:
+        - /spec/volumeClaimTemplates
+      kind: StatefulSet
   project: default
   source:
     path: ./monitoring
