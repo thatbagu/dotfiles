@@ -15,6 +15,12 @@ spec:
     repoURL: https://github.com/thatbagu/dotfiles.git
     targetRevision: k8s-rendered
   syncPolicy:
+    retry:
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
+      limit: -1
     syncOptions:
       - CreateNamespace=true
       - PruneLast=true
