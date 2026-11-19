@@ -92,10 +92,10 @@ spec:
             timeoutSeconds: 4
           resources:
             limits:
-              memory: 768Mi
+              memory: 1536Mi
             requests:
               cpu: 50m
-              memory: 192Mi
+              memory: 512Mi
           volumeMounts:
             - mountPath: /etc/config
               name: config-volume
