@@ -64,7 +64,7 @@
     # Kubernetes render are built with nixlab.lib.mkNixlab (homelab/). Shares
     # this flake's pins so the nodes keep the same package versions.
     nixlab = {
-      url = "github:thatbagu/nixlab/v1.24.1";
+      url = "github:thatbagu/nixlab/v1.24.2";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         disko.follows = "disko";
