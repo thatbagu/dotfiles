@@ -51,6 +51,7 @@ spec:
             - --path.rootfs=/host/root
             - --path.udev.data=/host/root/run/udev/data
             - --web.listen-address=[$(HOST_IP)]:9100
+            - --collector.textfile.directory=/host/root/var/lib/nixlab-metrics
           env:
             - name: HOST_IP
               value: 0.0.0.0

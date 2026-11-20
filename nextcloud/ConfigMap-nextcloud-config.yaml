@@ -99,6 +99,9 @@ data:
       'trusted_proxies' => ['10.42.0.0/16'],
       'forwarded_for_headers' => ['HTTP_X_FORWARDED_FOR'],
       'overwriteprotocol' => 'https',
+      # Its own address for links made outside a request (background
+      # jobs' emails, federated cloud IDs); the chart leaves localhost.
+      'overwrite.cli.url' => 'https://nextcloud.egor.house',
     );
   redis.config.php: |-
     <?php
