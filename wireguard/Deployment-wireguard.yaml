@@ -63,13 +63,21 @@ spec:
             - mountPath: /lib/modules
               name: lib-modules
               readOnly: true
-        - args:
-            - caddy
-            - run
-            - --config
-            - /etc/caddy/Caddyfile
-            - --adapter
-            - caddyfile
+        - command:
+            - sh
+            - -c
+            - |
+              run() { caddy run --config /etc/caddy/Caddyfile --adapter caddyfile & pid=$!; }
+              trap 'kill -TERM $pid 2>/dev/null; wait $pid; exit 0' TERM INT
+              seen=$(sha256sum /certs/tls.crt); run
+              while :; do
+                sleep 60 & wait $!
+                kill -0 $pid 2>/dev/null || exit 1
+                now=$(sha256sum /certs/tls.crt)
+                [ "$now" = "$seen" ] && continue
+                echo "certificate renewed: restarting Caddy"
+                kill -TERM $pid; wait $pid; seen=$now; run
+              done
           env:
             - name: NEXTCLOUD_SSO_SECRET
               valueFrom:
