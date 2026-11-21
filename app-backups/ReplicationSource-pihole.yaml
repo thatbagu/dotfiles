@@ -14,6 +14,7 @@ spec:
       daily: 7
       monthly: 6
       weekly: 4
+      within: 7d
     storageClassName: longhorn
   sourcePVC: pihole
   trigger:
