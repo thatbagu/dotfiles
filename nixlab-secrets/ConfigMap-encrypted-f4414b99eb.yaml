@@ -41,6 +41,7 @@ data:
     backup_restic_password: ENC[AES256_GCM,data:EI6qSMqKn7gVIeS/5qulwQArMES1S9cUsCtUilrvOK4AYlMQsQTwqpII3OupwldaPLPny+0oeUyh5QknNW6EMg==,iv:PMrMd9IItnwZYmLCPpwWvXqOF0Sq+qsV3praKfgVBxw=,tag:Eqq0MS5VtouQ92uSA7vq/w==,type:str]
     grafana_admin_password: ENC[AES256_GCM,data:eE0TMEiS8rY10OGcFGqBExajXwfyVnN2wZJKAQaI7fo=,iv:SyerkQg8Ka7tEddPb4Ju8FOdDDJ8APZlrJLbw6oC9zk=,tag:kFXNFWl7cFylzBrurBw6Fg==,type:str]
     monitoring_ntfy_url: ENC[AES256_GCM,data:CbeJF8prkHb3WSWo1YBxyXjvvHEQfR36ZbUW4R4PtjinQN6unVfW57lYEq4g1ChY+v+2vI0HSR8QP8LOpIuT,iv:u2AVNQ9knsWSNh7cbb2tjvVmTj6bLEHEXa39HNgPcK8=,tag:T9GDzISHgBEw0zHgqlYY4Q==,type:str]
+    sso_nextcloud_client_secret: ENC[AES256_GCM,data:R5wkg1wea3P4wHjNjk1swKilZ/+FQ/bYNGloFWsb1ITUJlcwb3vaC4kSDKGStbVUgQxXS3pT8S5a99UMK6Ntfg==,iv:bbdbWMSAq63mlTwjzh+Mb8JQG6iYeLiTdxYeBGQZ3Xc=,tag:ed6wKHxzSSRXI/wg6GqXsw==,type:str]
     sops:
         age:
             - recipient: age143w2r9lgdau07vd36w394pxmn27w6t84elwp9cyphdq0e0ukyedqp7vpy7
@@ -52,11 +53,11 @@ data:
                 UjlTSG9HNk5nUDk2VFhIa1BQemVBSmsKASQ4SbL8M6thbZfXCn2/8LE/Y1ZSAKkN
                 sMC2rKf+UC/5z2ZS9TDcT4VkoIiaoKYy/14cGEZsIjPcVDfFcg8/CQ==
                 -----END AGE ENCRYPTED FILE-----
-        lastmodified: "2026-11-17T17:57:05Z"
-        mac: ENC[AES256_GCM,data:ctRmOlhZyAvZRin54xQYr8sqr9WA3G0zaOCfQ+Ief3eeomqkJtXID4dG0nmLmJJQsDf+ckKCUKc9QfSNwUTaXtvReY1J0eSQH+6oDGohdqagGruojkIpTpTLbedwWSdv4Uz0PwRNOjZbndeCCIf8F2cr+uCLTyUQ5rHS2o5idFA=,iv:hN7EnzxZv+qA4gXyCgW1JvxZpYxZZku9OEVyTtKwlZU=,tag:g97lkNUaNvO5F3N1MHw8+w==,type:str]
+        lastmodified: "2026-11-21T15:26:02Z"
+        mac: ENC[AES256_GCM,data:zZZUTL1gICzBfmytYAvx6l7xcynYWcirQvNhDuPds979njcHK4IViTpN4X+bR6QI1buClMxnRQooogHkWcL+aW39SZr/QnX1kZQXp7DexjcfbXWgFI5FuQBjg/zGQSqdLPCS383lClhpPcU73TLY5YOJnoUdDfd4XpNScxqqYgQ=,iv:nKuIFcsrWkqwhGsncpiRaUXCfb3Ri3PXFIdPgbqN79Q=,tag:zI1T1pcKuSNn6CT77rAu7w==,type:str]
         unencrypted_suffix: _unencrypted
         version: 3.12.2
 kind: ConfigMap
 metadata:
-  name: encrypted-06bb79059d
+  name: encrypted-f4414b99eb
   namespace: nixlab-secrets

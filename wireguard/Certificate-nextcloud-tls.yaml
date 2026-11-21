@@ -6,6 +6,7 @@ metadata:
 spec:
   dnsNames:
     - nextcloud.egor.house
+    - auth.egor.house
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-prod

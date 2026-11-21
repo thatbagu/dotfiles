@@ -9,42 +9,64 @@ data:
     :443 {
       tls /certs/tls.crt /certs/tls.key
       header Strict-Transport-Security "max-age=15552000"
+      # Identity headers never come from a client, only from below.
+      request_header -X-Remote-User
 
-    @anya_laptop remote_ip 10.0.100.12
-    handle @anya_laptop {
-      reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
-        header_up Host nextcloud.egor.house
+    @auth_anya_laptop {
+      host auth.egor.house
+      remote_ip 10.0.100.12
+    }
+    handle @auth_anya_laptop {
+      reverse_proxy 127.0.0.1:5556 {
         header_up X-Remote-User "anya"
-        header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
-        header_up X-Real-IP {remote_host}
       }
     }
 
-
-    @anya_phone remote_ip 10.0.100.11
-    handle @anya_phone {
-      reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
-        header_up Host nextcloud.egor.house
+    @auth_anya_phone {
+      host auth.egor.house
+      remote_ip 10.0.100.11
+    }
+    handle @auth_anya_phone {
+      reverse_proxy 127.0.0.1:5556 {
         header_up X-Remote-User "anya"
-        header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
-        header_up X-Real-IP {remote_host}
       }
     }
 
-
-    @egor_main remote_ip 10.0.100.2
-    handle @egor_main {
-      reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
-        header_up Host nextcloud.egor.house
+    @auth_egor_main {
+      host auth.egor.house
+      remote_ip 10.0.100.2
+    }
+    handle @auth_egor_main {
+      reverse_proxy 127.0.0.1:5556 {
         header_up X-Remote-User "egor"
-        header_up X-Remote-Auth "{$NEXTCLOUD_SSO_SECRET}"
-        header_up X-Real-IP {remote_host}
       }
     }
 
+    @auth_friend_test {
+      host auth.egor.house
+      remote_ip 10.0.100.20
+    }
+    handle @auth_friend_test {
+      reverse_proxy 127.0.0.1:5556 {
+        header_up X-Remote-User "friend-test"
+      }
+    }
+
+      # Anyone else (apps exchanging codes, unknown peers): no identity.
+      @auth host auth.egor.house
+      handle @auth {
+        reverse_proxy 127.0.0.1:5556
+      }
+    @nextcloud host nextcloud.egor.house
+    handle @nextcloud {
+      reverse_proxy http://nextcloud.nextcloud.svc.cluster.local:8080 {
+        header_up Host nextcloud.egor.house
+        header_up X-Real-IP {remote_host}
+      }
+    }
 
       handle {
-        respond "VPN user not recognized" 403
+        respond "Not found" 404
       }
     }
   anya-laptop: |
@@ -69,6 +91,7 @@ data:
     Endpoint = __WG_SERVER_ENDPOINT__:51820
     AllowedIPs = 10.0.100.0/24, 192.168.1.250/32
     PersistentKeepalive = 25
+  dex.yaml: '{"connectors":[{"config":{"userHeader":"X-Remote-User"},"id":"vpn","name":"VPN","type":"authproxy"}],"enablePasswordDB":false,"issuer":"https://auth.egor.house","oauth2":{"responseTypes":["code"],"skipApprovalScreen":true},"staticClients":[{"id":"nextcloud","name":"Nextcloud","redirectURIs":["https://nextcloud.egor.house/apps/user_oidc/code"],"secretEnv":"NEXTCLOUD_OIDC_SECRET"}],"storage":{"type":"memory"},"web":{"http":"127.0.0.1:5556"}}'
   egor-main: |
     [Interface]
     PrivateKey = __PASTE_EGOR-MAIN_PRIVATE_KEY_HERE__

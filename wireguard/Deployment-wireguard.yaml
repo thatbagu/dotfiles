@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: c7744e22abdf79d5002b4d0b42a0dc347450c66923ef9566d211906943740309
+        checksum/config: ade58c021d6236ca34c5949697ed6f42e55350f8205429656a59978f8fdd0fa4
       labels:
         app: wireguard
     spec:
@@ -70,12 +70,7 @@ spec:
             - /etc/caddy/Caddyfile
             - --adapter
             - caddyfile
-          env:
-            - name: NEXTCLOUD_SSO_SECRET
-              valueFrom:
-                secretKeyRef:
-                  key: nextcloud-sso-secret
-                  name: wireguard-secrets
+          env: []
           image: docker.io/library/caddy:2.11.8-alpine@sha256:f6228111e5fafa1a5238258d0858e103f10599b8d1659a146e7726681a002bb9
           name: caddy
           ports:
@@ -97,6 +92,27 @@ spec:
               readOnly: true
             - mountPath: /data
               name: caddy-data
+        - args:
+            - dex
+            - serve
+            - /etc/dex/dex.yaml
+          env:
+            - name: NEXTCLOUD_OIDC_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: sso-nextcloud-client-secret
+                  name: wireguard-secrets
+          image: ghcr.io/dexidp/dex:v2.46.1@sha256:65b72ca0f4b0bf6d4ada84ec21da8851782563404ac7b8f926923d27ceced9ab
+          name: dex
+          resources:
+            limits:
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          volumeMounts:
+            - mountPath: /etc/dex
+              name: dex-config
       initContainers:
         - args:
             - |
@@ -166,6 +182,12 @@ spec:
             path: /lib/modules
             type: DirectoryOrCreate
           name: lib-modules
+        - configMap:
+            items:
+              - key: dex.yaml
+                path: dex.yaml
+            name: wireguard-config
+          name: dex-config
         - configMap:
             items:
               - key: Caddyfile

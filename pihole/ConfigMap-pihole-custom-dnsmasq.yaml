@@ -4,6 +4,7 @@ data:
     addn-hosts=/etc/addn-hosts
     address=/pihole.home/192.168.1.250
     address=/nextcloud.egor.house/10.0.100.1
+    address=/auth.egor.house/10.0.100.1
     dhcp-option=6,192.168.1.250
   05-pihole-custom-cname.conf: ""
   addn-hosts: |
