@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       annotations:
-        hooks-hash: 2d914c9cf78d9e6cd28fbab8874ebed2d3ddfd78faa7ed0dd8435f534855c86b
+        hooks-hash: 0c8b418789445e4b2ce638b3f1026058f47e9069bd4db2b4992b081d4af477c6
         nextcloud-config-hash: 0f404d3d97d4ddf6fd9b395e33b38df08d3dfb5b54bde98c76d98b8499c8e17e
         php-config-hash: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
@@ -71,11 +71,11 @@ spec:
                 secretKeyRef:
                   key: password
                   name: nextcloud-redis
-            - name: OIDC_CLIENT_SECRET
+            - name: SSO_SECRET
               valueFrom:
                 secretKeyRef:
                   key: secret
-                  name: nextcloud-oidc
+                  name: nextcloud-sso
           image: docker.io/library/nextcloud:33.0.10-apache
           imagePullPolicy: IfNotPresent
           livenessProbe:

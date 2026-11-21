@@ -59,5 +59,5 @@ data:
         version: 3.12.2
 kind: ConfigMap
 metadata:
-  name: encrypted-f4414b99eb
+  name: encrypted-36db764375
   namespace: nixlab-secrets

@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: apply-f4414b99eb
+  name: apply-36db764375
   namespace: nixlab-secrets
 spec:
   backoffLimit: 10
@@ -69,10 +69,10 @@ spec:
             defaultMode: 288
             secretName: age-key
         - configMap:
-            name: encrypted-f4414b99eb
+            name: encrypted-36db764375
           name: encrypted
         - configMap:
-            name: script-f4414b99eb
+            name: script-36db764375
           name: script
         - emptyDir:
             medium: Memory
