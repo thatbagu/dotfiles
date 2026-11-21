@@ -74,7 +74,8 @@
   wireguardIp = "192.168.1.194";
   nginxIp = "192.168.1.193";
   upstreamDns = "192.168.1.1";
-  lan.subnet = "192.168.1.0/24";
+  # The cluster ports (API, kubelet, VXLAN, NodePorts) answer only the LAN.
+  lan = { subnet = "192.168.1.0/24"; restrictClusterPorts = true; };
 
   vpn = {
     subnet = "10.0.100.0/24";
