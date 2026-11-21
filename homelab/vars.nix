@@ -23,7 +23,7 @@
   nextcloud.enable = true;
   signalProxy.enable = true;
   telegramProxy.enable = true;
-  sso.enable = false;
+  sso.enable = true;
 
   # HAProxy in front of nginx: shares :443 with the Telegram proxy, serves
   # mlship.dev, and forwards SSH on :22 to the CV's terminal UI.
