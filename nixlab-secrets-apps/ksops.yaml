@@ -1,0 +1,1 @@
+{"apiVersion":"viaduct.ai/v1","files":["./secrets/arc-runners/arc-github.yaml","./secrets/cv/cv-tui-ssh-host-key.yaml"],"kind":"ksops","metadata":{"annotations":{"config.kubernetes.io/function":"exec:\n  path: ksops"},"name":"nixlab-secrets-apps"}}
