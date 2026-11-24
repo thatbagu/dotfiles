@@ -64,7 +64,7 @@
     # Kubernetes render are built with nixlab.lib.mkNixlab (homelab/). Shares
     # this flake's pins so the nodes keep the same package versions.
     nixlab = {
-      url = "github:thatbagu/nixlab/v1.27.0";
+      url = "github:thatbagu/nixlab/v1.28.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         disko.follows = "disko";
@@ -270,9 +270,24 @@
         ];
       };
 
+      # nixlab's tools for the homelab, behind one command: nixlab <command>.
+      homelabTools = inputs.nixlab.lib.mkTools {
+        vars = import ./homelab/vars.nix;
+        paths = { vars = "homelab/vars.nix"; secrets = "modules/system/sops/secrets.yaml"; hosts = "homelab/hosts"; };
+      };
+      homelabPkgs = nixpkgs.legacyPackages.x86_64-linux;
+
     in
     {
       inherit nixosMachines;
+
+      # nixlab <command> (nixlab help): nix run .#nixlab -- <command>, or
+      # nix develop .#homelab to have it on your PATH.
+      packages.x86_64-linux.nixlab = homelabTools.nixlab;
+      apps.x86_64-linux.nixlab = { type = "app"; program = "${homelabTools.nixlab}/bin/nixlab"; };
+      devShells.x86_64-linux.homelab = homelabPkgs.mkShell {
+        packages = [ homelabTools.nixlab ] ++ (with homelabPkgs; [ sops age kubectl colmena ]);
+      };
 
       nixosConfigurations = {
         # installer iso
