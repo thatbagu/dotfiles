@@ -247,6 +247,8 @@
       homelab = inputs.nixlab.lib.mkNixlab {
         vars = import ./homelab/vars.nix;
         secretsFile = ./modules/system/sops/secrets.yaml;
+        # The cluster's Kubernetes Secrets, one encrypted file each (nixlab secrets).
+        secretsDir = ./secrets/k8s;
         appsDir = ./homelab/apps;
         hardwareConfig = hostname: ./homelab/hosts + "/${hostname}/hardware-configuration.nix";
         extraNixosModules = [ (import ./homelab/hosts inputs) ];
@@ -274,6 +276,8 @@
       homelabTools = inputs.nixlab.lib.mkTools {
         vars = import ./homelab/vars.nix;
         paths = { vars = "homelab/vars.nix"; secrets = "modules/system/sops/secrets.yaml"; hosts = "homelab/hosts"; };
+        # The cluster's Kubernetes Secrets (nixlab secrets; files in secrets/k8s/).
+        secretsData = { inherit (homelab.nixidyEnv.config.nixlab.secrets) declared values; };
       };
       homelabPkgs = nixpkgs.legacyPackages.x86_64-linux;
 
