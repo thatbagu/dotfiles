@@ -23,6 +23,7 @@ spec:
       annotations:
         checksum/cm: cb99df1760c4eddeaf206c7f0694d73851b68d4fd9e8f4d6a6006cbd97582383
         checksum/cmd-params: 1cb344fe1448076f033215b8f079680cfab1468fba851e8a7eb968847cd31441
+        checksum/cmp-cm: 976caa3eaee8c5d9dea1ec22ce6ba47c27984fdb141012ddeeb071b4da2a78ed
       labels:
         app.kubernetes.io/component: repo-server
         app.kubernetes.io/instance: argocd
@@ -372,6 +373,36 @@ spec:
               name: plugins
             - mountPath: /tmp
               name: tmp
+        - command:
+            - /var/run/argocd/argocd-cmp-server
+          env:
+            - name: SOPS_AGE_KEY_FILE
+              value: /sops-age/keys.txt
+            - name: HOME
+              value: /tmp
+          image: docker.io/viaductoss/ksops:v4.5.1@sha256:4def9fdd4e2f850265740ebe9592c5455d19b76891e88e602df8b52d74b95334
+          name: ksops
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            - mountPath: /var/run/argocd
+              name: var-files
+            - mountPath: /home/argocd/cmp-server/plugins
+              name: plugins
+            - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+              name: ksops-plugin
+              subPath: ksops.yaml
+            - mountPath: /tmp
+              name: ksops-tmp
+            - mountPath: /sops-age
+              name: sops-age
+              readOnly: true
       dnsPolicy: ClusterFirst
       initContainers:
         - args:
@@ -400,6 +431,14 @@ spec:
       serviceAccountName: argocd-repo-server
       terminationGracePeriodSeconds: 30
       volumes:
+        - configMap:
+            name: argocd-cmp-cm
+          name: ksops-plugin
+        - emptyDir: {}
+          name: ksops-tmp
+        - name: sops-age
+          secret:
+            secretName: sops-age
         - emptyDir: {}
           name: helm-working-dir
         - emptyDir: {}
