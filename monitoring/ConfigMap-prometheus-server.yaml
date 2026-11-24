@@ -204,6 +204,16 @@ data:
         expr: time() - nixlab_upgrade_last_run_timestamp_seconds > 3 * 86400
         labels:
           severity: warning
+    - name: nixlab.native-apps
+      rules:
+      - alert: NixlabNativeAppDown
+        annotations:
+          summary: Native app {{ $labels.app }} isn't running on {{ $labels.instance }}
+            (systemctl status {{ $labels.unit }})
+        expr: nixlab_native_app_up == 0
+        for: 5m
+        labels:
+          severity: critical
     - name: essential.pipeline
       rules:
       - alert: Watchdog
