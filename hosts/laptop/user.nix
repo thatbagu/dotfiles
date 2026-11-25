@@ -14,6 +14,8 @@
     gtk.enable = true;
     yazi.enable = true;
     swaylock.enable = true;
+    mpv.enable = true;
+    memento.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

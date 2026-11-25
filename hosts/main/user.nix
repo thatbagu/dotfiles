@@ -12,6 +12,8 @@
     waybar.enable = true;
     rtorrent.enable = true;
     swaylock.enable = true;
+    mpv.enable = true;
+    memento.enable = true;
 
     # Terminal & Shell
     nixvim.enable = true;

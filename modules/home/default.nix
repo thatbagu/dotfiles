@@ -14,6 +14,8 @@
     ./yazi
     ./swaylock
     ./ghostty
+    ./mpv
+    ./memento
 
     # Terminal & Shell
     ./nixvim
