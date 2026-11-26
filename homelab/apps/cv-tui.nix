@@ -1,5 +1,6 @@
 # The CV site's terminal UI over SSH: the edge proxy forwards ports 22 and
-# 2001 to it (vars.nix edge.tcp); the public one is `ssh -p 2001 mlship.dev`.
+# 2001 to it (vars.nix edge.tcp); the public one is
+# `ssh -p 2001 ssh.mlship.dev`.
 # Its host key comes from SOPS (extraSecrets in flake.nix).
 { nixlab, ... }:
 
