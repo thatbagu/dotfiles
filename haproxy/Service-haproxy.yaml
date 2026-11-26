@@ -15,14 +15,14 @@ spec:
       port: 443
       protocol: TCP
       targetPort: 443
+    - name: tcp-2001
+      port: 2001
+      protocol: TCP
+      targetPort: 2001
     - name: tcp-22
       port: 22
       protocol: TCP
       targetPort: 22
-    - name: tcp-22022
-      port: 22022
-      protocol: TCP
-      targetPort: 22022
   selector:
     app: haproxy
   type: LoadBalancer

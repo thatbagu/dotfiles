@@ -37,15 +37,15 @@ data:
       server gateway traefik.gateway-system.svc.cluster.local:443 send-proxy-v2
     backend b_telegram
       server mtg telegram-proxy.telegram-proxy.svc.cluster.local:443
+    frontend f_tcp_2001
+      bind :2001
+      default_backend b_tcp_2001
+    backend b_tcp_2001
+      server s cv-tui.cv.svc.cluster.local:2222
     frontend f_tcp_22
       bind :22
       default_backend b_tcp_22
     backend b_tcp_22
-      server s cv-tui.cv.svc.cluster.local:2222
-    frontend f_tcp_22022
-      bind :22022
-      default_backend b_tcp_22022
-    backend b_tcp_22022
       server s cv-tui.cv.svc.cluster.local:2222
 kind: ConfigMap
 metadata:

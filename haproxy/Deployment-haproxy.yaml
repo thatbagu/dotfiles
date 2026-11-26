@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: 1b6322009899ff70f55ccaa6037e0f1a2b5853226f98d9196b94808f30009f17
+        checksum/config: 871b05523e04eb08ad977df6286f286122473b93f40015c5d2b35ea9ad4b5a8a
       labels:
         app: haproxy
     spec:
@@ -25,11 +25,11 @@ spec:
             - containerPort: 443
               name: https
               protocol: TCP
+            - containerPort: 2001
+              name: tcp-2001
+              protocol: TCP
             - containerPort: 22
               name: tcp-22
-              protocol: TCP
-            - containerPort: 22022
-              name: tcp-22022
               protocol: TCP
           resources:
             limits:
