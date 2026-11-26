@@ -74,6 +74,7 @@ spec:
                   update_record "$ZONE_ID_0" "telegram.egor.house" false
                   update_record "$ZONE_ID_0" "nextcloud.egor.house" false 10.0.100.1
                   update_record "$ZONE_ID_1" "mlship.dev" true
+                  update_record "$ZONE_ID_1" "ssh.mlship.dev" false
               command:
                 - /bin/sh
                 - -c
