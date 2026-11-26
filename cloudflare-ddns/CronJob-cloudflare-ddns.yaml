@@ -73,7 +73,7 @@ spec:
                   update_record "$ZONE_ID_0" "signal.egor.house" false
                   update_record "$ZONE_ID_0" "telegram.egor.house" false
                   update_record "$ZONE_ID_0" "nextcloud.egor.house" false 10.0.100.1
-                  update_record "$ZONE_ID_1" "mlship.dev" false
+                  update_record "$ZONE_ID_1" "mlship.dev" true
               command:
                 - /bin/sh
                 - -c
