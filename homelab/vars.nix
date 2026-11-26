@@ -49,11 +49,16 @@
   domain = "egor.house";
   cloudflare = {
     enable = true;
-    # The CV site, behind Cloudflare's proxy.
+    # The CV site, behind Cloudflare's proxy; tui.mlship.dev (DNS-only) is
+    # for its SSH terminal on :2001, which the proxy wouldn't pass.
     ddns.records = [
       {
         name = "mlship.dev";
         proxied = true;
+      }
+      {
+        name = "tui.mlship.dev";
+        zone = "mlship.dev";
       }
     ];
   };
@@ -65,12 +70,12 @@
 
   # HAProxy in front of nginx: shares :443 with the Telegram proxy, serves
   # mlship.dev, and forwards SSH to the CV's terminal UI. The ISP blocks
-  # inbound :22, so the public `ssh tui.mlship.dev` goes through Cloudflare
-  # Spectrum (edge :22) to the router's :22022, which lands here.
+  # inbound :22, so the public one is `ssh -p 2001 tui.mlship.dev` (router
+  # :2001 -> here).
   edge = {
     domains = [ "mlship.dev" ];
     tcp."22" = "cv-tui.cv.svc.cluster.local:2222";
-    tcp."22022" = "cv-tui.cv.svc.cluster.local:2222";
+    tcp."2001" = "cv-tui.cv.svc.cluster.local:2222";
   };
 
   k3s = {
