@@ -42,6 +42,11 @@ data:
       default_backend b_tcp_22
     backend b_tcp_22
       server s cv-tui.cv.svc.cluster.local:2222
+    frontend f_tcp_22022
+      bind :22022
+      default_backend b_tcp_22022
+    backend b_tcp_22022
+      server s cv-tui.cv.svc.cluster.local:2222
 kind: ConfigMap
 metadata:
   name: haproxy-config

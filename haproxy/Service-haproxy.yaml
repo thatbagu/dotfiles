@@ -19,6 +19,10 @@ spec:
       port: 22
       protocol: TCP
       targetPort: 22
+    - name: tcp-22022
+      port: 22022
+      protocol: TCP
+      targetPort: 22022
   selector:
     app: haproxy
   type: LoadBalancer
