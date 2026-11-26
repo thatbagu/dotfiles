@@ -1,5 +1,6 @@
-# The CV site's terminal UI over SSH: the edge proxy forwards port 22 to it
-# (vars.nix edge.tcp). Its host key comes from SOPS (extraSecrets in flake.nix).
+# The CV site's terminal UI over SSH: the edge proxy forwards ports 22 and
+# 22022 to it (vars.nix edge.tcp); the public reaches 22022 through Cloudflare
+# Spectrum as `ssh tui.mlship.dev`. Its host key comes from SOPS (extraSecrets in flake.nix).
 { nixlab, ... }:
 
 let

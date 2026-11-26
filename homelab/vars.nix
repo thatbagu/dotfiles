@@ -8,16 +8,54 @@
   clusterSshKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQRS6OzC9Ip5lUhIyFvG03KgyupxJE55gmY3Dis0u18 cluster";
 
   nodes = {
-    meowth = { hostname = "meowth"; master = true; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q029829"; espSize = "500M"; encrypt = true; tags = [ "homelab" "master" "meowth" ]; };
-    psyduck = { hostname = "psyduck"; master = false; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q033811"; espSize = "500M"; encrypt = true; tags = [ "homelab" "worker" "psyduck" ]; };
-    bulbasaur = { hostname = "bulbasaur"; master = false; disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q047291"; espSize = "500M"; encrypt = true; tags = [ "homelab" "worker" "bulbasaur" ]; };
+    meowth = {
+      hostname = "meowth";
+      master = true;
+      disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q029829";
+      espSize = "500M";
+      encrypt = true;
+      tags = [
+        "homelab"
+        "master"
+        "meowth"
+      ];
+    };
+    psyduck = {
+      hostname = "psyduck";
+      master = false;
+      disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q033811";
+      espSize = "500M";
+      encrypt = true;
+      tags = [
+        "homelab"
+        "worker"
+        "psyduck"
+      ];
+    };
+    bulbasaur = {
+      hostname = "bulbasaur";
+      master = false;
+      disk = "/dev/disk/by-id/ata-FORESEE_512GB_SSD_PEJ242Q047291";
+      espSize = "500M";
+      encrypt = true;
+      tags = [
+        "homelab"
+        "worker"
+        "bulbasaur"
+      ];
+    };
   };
 
   domain = "egor.house";
   cloudflare = {
     enable = true;
     # The CV site, behind Cloudflare's proxy.
-    ddns.records = [ { name = "mlship.dev"; proxied = true; } ];
+    ddns.records = [
+      {
+        name = "mlship.dev";
+        proxied = true;
+      }
+    ];
   };
 
   nextcloud.enable = true;
@@ -26,16 +64,22 @@
   sso.enable = false;
 
   # HAProxy in front of nginx: shares :443 with the Telegram proxy, serves
-  # mlship.dev, and forwards SSH on :22 to the CV's terminal UI.
+  # mlship.dev, and forwards SSH to the CV's terminal UI. The ISP blocks
+  # inbound :22, so the public `ssh tui.mlship.dev` goes through Cloudflare
+  # Spectrum (edge :22) to the router's :22022, which lands here.
   edge = {
     domains = [ "mlship.dev" ];
     tcp."22" = "cv-tui.cv.svc.cluster.local:2222";
+    tcp."22022" = "cv-tui.cv.svc.cluster.local:2222";
   };
 
   k3s = {
     # meowth's SSD stalls for seconds on cache flushes; longer leader
     # election keeps them from restarting the control plane.
-    leaderElection = { leaseDuration = "60s"; renewDeadline = "40s"; };
+    leaderElection = {
+      leaseDuration = "60s";
+      renewDeadline = "40s";
+    };
     # Workers rejoin after a reinstall (their node password is the k3s token).
     stableNodePasswords = true;
   };
@@ -75,7 +119,10 @@
   nginxIp = "192.168.1.193";
   upstreamDns = "192.168.1.1";
   # The cluster ports (API, kubelet, VXLAN, NodePorts) answer only the LAN.
-  lan = { subnet = "192.168.1.0/24"; restrictClusterPorts = true; };
+  lan = {
+    subnet = "192.168.1.0/24";
+    restrictClusterPorts = true;
+  };
 
   vpn = {
     subnet = "10.0.100.0/24";
