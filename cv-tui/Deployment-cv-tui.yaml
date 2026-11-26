@@ -38,13 +38,31 @@ spec:
             requests:
               cpu: 50m
               memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
           volumeMounts:
             - mountPath: /app/.ssh/cv_ssh_host_key
               name: ssh-host-key
               readOnly: true
               subPath: cv_ssh_host_key
+            - mountPath: /tmp
+              name: tmp
+      securityContext:
+        fsGroup: 65532
+        runAsGroup: 65532
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
         - name: ssh-host-key
           secret:
-            defaultMode: 256
+            defaultMode: 288
             secretName: cv-tui-ssh-host-key
+        - emptyDir:
+            sizeLimit: 16Mi
+          name: tmp
