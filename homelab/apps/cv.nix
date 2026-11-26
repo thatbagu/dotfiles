@@ -1,7 +1,6 @@
-# The CV site at https://mlship.dev (public, DNS-only straight to the edge
-# proxy; DDNS keeps the record, see vars.nix). Its GitHub workflow
-# (cv-runner.nix) deploys it by restarting the Deployment, which pulls :latest
-# again.
+# The CV site at https://mlship.dev (public, behind Cloudflare's proxy; DDNS
+# keeps the record, see vars.nix). Its GitHub workflow (cv-runner.nix) deploys
+# it by restarting the Deployment, which pulls :latest again.
 { nixlab, ... }:
 
 let
@@ -34,7 +33,7 @@ nixlab.webApp {
     requests = { cpu = "50m"; memory = "64Mi"; };
     limits = { cpu = "500m"; memory = "512Mi"; };
   };
-  # Shared caches may keep pages for an hour (s-maxage), browsers for 5
+  # Cloudflare caches pages for an hour (s-maxage) and browsers for 5
   # minutes, except htmx requests (HX-Request: true), which are never cached.
   # The CSP replaces the site's own, adding 'unsafe-eval' (Vue/React runtime
   # template compilation on page refresh).

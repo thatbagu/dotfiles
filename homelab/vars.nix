@@ -49,11 +49,11 @@
   domain = "egor.house";
   cloudflare = {
     enable = true;
-    # The CV site. DNS-only, not behind Cloudflare's proxy, which wouldn't
-    # pass its SSH terminal on :2001.
+    # The CV site, behind Cloudflare's proxy.
     ddns.records = [
       {
         name = "mlship.dev";
+        proxied = true;
       }
     ];
   };
