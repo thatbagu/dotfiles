@@ -712,7 +712,7 @@
       },
       "original": {
         "owner": "thatbagu",
-        "ref": "v1.30.0",
+        "ref": "v0.30.0",
         "repo": "nixlab",
         "type": "github"
       }
